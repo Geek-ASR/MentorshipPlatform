@@ -1,16 +1,22 @@
 # dependencies
 node_modules/
-.pnpm-store/
+.pnp
+.pnp.*
 
-# builds
+# builds & caches
 .next/
 out/
-dist/
 build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# testing
 coverage/
 playwright-report/
 test-results/
-*.tsbuildinfo
+blob-report/
+playwright/.cache/
 
 # env & secrets — never commit
 .env
@@ -24,13 +30,18 @@ backups/
 *.sql.gz
 *.age
 
-# logs & OS
+# logs & OS & editors
 npm-debug.log*
 *.log
 .DS_Store
-.vercel
-.netlify
-.wrangler
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# hosting
+.vercel
+.netlify
+.wrangler
+
+# local uploads (dev object store)
+.local-storage/
