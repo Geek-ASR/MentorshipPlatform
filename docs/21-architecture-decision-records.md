@@ -152,3 +152,16 @@ New ADRs are appended; superseded ADRs are marked, not deleted.
 - **Decision:** Brand name, domain, colours, emails and legal entity name live in `src/config/brand.ts` and settings; no brand strings in schema, routes, cookie names (prefix from config) or code identifiers.
 - **Reason:** Rename = config change + asset swap.
 - **Revisit when:** final brand chosen.
+
+### ADR-021 — Two-tier Content Security Policy (Phase 4)
+- **Problem:** Nonce-based strict CSP requires dynamic rendering of every page, which defeats static/ISR SEO pages (docs/22 §10); a permissive CSP weakens XSS defence on authenticated pages.
+- **Options:** (a) nonces everywhere (all pages dynamic); (b) experimental SRI hash-based CSP; (c) baseline CSP for all routes + strict nonce CSP only for authenticated dynamic areas.
+- **Decision:** (c). All routes get a baseline policy from `next.config.ts` (`object-src 'none'`, `base-uri 'none'`, `frame-ancestors 'none'`, `form-action 'self'`, self-only sources; scripts still allow `'unsafe-inline'`). Phase 5 adds a nonce-based policy via `proxy.ts` for `/dashboard` and `/admin`. SRI is re-evaluated once it is stable.
+- **Reason:** Keeps SEO pages static while protecting the pages that handle personal data and money; public pages render no user-generated HTML in MVP.
+- **Revisit when:** SRI leaves experimental status, or public pages start rendering user-generated content.
+
+### ADR-022 — Toolchain baseline: Node 24 LTS, npm install-script denial, architecture tests over lint plugins (Phase 4)
+- **Problem:** The machine had Node 23 (end-of-life, unsupported by Vitest 5); npm packages can run arbitrary install scripts; boundary rules need enforcement.
+- **Decision:** Pin Node 24 LTS (`.nvmrc`, `engines`); keep npm 11's `allowScripts` denials for `esbuild` and `unrs-resolver` (both work without postinstall); enforce module boundaries, no Server Actions, public-env allowlist, raw-SQL timestamp handling and `sql.raw` confinement with fast Vitest architecture tests (`tests/architecture`) instead of adding `eslint-plugin-boundaries`/dependency-cruiser.
+- **Reason:** Supported runtime, smaller supply-chain surface, fewer dependencies, rules that are easy to read and extend.
+- **Revisit when:** The boundary rules become complex enough that a dedicated tool is clearer.

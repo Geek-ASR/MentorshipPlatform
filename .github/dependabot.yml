@@ -1,0 +1,19 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      framework:
+        patterns:
+          ["next", "react", "react-dom", "eslint-config-next", "@types/react", "@types/react-dom"]
+      testing:
+        patterns: ["vitest", "@playwright/test", "@axe-core/playwright"]
+      database:
+        patterns: ["drizzle-orm", "drizzle-kit", "postgres"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

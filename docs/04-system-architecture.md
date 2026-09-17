@@ -137,8 +137,8 @@ Connection handling: serverless-friendly transaction pooler (Supavisor, port 654
 | Rate limiting | Postgres-backed fixed-window (MVP) behind `RateLimiter` port | Upstash Redis | No extra vendor; swap at scale |
 | Search | Postgres FTS (`tsvector`) + `pg_trgm` + filter indexes | Meilisearch, Typesense, OpenSearch | Enough for < 50k mentors; no extra infra |
 | Testing | Vitest, Playwright, axe-core, Testcontainers-free local Postgres (CI service container) | Jest, Cypress | Speed, ESM-native |
-| Package manager | npm (already installed) with lockfile | pnpm | Zero setup; can switch later |
-| Node | Current LTS (24.x) pinned via `.nvmrc`/`engines` | — | Local machine has v23.1 (non-LTS); CI pins LTS |
+| Package manager | npm 11 with lockfile and `allowScripts` install-script denials | pnpm | Zero setup; supply-chain hygiene |
+| Node | 24 LTS pinned via `.nvmrc`/`engines` | — | Required by Vitest 5; installed via nvm (ADR-022) |
 
 ## 5. Code organisation (planned)
 
@@ -172,7 +172,7 @@ Connection handling: serverless-friendly transaction pooler (Supavisor, port 654
 └─ tests/ (e2e/, integration/, fixtures/)
 ```
 
-**Boundary rules** (enforced with `eslint-plugin-boundaries` / dependency-cruiser in CI):
+**Boundary rules** (enforced by the Vitest architecture tests in `tests/architecture`, ADR-022):
 - `domain/` imports nothing outside its module's `domain/` and `platform/primitives` (no DB, no HTTP, no Next.js).
 - Modules talk to each other only via their `index.ts` public API or domain events. No reaching into another module's tables.
 - `app/` imports `server/modules/*/index.ts` and `ui/` only.

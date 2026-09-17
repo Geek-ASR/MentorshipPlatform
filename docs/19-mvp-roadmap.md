@@ -24,20 +24,23 @@ flowchart LR
   P15 --> P16[16 Production hardening plan · S]
 ```
 
-## Phase 4 — Foundation (M)
+## Phase 4 — Foundation (M) ✅ complete (2026-09-17)
 
-**Scope**
-- Next.js (App Router) + TypeScript strict; ESLint (incl. `eslint-plugin-boundaries`, security rules, `no-restricted-imports` for `server/`), Prettier; path aliases.
-- Platform primitives: env schema (zod), logger (pino), request context, typed errors → problem+json, DB client + transaction helper (Drizzle, `postgres`), `Clock`, authz skeleton (`Actor`, `authorize`), audit writer (hash chain), outbox (table + tick endpoint + worker loop), idempotency middleware, Postgres rate limiter, settings service (versioned), feature flags.
-- Migrations baseline: `app` schema, extensions, platform tables (settings, flags, outbox, idempotency, rate limits, audit).
-- Reference data seed: countries (ISO), currencies, initial taxonomy (career + study-abroad categories).
-- Design system foundation: tokens (light/dark), fonts via `next/font`, Button, Input, Select, Card, Dialog, Toast, Skeleton, EmptyState, ErrorState; app shell with header/footer; accessible nav.
-- Security headers baseline + CSP (report-only), `/api/health`.
-- Testing harness: Vitest (unit + DB template cloning), Playwright config, axe helper.
-- CI workflow (lint, typecheck, unit, integration, build, e2e smoke, gitleaks, audit).
-- Repo files: `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `LICENSE` (per founder decision), `.env.example`, `.nvmrc`, Dependabot config.
+**Delivered**
+- Next.js 16 (App Router, Turbopack) + TypeScript strict (`noUncheckedIndexedAccess`); ESLint (Next core-web-vitals + TypeScript + `sql.raw` interpolation ban), Prettier; `@/` and `@tests/` aliases; Node 24 LTS pinned.
+- Platform primitives in `src/server/platform`: zod env validation (fail-fast via `instrumentation.ts`), pino logger with redaction, request context, typed errors → RFC 9457 problem+json, Drizzle/postgres.js client, `Clock`, authz (`Actor`, capability restrictions, composable guards, `authorize`), hash-chained append-only audit log, transactional outbox (claim with `SKIP LOCKED`, backoff, stale-lock reclaim, recurring jobs), idempotency keys (replay / mismatch / in-progress / stale takeover), Postgres fixed-window rate limiter, versioned settings + feature flags (audited), `defineRoute` HTTP pipeline (request id, same-origin CSRF check, JSON-only bodies with streaming size limit, validation, rate limit, idempotency, safe errors).
+- Migrations: extensions, `app` schema, platform + reference tables with CHECK constraints, triggers (`updated_at`, append-only guard, audit hash chain + `app.verify_audit_chain()`).
+- Idempotent reference seed: 250 countries (10 study-abroad destinations enabled), 12 currencies, 70-term two-section category tree (visa topics flagged as personal-experience).
+- API: `/api/health`, secret-protected `/api/health/ready`, `/api/internal/jobs/tick`, problem+json 404 for unknown API paths.
+- UI foundation: light/dark tokens, Instrument Sans + Source Serif 4 via `next/font`, Button, Badge, Card, Container, Skeleton, EmptyState, ErrorState, Logo, site header/footer, skip link; honest foundation home page; 404, error and global-error boundaries; non-production `robots.txt` disallow.
+- Security headers + enforced baseline CSP (ADR-021); `X-Robots-Tag: noindex` outside production.
+- Tests: Vitest unit + architecture tests (42), integration tests on throwaway databases cloned from a migrated template (43), Playwright E2E with axe (11 passing + 1 skipped for mobile keyboard).
+- CI (GitHub Actions, actions pinned to SHAs): format, lint, typecheck, unit, integration (Postgres service), build + E2E, gitleaks, `npm audit`. Dependabot for npm and actions.
+- Repo files: `CONTRIBUTING.md` (setup and engineering rules), `SECURITY.md`, `LICENSE` (proprietary, all rights reserved), `.env.example`, `.nvmrc`, `AGENTS.md`/`CLAUDE.md`. `README.md` is written by the maintainer.
 
-**Exit criteria:** `npm run dev` works against local Postgres; `npm test` and CI green; platform primitives have unit/integration tests (outbox exactly-once, idempotency replay, audit chain verification); lint blocks cross-module imports.
+**Deviations from plan:** module boundaries are enforced by architecture tests instead of `eslint-plugin-boundaries` (ADR-022); the CSP is an enforced baseline rather than report-only, with a strict nonce policy for authenticated areas moved to Phase 5 (ADR-021); form components (Input, Select, Dialog, Toast) move to Phase 5, where the first forms are built.
+
+**Exit criteria (met):** `npm run dev`/`build`/`start` work against local Postgres; unit, integration and E2E suites green; outbox exactly-once, idempotency replay and audit-chain verification covered by integration tests; cross-module imports blocked by architecture tests.
 
 ## Phase 5 — Authentication (M)
 
