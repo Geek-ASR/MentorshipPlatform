@@ -1,0 +1,36 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+.next/
+out/
+dist/
+build/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# env & secrets — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+backups/
+*.dump
+*.sql.gz
+*.age
+
+# logs & OS
+npm-debug.log*
+*.log
+.DS_Store
+.vercel
+.netlify
+.wrangler
+.idea/
+.vscode/*
+!.vscode/extensions.json
