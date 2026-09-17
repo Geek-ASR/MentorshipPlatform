@@ -1,0 +1,5 @@
+# Reviewed false positives (fingerprint = commit:file:rule:line). Never add real secrets here.
+# vitest.config.mts: placeholder test secrets, replaced by per-run random values in a later commit.
+# docs/06-api-design.md: example Idempotency-Key UUID in API documentation, replaced by a placeholder.
+a14b470b369bbf9eb1f1694dbed5a2f9f98a1408:vitest.config.mts:generic-api-key:14
+a519658fa41aeda6b483a8d29b2832bffdeeed44:docs/06-api-design.md:generic-api-key:246

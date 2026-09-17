@@ -243,7 +243,7 @@ Keyed by actor id when authenticated, else by IP (IPv6 /64). Responses include `
 ```http
 POST /api/v1/bookings
 Content-Type: application/json
-Idempotency-Key: 6f1c1a0e-8b8e-4a51-9a0c-2c6e0b0a9f11
+Idempotency-Key: <client-generated-uuid>
 Origin: https://app.aheadly.example
 
 { "serviceId": "0192…", "durationMin": 60, "startsAt": "2026-10-03T08:30:00Z",
