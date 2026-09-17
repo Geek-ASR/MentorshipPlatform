@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+/* Design tokens (docs/22 §6). Contrast pairs verified for WCAG 2.2 AA. */
+:root {
+  --canvas: #fafaf7;
+  --surface: #ffffff;
+  --line: #e4e2dc;
+  --ink: #0b1b2b;
+  --ink-muted: #5b6470;
+  --primary: #0e5a6b;
+  --on-primary: #ffffff;
+  --primary-soft: #e3f0f2;
+  --accent: #e8a33d;
+  --on-accent: #0b1b2b;
+  --accent-soft: #fbefd9;
+  --success: #1f7a4d;
+  --warning: #b45309;
+  --danger: #b42318;
+  --focus: #0e5a6b;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --canvas: #0e1419;
+    --surface: #151d24;
+    --line: #26313a;
+    --ink: #e7ecef;
+    --ink-muted: #9aa7b2;
+    --primary: #5cc3d6;
+    --on-primary: #06232b;
+    --primary-soft: #16303a;
+    --accent: #f0b55a;
+    --on-accent: #1b1305;
+    --accent-soft: #33280f;
+    --success: #4cc38a;
+    --warning: #f5a524;
+    --danger: #f97066;
+    --focus: #5cc3d6;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --canvas: #0e1419;
+  --surface: #151d24;
+  --line: #26313a;
+  --ink: #e7ecef;
+  --ink-muted: #9aa7b2;
+  --primary: #5cc3d6;
+  --on-primary: #06232b;
+  --primary-soft: #16303a;
+  --accent: #f0b55a;
+  --on-accent: #1b1305;
+  --accent-soft: #33280f;
+  --success: #4cc38a;
+  --warning: #f5a524;
+  --danger: #f97066;
+  --focus: #5cc3d6;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-source-serif), ui-serif, Georgia, serif;
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-sheet: 16px;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
