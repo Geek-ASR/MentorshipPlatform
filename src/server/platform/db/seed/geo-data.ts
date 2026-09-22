@@ -1,0 +1,325 @@
+/**
+ * Hand-curated starting set of real institutions for the launch countries (India, Germany —
+ * docs/00 §9, docs/19 Phase 6). Not a bulk ROR/GeoNames import: docs/05 §8 and docs/10 §2.2 require
+ * universities to come from ROR or admin curation, never scraped, so admins extend this at runtime.
+ * Domains are official institutional domains used for the verification email challenge (docs/10 §2.2).
+ */
+
+export type CitySeed = { slug: string; name: string; countryIso2: string };
+
+export const CITY_SEEDS: CitySeed[] = [
+  { slug: "mumbai", name: "Mumbai", countryIso2: "IN" },
+  { slug: "new-delhi", name: "New Delhi", countryIso2: "IN" },
+  { slug: "chennai", name: "Chennai", countryIso2: "IN" },
+  { slug: "kanpur", name: "Kanpur", countryIso2: "IN" },
+  { slug: "kharagpur", name: "Kharagpur", countryIso2: "IN" },
+  { slug: "roorkee", name: "Roorkee", countryIso2: "IN" },
+  { slug: "guwahati", name: "Guwahati", countryIso2: "IN" },
+  { slug: "bengaluru", name: "Bengaluru", countryIso2: "IN" },
+  { slug: "pilani", name: "Pilani", countryIso2: "IN" },
+  { slug: "tiruchirappalli", name: "Tiruchirappalli", countryIso2: "IN" },
+  { slug: "surathkal", name: "Surathkal", countryIso2: "IN" },
+  { slug: "pune", name: "Pune", countryIso2: "IN" },
+  { slug: "hyderabad", name: "Hyderabad", countryIso2: "IN" },
+  { slug: "vellore", name: "Vellore", countryIso2: "IN" },
+  { slug: "ahmedabad", name: "Ahmedabad", countryIso2: "IN" },
+  { slug: "munich", name: "Munich", countryIso2: "DE" },
+  { slug: "aachen", name: "Aachen", countryIso2: "DE" },
+  { slug: "karlsruhe", name: "Karlsruhe", countryIso2: "DE" },
+  { slug: "berlin", name: "Berlin", countryIso2: "DE" },
+  { slug: "stuttgart", name: "Stuttgart", countryIso2: "DE" },
+  { slug: "darmstadt", name: "Darmstadt", countryIso2: "DE" },
+  { slug: "hannover", name: "Hannover", countryIso2: "DE" },
+  { slug: "dresden", name: "Dresden", countryIso2: "DE" },
+  { slug: "bonn", name: "Bonn", countryIso2: "DE" },
+  { slug: "heidelberg", name: "Heidelberg", countryIso2: "DE" },
+  { slug: "freiburg", name: "Freiburg", countryIso2: "DE" },
+  { slug: "hamburg", name: "Hamburg", countryIso2: "DE" },
+];
+
+export type UniversitySeed = {
+  slug: string;
+  name: string;
+  countryIso2: string;
+  citySlug: string;
+  website: string;
+  /** Official institutional domains used for the email verification challenge. */
+  domains: { domain: string; kind: "current" | "alumni" }[];
+};
+
+export const UNIVERSITY_SEEDS: UniversitySeed[] = [
+  {
+    slug: "iit-bombay",
+    name: "Indian Institute of Technology Bombay",
+    countryIso2: "IN",
+    citySlug: "mumbai",
+    website: "https://www.iitb.ac.in",
+    domains: [{ domain: "iitb.ac.in", kind: "current" }],
+  },
+  {
+    slug: "iit-delhi",
+    name: "Indian Institute of Technology Delhi",
+    countryIso2: "IN",
+    citySlug: "new-delhi",
+    website: "https://home.iitd.ac.in",
+    domains: [{ domain: "iitd.ac.in", kind: "current" }],
+  },
+  {
+    slug: "iit-madras",
+    name: "Indian Institute of Technology Madras",
+    countryIso2: "IN",
+    citySlug: "chennai",
+    website: "https://www.iitm.ac.in",
+    domains: [{ domain: "iitm.ac.in", kind: "current" }],
+  },
+  {
+    slug: "iit-kanpur",
+    name: "Indian Institute of Technology Kanpur",
+    countryIso2: "IN",
+    citySlug: "kanpur",
+    website: "https://www.iitk.ac.in",
+    domains: [{ domain: "iitk.ac.in", kind: "current" }],
+  },
+  {
+    slug: "iit-kharagpur",
+    name: "Indian Institute of Technology Kharagpur",
+    countryIso2: "IN",
+    citySlug: "kharagpur",
+    website: "https://www.iitkgp.ac.in",
+    domains: [{ domain: "iitkgp.ac.in", kind: "current" }],
+  },
+  {
+    slug: "iit-roorkee",
+    name: "Indian Institute of Technology Roorkee",
+    countryIso2: "IN",
+    citySlug: "roorkee",
+    website: "https://www.iitr.ac.in",
+    domains: [{ domain: "iitr.ac.in", kind: "current" }],
+  },
+  {
+    slug: "iit-guwahati",
+    name: "Indian Institute of Technology Guwahati",
+    countryIso2: "IN",
+    citySlug: "guwahati",
+    website: "https://www.iitg.ac.in",
+    domains: [{ domain: "iitg.ac.in", kind: "current" }],
+  },
+  {
+    slug: "iisc-bangalore",
+    name: "Indian Institute of Science",
+    countryIso2: "IN",
+    citySlug: "bengaluru",
+    website: "https://www.iisc.ac.in",
+    domains: [{ domain: "iisc.ac.in", kind: "current" }],
+  },
+  {
+    slug: "bits-pilani",
+    name: "Birla Institute of Technology and Science, Pilani",
+    countryIso2: "IN",
+    citySlug: "pilani",
+    website: "https://www.bits-pilani.ac.in",
+    domains: [{ domain: "pilani.bits-pilani.ac.in", kind: "current" }],
+  },
+  {
+    slug: "nit-trichy",
+    name: "National Institute of Technology, Tiruchirappalli",
+    countryIso2: "IN",
+    citySlug: "tiruchirappalli",
+    website: "https://www.nitt.edu",
+    domains: [{ domain: "nitt.edu", kind: "current" }],
+  },
+  {
+    slug: "nit-karnataka",
+    name: "National Institute of Technology Karnataka, Surathkal",
+    countryIso2: "IN",
+    citySlug: "surathkal",
+    website: "https://www.nitk.ac.in",
+    domains: [{ domain: "nitk.edu.in", kind: "current" }],
+  },
+  {
+    slug: "savitribai-phule-pune-university",
+    name: "Savitribai Phule Pune University",
+    countryIso2: "IN",
+    citySlug: "pune",
+    website: "https://www.unipune.ac.in",
+    domains: [{ domain: "unipune.ac.in", kind: "current" }],
+  },
+  {
+    slug: "iiit-hyderabad",
+    name: "International Institute of Information Technology, Hyderabad",
+    countryIso2: "IN",
+    citySlug: "hyderabad",
+    website: "https://www.iiit.ac.in",
+    domains: [{ domain: "iiit.ac.in", kind: "current" }],
+  },
+  {
+    slug: "vit-vellore",
+    name: "Vellore Institute of Technology",
+    countryIso2: "IN",
+    citySlug: "vellore",
+    website: "https://vit.ac.in",
+    domains: [{ domain: "vit.ac.in", kind: "current" }],
+  },
+  {
+    slug: "iim-ahmedabad",
+    name: "Indian Institute of Management Ahmedabad",
+    countryIso2: "IN",
+    citySlug: "ahmedabad",
+    website: "https://www.iima.ac.in",
+    domains: [{ domain: "iima.ac.in", kind: "current" }],
+  },
+  {
+    slug: "technical-university-of-munich",
+    name: "Technical University of Munich",
+    countryIso2: "DE",
+    citySlug: "munich",
+    website: "https://www.tum.de",
+    domains: [
+      { domain: "tum.de", kind: "current" },
+      { domain: "alumni.tum.de", kind: "alumni" },
+    ],
+  },
+  {
+    slug: "rwth-aachen-university",
+    name: "RWTH Aachen University",
+    countryIso2: "DE",
+    citySlug: "aachen",
+    website: "https://www.rwth-aachen.de",
+    domains: [{ domain: "rwth-aachen.de", kind: "current" }],
+  },
+  {
+    slug: "karlsruhe-institute-of-technology",
+    name: "Karlsruhe Institute of Technology",
+    countryIso2: "DE",
+    citySlug: "karlsruhe",
+    website: "https://www.kit.edu",
+    domains: [{ domain: "kit.edu", kind: "current" }],
+  },
+  {
+    slug: "technical-university-of-berlin",
+    name: "Technical University of Berlin",
+    countryIso2: "DE",
+    citySlug: "berlin",
+    website: "https://www.tu.berlin",
+    domains: [{ domain: "tu-berlin.de", kind: "current" }],
+  },
+  {
+    slug: "university-of-stuttgart",
+    name: "University of Stuttgart",
+    countryIso2: "DE",
+    citySlug: "stuttgart",
+    website: "https://www.uni-stuttgart.de",
+    domains: [{ domain: "uni-stuttgart.de", kind: "current" }],
+  },
+  {
+    slug: "technical-university-of-darmstadt",
+    name: "Technical University of Darmstadt",
+    countryIso2: "DE",
+    citySlug: "darmstadt",
+    website: "https://www.tu-darmstadt.de",
+    domains: [{ domain: "tu-darmstadt.de", kind: "current" }],
+  },
+  {
+    slug: "leibniz-university-hannover",
+    name: "Leibniz University Hannover",
+    countryIso2: "DE",
+    citySlug: "hannover",
+    website: "https://www.uni-hannover.de",
+    domains: [{ domain: "uni-hannover.de", kind: "current" }],
+  },
+  {
+    slug: "tu-dresden",
+    name: "TU Dresden",
+    countryIso2: "DE",
+    citySlug: "dresden",
+    website: "https://tu-dresden.de",
+    domains: [{ domain: "tu-dresden.de", kind: "current" }],
+  },
+  {
+    slug: "university-of-bonn",
+    name: "University of Bonn",
+    countryIso2: "DE",
+    citySlug: "bonn",
+    website: "https://www.uni-bonn.de",
+    domains: [{ domain: "uni-bonn.de", kind: "current" }],
+  },
+  {
+    slug: "lmu-munich",
+    name: "Ludwig Maximilian University of Munich",
+    countryIso2: "DE",
+    citySlug: "munich",
+    website: "https://www.lmu.de",
+    domains: [{ domain: "lmu.de", kind: "current" }],
+  },
+  {
+    slug: "humboldt-university-of-berlin",
+    name: "Humboldt University of Berlin",
+    countryIso2: "DE",
+    citySlug: "berlin",
+    website: "https://www.hu-berlin.de",
+    domains: [{ domain: "hu-berlin.de", kind: "current" }],
+  },
+  {
+    slug: "heidelberg-university",
+    name: "Heidelberg University",
+    countryIso2: "DE",
+    citySlug: "heidelberg",
+    website: "https://www.uni-heidelberg.de",
+    domains: [{ domain: "uni-heidelberg.de", kind: "current" }],
+  },
+  {
+    slug: "university-of-freiburg",
+    name: "University of Freiburg",
+    countryIso2: "DE",
+    citySlug: "freiburg",
+    website: "https://www.uni-freiburg.de",
+    domains: [{ domain: "uni-freiburg.de", kind: "current" }],
+  },
+  {
+    slug: "university-of-hamburg",
+    name: "University of Hamburg",
+    countryIso2: "DE",
+    citySlug: "hamburg",
+    website: "https://www.uni-hamburg.de",
+    domains: [{ domain: "uni-hamburg.de", kind: "current" }],
+  },
+];
+
+export type CompanySeed = { slug: string; name: string; website: string; domains: string[] };
+
+export const COMPANY_SEEDS: CompanySeed[] = [
+  { slug: "google", name: "Google", website: "https://www.google.com", domains: ["google.com"] },
+  {
+    slug: "microsoft",
+    name: "Microsoft",
+    website: "https://www.microsoft.com",
+    domains: ["microsoft.com"],
+  },
+  { slug: "amazon", name: "Amazon", website: "https://www.amazon.com", domains: ["amazon.com"] },
+  { slug: "meta", name: "Meta", website: "https://about.meta.com", domains: ["meta.com"] },
+  { slug: "sap", name: "SAP", website: "https://www.sap.com", domains: ["sap.com"] },
+  {
+    slug: "siemens",
+    name: "Siemens",
+    website: "https://www.siemens.com",
+    domains: ["siemens.com"],
+  },
+  {
+    slug: "tcs",
+    name: "Tata Consultancy Services",
+    website: "https://www.tcs.com",
+    domains: ["tcs.com"],
+  },
+  {
+    slug: "infosys",
+    name: "Infosys",
+    website: "https://www.infosys.com",
+    domains: ["infosys.com"],
+  },
+  {
+    slug: "flipkart",
+    name: "Flipkart",
+    website: "https://www.flipkart.com",
+    domains: ["flipkart.com"],
+  },
+];

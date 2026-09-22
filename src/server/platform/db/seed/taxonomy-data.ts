@@ -136,3 +136,27 @@ export const CATEGORY_TREE: TaxonomySeedNode[] = [
     ],
   },
 ];
+
+/** Languages a mentor can offer sessions in (vocabulary `language`, flat — no hierarchy). */
+export const LANGUAGE_TERMS: TaxonomySeedNode[] = [
+  leaf("english", "English"),
+  leaf("hindi", "Hindi"),
+  leaf("german", "German"),
+  leaf("tamil", "Tamil"),
+  leaf("telugu", "Telugu"),
+  leaf("bengali", "Bengali"),
+  leaf("marathi", "Marathi"),
+  leaf("gujarati", "Gujarati"),
+  leaf("kannada", "Kannada"),
+  leaf("malayalam", "Malayalam"),
+  leaf("punjabi", "Punjabi"),
+  leaf("urdu", "Urdu"),
+  leaf("french", "French"),
+  leaf("spanish", "Spanish"),
+  leaf("mandarin", "Mandarin Chinese"),
+  leaf("arabic", "Arabic"),
+  leaf("portuguese", "Portuguese"),
+  leaf("russian", "Russian"),
+  leaf("japanese", "Japanese"),
+  leaf("korean", "Korean"),
+];

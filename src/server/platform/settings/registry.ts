@@ -46,6 +46,45 @@ export const settingsRegistry = {
     defaultValue: 10,
     description: "Minutes a slot is held while payment is in progress.",
   }),
+  "mentor.eligibility_reattest_days": defineSetting({
+    schema: z.number().int().min(90).max(730),
+    defaultValue: 365,
+    description: "How often a mentor must re-confirm their work-eligibility attestation.",
+  }),
+  "mentor_eligibility.country_rules": defineSetting({
+    schema: z.record(
+      z.string().regex(/^(\*|[A-Z]{2})$/, "must be ISO 3166-1 alpha-2 or *"),
+      z.record(
+        z.enum(["citizen_or_pr", "work_authorised", "student_visa", "not_authorised", "other"]),
+        z.enum(["volunteer", "paid"]),
+      ),
+    ),
+    defaultValue: {
+      "*": {
+        citizen_or_pr: "paid",
+        work_authorised: "paid",
+        student_visa: "volunteer",
+        not_authorised: "volunteer",
+        other: "volunteer",
+      },
+    },
+    description:
+      "Maps a mentor's residency status to volunteer/paid mode, per country (docs/17 §3).",
+    critical: true,
+  }),
+  "verification.university_email_expiry_days": defineSetting({
+    schema: z.object({
+      current: z.number().int().min(30).max(1095),
+      alumni: z.number().int().min(30).max(1095),
+    }),
+    defaultValue: { current: 365, alumni: 730 },
+    description: "Credential lifetime for a university email challenge, by domain kind.",
+  }),
+  "verification.work_email_expiry_days": defineSetting({
+    schema: z.number().int().min(30).max(1095),
+    defaultValue: 365,
+    description: "Credential lifetime for a work email challenge.",
+  }),
 } as const satisfies Record<string, SettingDefinition<unknown>>;
 
 export type SettingKey = keyof typeof settingsRegistry;
@@ -67,6 +106,10 @@ export const featureFlagRegistry = {
     description: "Use live payment keys. Production-critical gate.",
   },
   "messaging.enabled": { defaultValue: true, description: "Allow sending messages." },
+  "mentor_applications.enabled": {
+    defaultValue: true,
+    description: "Allow submitting new mentor applications.",
+  },
   "uploads.enabled": { defaultValue: true, description: "Allow file uploads." },
   "community.enabled": { defaultValue: false, description: "Community Q&A (Beta)." },
 } as const satisfies Record<string, { defaultValue: boolean; description: string }>;

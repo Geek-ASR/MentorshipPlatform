@@ -34,8 +34,15 @@ export {
   type SessionSummaryDto,
 } from "./application/dtos";
 
-export { findUserById } from "./infra/user-repo";
+export {
+  findUserById,
+  findUsersByIds,
+  grantRole,
+  rolesForUser,
+  type UserRow,
+} from "./infra/user-repo";
 export { createHibpChecker } from "./infra/hibp-checker";
+export { users } from "./infra/tables";
 
 export {
   sessionCookieName,

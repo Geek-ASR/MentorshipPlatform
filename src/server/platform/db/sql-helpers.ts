@@ -8,6 +8,11 @@ export const citext = customType<{ data: string }>({
   dataType: () => "citext",
 });
 
+/** Full-text search vector, precomputed and stored (not generated per-query). Used with a GIN index. */
+export const tsvectorColumn = customType<{ data: string }>({
+  dataType: () => "tsvector",
+});
+
 /**
  * `column IN ('a', 'b')` for CHECK constraints built from compile-time constant enums. Every token is
  * validated, so this can never carry user input; runtime values must use parameterized sql`` instead.

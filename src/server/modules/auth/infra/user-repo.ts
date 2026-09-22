@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import type { Executor } from "@/server/platform/db/client";
 import { newId } from "@/server/platform/ids";
 import type { Role, UserStatus } from "@/server/platform/authz/actor";
@@ -25,6 +25,11 @@ export async function findUserByEmail(
 export async function findUserById(executor: Executor, id: string): Promise<UserRow | undefined> {
   const [row] = await executor.select().from(users).where(eq(users.id, id)).limit(1);
   return row;
+}
+
+export async function findUsersByIds(executor: Executor, ids: string[]): Promise<UserRow[]> {
+  if (ids.length === 0) return [];
+  return executor.select().from(users).where(inArray(users.id, ids));
 }
 
 export type NewUser = {

@@ -82,6 +82,12 @@ export function requireStaffWithMfa(actor: UserActor, roles: ReadonlyArray<Role>
   return actor.mfaVerified ? allow() : deny("MFA_REQUIRED", "staff without MFA");
 }
 
+/** `requireStaffWithMfa` shaped as a `Policy<undefined>` for direct use with `authorize()`. */
+export function requireStaff(roles: ReadonlyArray<Role>): Policy<undefined> {
+  return (actor) =>
+    actor.kind === "user" ? requireStaffWithMfa(actor, roles) : deny("NOT_FOUND", "not staff");
+}
+
 export function requireRecentAuth(actor: UserActor, context: PolicyContext): Decision {
   const windowMs = (context.recentAuthWindowMinutes ?? 10) * 60_000;
   return context.now.getTime() - actor.authenticatedAt.getTime() <= windowMs
@@ -112,6 +118,20 @@ export function requireRecentUserAuth(
     () =>
       actor.kind === "user"
         ? requireRecentAuth(actor, context)
+        : deny("UNAUTHENTICATED", "not signed in"),
+  );
+}
+
+/**
+ * Signed in, active, and with a verified email — required to book, pay, message, review or apply as
+ * a mentor (docs/07 §3.1). Shaped as a `Policy<undefined>` for direct use with `authorize()`.
+ */
+export function requireVerifiedUser(actor: Actor): Decision {
+  return all(
+    () => requireUser(actor),
+    () =>
+      actor.kind === "user"
+        ? requireVerifiedEmail(actor)
         : deny("UNAUTHENTICATED", "not signed in"),
   );
 }

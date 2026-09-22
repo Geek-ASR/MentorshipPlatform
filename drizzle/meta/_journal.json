@@ -29,6 +29,20 @@
       "when": 1790043721406,
       "tag": "0003_auth_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790080566872,
+      "tag": "0004_geo_reference",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790081405097,
+      "tag": "0005_profiles_and_verification",
+      "breakpoints": true
     }
   ]
 }

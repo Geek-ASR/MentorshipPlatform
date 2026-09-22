@@ -1,9 +1,11 @@
 import { and, eq } from "drizzle-orm";
 import isoCountries from "i18n-iso-countries";
 import type { Executor } from "../client";
-import { countries, currencies, taxonomyTerms } from "../tables/reference";
+import { countries, currencies, taxonomyTerms, type TaxonomyVocabulary } from "../tables/reference";
+import { cities, companies, companyDomains, universities, universityDomains } from "../tables/geo";
 import { newId } from "../../ids";
-import { CATEGORY_TREE, type TaxonomySeedNode } from "./taxonomy-data";
+import { CATEGORY_TREE, LANGUAGE_TERMS, type TaxonomySeedNode } from "./taxonomy-data";
+import { CITY_SEEDS, COMPANY_SEEDS, UNIVERSITY_SEEDS } from "./geo-data";
 
 export const SEED_CURRENCIES = [
   "INR",
@@ -104,6 +106,7 @@ export function buildCountrySeed() {
 
 async function insertMissingTaxonomyNodes(
   executor: Executor,
+  vocabulary: TaxonomyVocabulary,
   nodes: TaxonomySeedNode[],
   parentId: string | null,
 ): Promise<number> {
@@ -113,7 +116,7 @@ async function insertMissingTaxonomyNodes(
       .insert(taxonomyTerms)
       .values({
         id: newId(),
-        vocabulary: "category",
+        vocabulary,
         parentId,
         slug: node.slug,
         name: node.name,
@@ -126,14 +129,98 @@ async function insertMissingTaxonomyNodes(
     const [term] = await executor
       .select({ id: taxonomyTerms.id })
       .from(taxonomyTerms)
-      .where(and(eq(taxonomyTerms.vocabulary, "category"), eq(taxonomyTerms.slug, node.slug)));
+      .where(and(eq(taxonomyTerms.vocabulary, vocabulary), eq(taxonomyTerms.slug, node.slug)));
     if (node.children?.length && term)
-      inserted += await insertMissingTaxonomyNodes(executor, node.children, term.id);
+      inserted += await insertMissingTaxonomyNodes(executor, vocabulary, node.children, term.id);
   }
   return inserted;
 }
 
-export type SeedSummary = { currencies: number; countries: number; taxonomyTerms: number };
+async function seedGeoData(
+  executor: Executor,
+): Promise<{ cities: number; universities: number; companies: number }> {
+  const cityRows = await executor
+    .insert(cities)
+    .values(
+      CITY_SEEDS.map((c) => ({
+        id: newId(),
+        countryIso2: c.countryIso2,
+        name: c.name,
+        slug: c.slug,
+      })),
+    )
+    .onConflictDoNothing({ target: [cities.countryIso2, cities.slug] })
+    .returning({ id: cities.id });
+
+  const cityIdBySlug = new Map<string, string>();
+  const allCities = await executor
+    .select({ id: cities.id, slug: cities.slug, countryIso2: cities.countryIso2 })
+    .from(cities);
+  for (const row of allCities) cityIdBySlug.set(`${row.countryIso2}:${row.slug}`, row.id);
+
+  let universityCount = 0;
+  for (const uni of UNIVERSITY_SEEDS) {
+    const cityId = cityIdBySlug.get(`${uni.countryIso2}:${uni.citySlug}`) ?? null;
+    const rows = await executor
+      .insert(universities)
+      .values({
+        id: newId(),
+        name: uni.name,
+        slug: uni.slug,
+        countryIso2: uni.countryIso2,
+        cityId,
+        website: uni.website,
+      })
+      .onConflictDoNothing({ target: [universities.countryIso2, universities.slug] })
+      .returning({ id: universities.id });
+    if (rows.length > 0) universityCount += 1;
+
+    const [university] = await executor
+      .select({ id: universities.id })
+      .from(universities)
+      .where(and(eq(universities.countryIso2, uni.countryIso2), eq(universities.slug, uni.slug)));
+    if (!university) continue;
+    for (const d of uni.domains) {
+      await executor
+        .insert(universityDomains)
+        .values({ id: newId(), universityId: university.id, domain: d.domain, kind: d.kind })
+        .onConflictDoNothing({ target: universityDomains.domain });
+    }
+  }
+
+  let companyCount = 0;
+  for (const company of COMPANY_SEEDS) {
+    const rows = await executor
+      .insert(companies)
+      .values({ id: newId(), name: company.name, slug: company.slug, website: company.website })
+      .onConflictDoNothing({ target: companies.slug })
+      .returning({ id: companies.id });
+    if (rows.length > 0) companyCount += 1;
+
+    const [companyRow] = await executor
+      .select({ id: companies.id })
+      .from(companies)
+      .where(eq(companies.slug, company.slug));
+    if (!companyRow) continue;
+    for (const domain of company.domains) {
+      await executor
+        .insert(companyDomains)
+        .values({ id: newId(), companyId: companyRow.id, domain })
+        .onConflictDoNothing({ target: companyDomains.domain });
+    }
+  }
+
+  return { cities: cityRows.length, universities: universityCount, companies: companyCount };
+}
+
+export type SeedSummary = {
+  currencies: number;
+  countries: number;
+  taxonomyTerms: number;
+  cities: number;
+  universities: number;
+  companies: number;
+};
 
 /**
  * Idempotent reference-data seed. Inserts missing rows only; never overwrites values admins may
@@ -152,10 +239,14 @@ export async function seedReferenceData(executor: Executor): Promise<SeedSummary
     .onConflictDoNothing({ target: countries.iso2 })
     .returning({ iso2: countries.iso2 });
 
-  const taxonomyCount = await insertMissingTaxonomyNodes(executor, CATEGORY_TREE, null);
+  const taxonomyCount =
+    (await insertMissingTaxonomyNodes(executor, "category", CATEGORY_TREE, null)) +
+    (await insertMissingTaxonomyNodes(executor, "language", LANGUAGE_TERMS, null));
+  const geo = await seedGeoData(executor);
   return {
     currencies: currencyRows.length,
     countries: countryRows.length,
     taxonomyTerms: taxonomyCount,
+    ...geo,
   };
 }

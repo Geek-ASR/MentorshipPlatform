@@ -106,7 +106,14 @@ describe("reference data seed", () => {
       .set({ studyAbroadEnabled: false, name: "Deutschland (edited)" })
       .where(eq(countries.iso2, "DE"));
     const summary = await t.db.transaction((tx) => seedReferenceData(tx));
-    expect(summary).toEqual({ currencies: 0, countries: 0, taxonomyTerms: 0 });
+    expect(summary).toEqual({
+      currencies: 0,
+      countries: 0,
+      taxonomyTerms: 0,
+      cities: 0,
+      universities: 0,
+      companies: 0,
+    });
     const [germany] = await t.db.select().from(countries).where(eq(countries.iso2, "DE"));
     expect(germany).toMatchObject({ studyAbroadEnabled: false, name: "Deutschland (edited)" });
   });
@@ -128,9 +135,13 @@ describe("reference data seed", () => {
       "US",
     ]);
     const roots = await t.db.execute<{ slug: string }>(
-      sql`select slug from app.taxonomy_terms where parent_id is null order by sort_order`,
+      sql`select slug from app.taxonomy_terms where vocabulary = 'category' and parent_id is null order by sort_order`,
     );
     expect(roots.map((row) => row.slug)).toEqual(["career-academic", "study-abroad"]);
+    const languages = await t.db.execute<{ slug: string }>(
+      sql`select slug from app.taxonomy_terms where vocabulary = 'language' order by sort_order`,
+    );
+    expect(languages.map((row) => row.slug)).toContain("english");
     const [visa] = await t.db
       .select()
       .from(taxonomyTerms)
