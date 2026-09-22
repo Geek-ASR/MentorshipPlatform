@@ -1,10 +1,12 @@
 # 07 — Authentication & Authorization
 
-Status: Draft v0.1 · 2026-09-17 · Target: OWASP ASVS 5.0 Level 2 (V6 Authentication, V7 Session Management, V8 Authorization)
+Status: ✅ Implemented (2026-09-22, Phase 5) for everything in this document except Turnstile and passkeys — see the implementation note below. Target: OWASP ASVS 5.0 Level 2 (V6 Authentication, V7 Session Management, V8 Authorization)
 
-## 1. Provider decision
+**Implementation note (Phase 5):** the flows, session rules, password policy, MFA design and authorization model below were built as specified, in `src/server/modules/auth`. Two deviations from the original draft, both deliberately decided and recorded as ADRs: the auth core is hand-written directly on the platform's request pipeline rather than the Better Auth library (**ADR-023**, supersedes ADR-004), and Turnstile is deferred until a real domain exists to register it against, with rate limits standing in for now (**ADR-024**). Passkeys remain Beta-deferred, as originally planned. Google OAuth, HIBP breach checking, pre-hijack account takeover and every session/step-up rule in this document are implemented and integration-tested, not just planned.
 
-**Better Auth** (open-source TypeScript library) stores users, accounts, sessions, verification tokens and 2FA secrets **in our Postgres**. Rationale and comparison: [04 §4.4](04-system-architecture.md#44-authentication), ADR-004.
+## 1. Provider decision (superseded — see implementation note above)
+
+**Better Auth** (open-source TypeScript library) stores users, accounts, sessions, verification tokens and 2FA secrets **in our Postgres**. Rationale and comparison: [04 §4.4](04-system-architecture.md#44-authentication), ADR-004. **Phase 5 built the auth core directly on the platform's own primitives instead — see ADR-023.**
 
 Key reasons: DB-backed sessions revoke instantly on ban or password change; no per-MAU cost; no vendor-held identity; plugins for TOTP 2FA and passkeys; built-in origin checks and rate limiting.
 

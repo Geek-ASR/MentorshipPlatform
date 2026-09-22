@@ -19,7 +19,7 @@ flowchart TB
       DASH["Dashboards<br/>student, mentor"]
       ADM["Admin console"]
       REST["REST /api/v1<br/>zod, authz, idempotency, rate limits"]
-      AUTHR["/api/auth/*<br/>Better Auth"]
+      AUTHR["/api/v1/auth/*<br/>auth module (ADR-023)"]
       WHK["/api/webhooks/razorpay<br/>raw-body HMAC, dedupe"]
       TICK["/api/internal/jobs/tick<br/>secret-auth"]
     end

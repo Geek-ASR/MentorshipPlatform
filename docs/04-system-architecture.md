@@ -44,7 +44,7 @@ flowchart LR
     direction TB
     PAGES["App Router pages<br/>(public SSR/ISR, dashboards dynamic)"]
     APIV1["/api/v1/* route handlers<br/>(zod → application services)"]
-    AUTH["/api/auth/* (Better Auth handler)"]
+    AUTH["/api/v1/auth/* (auth module route handlers, ADR-023)"]
     HOOKS["/api/webhooks/{provider}<br/>(raw body HMAC verify → inbox)"]
     TICK["/api/internal/jobs/tick<br/>(bearer secret, constant-time compare)"]
     subgraph Core["src/server (framework-free core)"]
@@ -111,13 +111,14 @@ Connection handling: serverless-friendly transaction pooler (Supavisor, port 654
 
 | Option | Cost | Data ownership | Session revocation | MFA | Lock-in | Verdict |
 |--------|------|----------------|-------------------|-----|---------|---------|
-| **Better Auth** | Library, ₹0 | Our Postgres | DB sessions → immediate | TOTP plugin, passkeys | Low | **Chosen** |
+| Better Auth | Library, ₹0 | Our Postgres | DB sessions → immediate | TOTP plugin, passkeys | Low | Originally chosen (ADR-004) |
 | Supabase Auth | 50k MAU free | `auth` schema in Supabase | JWT (valid until expiry unless short-lived) | TOTP | Medium | Good, but JWT revocation lag is a problem for bans |
 | Auth.js | Library | Ours | DB sessions | No built-in | Low | Maintenance mode since Sep 2025 (team joined Better Auth) |
 | Clerk | Free tier with limits | Vendor | Yes | Yes | High | Vendor dependency for core identity; cost grows with MAU |
 | Firebase Auth | Free tier | Vendor | Token-based | Yes | High | Rejected with Firestore |
+| **Hand-written on the platform pipeline** | ₹0, no new framework | Our Postgres | DB sessions → immediate | TOTP + backup codes, built | None | **Actually built (Phase 5), ADR-023** |
 
-(ADR-004)
+(ADR-004, superseded by ADR-023 once the platform layer already had its own hashed-session, audit and rate-limit primitives — see [21](21-architecture-decision-records.md#adr-023--auth-core-built-directly-on-the-platform-pipeline-instead-of-the-better-auth-library-phase-5-supersedes-adr-004))
 
 ### 4.5 Other components
 
@@ -154,14 +155,14 @@ Connection handling: serverless-friendly transaction pooler (Supavisor, port 654
 │  │  ├─ dashboard/ ...                # student + mentor areas (role-aware)
 │  │  ├─ admin/ ...                    # staff area (MFA + role gated server-side)
 │  │  ├─ api/v1/**/route.ts            # REST adapters: parse → authn → service → DTO
-│  │  ├─ api/auth/[...all]/route.ts    # Better Auth
+│  │  ├─ api/v1/auth/**/route.ts       # sign-up/in/out, MFA, sessions, Google OAuth (ADR-023; Phase 5)
 │  │  ├─ api/webhooks/[provider]/route.ts
 │  │  └─ api/internal/jobs/tick/route.ts
 │  ├─ server/                          # imports 'server-only'
 │  │  ├─ platform/                     # cross-cutting: db, tx, errors, authz, audit, outbox, idempotency,
 │  │  │                                #   rate-limit, settings, clock, logger, request-context, crypto
 │  │  └─ modules/
-│  │     ├─ identity/     ├─ profiles/     ├─ taxonomy/     ├─ verification/
+│  │     ├─ auth/ (✅ Phase 5) ├─ profiles/     ├─ taxonomy/     ├─ verification/
 │  │     ├─ scheduling/   ├─ booking/      ├─ events/       ├─ payments/
 │  │     ├─ ledger/       ├─ reviews/      ├─ trust-safety/ ├─ messaging/
 │  │     ├─ notifications/├─ content/      ├─ analytics/    └─ admin/

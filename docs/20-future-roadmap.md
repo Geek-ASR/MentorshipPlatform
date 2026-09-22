@@ -10,7 +10,7 @@ Items are grouped by **Beta** (after MVP validation with real beta users) and **
 |---------|-----|---------------------|
 | **Live payments** | Revenue | Production-critical gate ([08 §13](08-payment-architecture.md#13-production-critical-gate-for-live-payments)) |
 | Community Q&A (country, university, career spaces) | SEO long-tail, supply engagement (volunteer student mentors), demand capture | Moderation capacity, UGC policies, spam defences, "Community answer" labelling |
-| Passkeys | Phishing-resistant auth | Better Auth plugin |
+| Passkeys | Phishing-resistant auth | WebAuthn library (e.g. `@simplewebauthn/server`) added to the auth module |
 | Google Calendar busy-time sync | Fewer conflicts for mentors | OAuth sensitive scopes; verification lead time |
 | Auto-generated Meet/Zoom links + attendance reports | Better UX and stronger no-show evidence | Provider API approvals |
 | Message attachments | Resume reviews | Upload pipeline + malware scanning |

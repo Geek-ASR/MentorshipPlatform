@@ -89,7 +89,7 @@ Status: Draft v0.1 · 2026-09-17
 |--------|--------------|-----------|--------|
 | Supabase | Low (plain Postgres + S3 API) | `pg_dump` → any Postgres; rclone buckets → S3/R2; switch env vars; re-create `pg_cron` schedule elsewhere (or queue) | 1–2 days |
 | Hosting (Vercel/Netlify/Cloudflare) | Low–Medium (build adapters) | Standard Next.js build; OpenNext adapters or container; avoid vendor KV/cron APIs | 1–3 days |
-| Better Auth | Low (tables in our DB) | Data stays; replacing the library means porting flows (sessions/hash formats documented) | 1–2 weeks |
+| Auth module | Low (tables in our DB) | Data stays; hash formats and session shape are documented, so adopting a library later is a port, not a rewrite | 1–2 weeks |
 | Razorpay | Medium (linked accounts, KYC with provider) | Cashfree Easy Split adapter; re-onboard mentors' payout accounts (KYC repeated); historical records remain | 3–6 weeks + mentor re-KYC |
 | Resend | Low | SMTP/API adapter swap; DNS records update | < 1 day |
 | Sentry | Low | `ErrorReporter` adapter swap | < 1 day |

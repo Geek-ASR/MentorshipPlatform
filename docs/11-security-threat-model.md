@@ -146,7 +146,7 @@ flowchart TB
 | # | Risk | Controls |
 |---|------|---------|
 | API1 | Broken Object Level Authorization | Policies + scoped queries + BOLA matrix tests for every `{id}` route |
-| API2 | Broken Authentication | Better Auth hardened config; rate limits; MFA; session revocation |
+| API2 | Broken Authentication | Argon2id + DB-backed sessions (ADR-023); rate limits; MFA; instant session revocation |
 | API3 | Broken Object Property Level Authorization | Audience-specific DTOs (Public/Owner/Admin); `.strict()` input schemas; property allowlists for PATCH |
 | API4 | Unrestricted Resource Consumption | Rate limits, pagination caps, date-range caps, body size limits, upload size limits, query timeouts (`statement_timeout` 5 s for app role), outbound email quotas |
 | API5 | Broken Function Level Authorization | Role checks per handler; admin routes under `/admin` with an additional guard; tests per role |

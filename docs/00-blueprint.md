@@ -159,7 +159,7 @@ Stack decisions (full comparison in [04](04-system-architecture.md) and ADRs in 
 | Web framework | Next.js (App Router), React, TypeScript strict | SSR/SEO, one deployable, mature ecosystem | Standard Node output; the domain layer is framework-free |
 | API style | REST `/api/v1` + zod validation, RFC 9457 errors | Cacheable, simple, webhook-friendly; no GraphQL complexity | — |
 | Database | PostgreSQL (Supabase Free), Drizzle ORM + SQL migrations | Exclusion constraints, transactions, FTS, numeric integrity | Any Postgres (Neon, RDS, Cloud SQL, self-hosted) |
-| Auth | Better Auth (library, DB sessions in our Postgres) | No per-MAU cost, instant revocation, data ownership | Library-level; data already ours |
+| Auth | Hand-written on the platform pipeline, DB sessions in our Postgres (ADR-023) | No per-MAU cost, instant revocation, data ownership, one request pipeline | Library-level; data already ours |
 | Storage | Supabase Storage via S3-compatible API | Private buckets + signed URLs | R2 / S3 / B2 |
 | Payments | `PaymentGateway` port → FakeGateway (dev/test) + Razorpay test mode (Orders, Route transfers with holds, refunds) | India coverage, marketplace split under a licensed PA | Stripe adapter for international |
 | Jobs | Transactional outbox table + tick endpoint; `FOR UPDATE SKIP LOCKED` | No extra infra; correctness never depends on tick timing | Queue service (SQS / Cloud Tasks / QStash) |

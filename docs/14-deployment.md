@@ -104,7 +104,7 @@ Figures from provider pages/reviews as of 2026-09-17. **Re-verify before relying
 | Netlify Free (if chosen) | 300 credits/month hard cap; commercial use allowed | Must measure | **Site stops** until next cycle | Pro ≈ US$20/mo |
 | Cloudflare Workers Free (alt) | 100k requests/day, 10 ms CPU/request, **3 MiB** worker | Next.js bundle likely > 3 MiB | Requests fail over daily limit | Paid US$5/mo (10 MiB, higher CPU) |
 | Vercel Hobby (dev previews only) | Non-commercial use only | Previews | Terms violation risk if used commercially | Pro ≈ US$20/mo per member |
-| Better Auth | Library | — | — | ₹0 |
+| Auth module dependencies (`@node-rs/argon2`, `jose`) | Library | — | — | ₹0 |
 | Resend Free | 3,000 emails/month, **100/day**, 1 domain | ~20–60/day in beta | Sends pause (reminders/verification emails fail) | Pro ≈ US$20/mo |
 | Razorpay | Test mode free; live: 2% domestic + GST; Route 0.1% + fees (verify) | Test only | — | Per transaction |
 | Cloudflare Turnstile | Free | All forms | — | ₹0 |

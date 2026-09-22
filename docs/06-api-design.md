@@ -119,7 +119,7 @@ Keyed by actor id when authenticated, else by IP (IPv6 /64). Responses include `
 ### 7.1 Identity & account
 | Method & path | Auth | Notes |
 |---------------|------|-------|
-| `/api/auth/*` | A/U | Better Auth: email sign-up/in, verify email, reset password, Google OAuth, TOTP, sessions |
+| `/api/v1/auth/*` | A/U | Auth module (ADR-023): email sign-up/in, verify email, reset password, Google OAuth, TOTP, sessions |
 | `GET /me` | U | Account summary, roles, restrictions, verification state |
 | `PATCH /me` | U | displayName, timezone, locale, country |
 | `POST /me/age-attestation` | U | birth year + 18+ attestation |
