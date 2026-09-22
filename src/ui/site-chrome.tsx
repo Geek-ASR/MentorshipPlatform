@@ -16,6 +16,7 @@ export function SkipLink() {
 }
 
 const NAV = [
+  { href: "/mentors", label: "Explore mentors" },
   { href: "/#paths", label: "Career & study abroad" },
   { href: "/#how-it-works", label: "How it works" },
   { href: "/#trust", label: "Trust & safety" },
