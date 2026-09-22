@@ -14,6 +14,8 @@ Status: Draft v0.1 · 2026-09-17
 
 **Production does not exist until the Production-critical gate is met** ([08 §13](08-payment-architecture.md#13-production-critical-gate-for-live-payments), §8 below).
 
+**Implementation note (added during Phase 6):** GitHub Pages (`https://geek-asr.github.io/MentorshipPlatform/`, via `.github/workflows/pages.yml` and `progress-site/generate.mjs`) hosts a static, `noindex` build-progress dashboard generated from [docs/19-mvp-roadmap.md](19-mvp-roadmap.md) on every push to `main`. It is not one of the environments above — Pages is static-only and this app needs a server and a live database, so the actual product still deploys per §3 once Phase 15 is reached. The dashboard exists solely so progress is externally visible before then.
+
 ## 2. MVP deployment topology
 
 ```mermaid
