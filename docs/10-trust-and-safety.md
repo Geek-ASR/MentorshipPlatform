@@ -2,6 +2,8 @@
 
 Status: Draft v0.1 · 2026-09-17 · T&S is a first-class module (`src/server/modules/trust-safety`), not an afterthought.
 
+**Implementation note (Phase 6):** §2's email-challenge verification (§2.4, auto-approve path) is built in `src/server/modules/verification`, including the domain-match, one-verified-email-per-account and scoped-badge rules in §2.1–2.2. Document-upload verification (§2.3) is not — it needs an `ObjectStore` decision, magic-byte checks and a reviewer UI, tracked as a deliberate follow-up (docs/19 Phase 6, deviations). §3's work-eligibility attestation and volunteer/paid resolution are built in `src/server/modules/profiles`. The rest of this document (reports, moderation, trust events, reviews) remains target-state, planned for Phase 10.
+
 ## 1. Principles
 
 1. **Proportionate:** the response scales with severity, intent and history. First offences are usually educational.

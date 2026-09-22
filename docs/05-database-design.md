@@ -505,6 +505,8 @@ A `data_requests` table tracks export and erasure requests (DPDP/GDPR) with SLA 
 
 ## 8. Seeding reference data (no hard-coded universities)
 
+**Implementation note (Phase 6):** the schema below is built and the `universities`/`companies`/domain tables exist, but the ROR/GeoNames importers described here are not — `src/server/platform/db/seed/geo-data.ts` hand-curates 29 real universities and 9 real companies for India and Germany instead, using the same idempotent-upsert pattern as the country/taxonomy seed (ADR-026). The schema (`ror_id`, `merged_into_id`, alias table) is already shaped for a future importer.
+
 | Dataset | Use | License (verify before import) |
 |---------|-----|-------------------------------|
 | ISO 3166-1 country codes | `countries` | Public codes |

@@ -162,7 +162,7 @@ Connection handling: serverless-friendly transaction pooler (Supavisor, port 654
 │  │  ├─ platform/                     # cross-cutting: db, tx, errors, authz, audit, outbox, idempotency,
 │  │  │                                #   rate-limit, settings, clock, logger, request-context, crypto
 │  │  └─ modules/
-│  │     ├─ auth/ (✅ Phase 5) ├─ profiles/     ├─ taxonomy/     ├─ verification/
+│  │     ├─ auth/ (✅ P5)  ├─ profiles/ (✅ P6) ├─ taxonomy/ (platform reference) ├─ verification/ (✅ P6, email only)
 │  │     ├─ scheduling/   ├─ booking/      ├─ events/       ├─ payments/
 │  │     ├─ ledger/       ├─ reviews/      ├─ trust-safety/ ├─ messaging/
 │  │     ├─ notifications/├─ content/      ├─ analytics/    └─ admin/
