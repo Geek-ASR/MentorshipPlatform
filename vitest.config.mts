@@ -13,6 +13,9 @@ const testEnv = {
   DATABASE_URL: "postgres://unused-in-unit-tests@localhost:5432/unused",
   JOB_TICK_SECRET: randomBytes(32).toString("base64url"),
   OPS_SECRET: randomBytes(32).toString("base64url"),
+  MFA_ENCRYPTION_KEY: randomBytes(32).toString("base64url"),
+  GOOGLE_CLIENT_ID: "test-google-client-id",
+  GOOGLE_CLIENT_SECRET: randomBytes(16).toString("base64url"),
 };
 
 export default defineConfig({

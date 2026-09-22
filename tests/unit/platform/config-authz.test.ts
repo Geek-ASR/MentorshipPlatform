@@ -25,6 +25,7 @@ const validEnv = {
   DATABASE_URL: "postgres://localhost/db",
   JOB_TICK_SECRET: "a".repeat(40),
   OPS_SECRET: "b".repeat(40),
+  MFA_ENCRYPTION_KEY: "c".repeat(40),
 };
 
 describe("environment configuration", () => {
@@ -67,6 +68,7 @@ const now = new Date("2026-09-17T10:00:00Z");
 const makeUser = (overrides: Partial<UserActor> = {}): UserActor => ({
   kind: "user",
   userId: "u1",
+  sessionId: "s1",
   roles: new Set(["student"]),
   status: "active",
   restrictions: [],

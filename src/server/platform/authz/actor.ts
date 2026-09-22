@@ -38,8 +38,15 @@ export const CAPABILITIES = [
 ] as const;
 export type Capability = (typeof CAPABILITIES)[number];
 
-export type UserStatus =
-  "active" | "restricted" | "suspended" | "banned" | "deletion_requested" | "deleted";
+export const USER_STATUSES = [
+  "active",
+  "restricted",
+  "suspended",
+  "banned",
+  "deletion_requested",
+  "deleted",
+] as const;
+export type UserStatus = (typeof USER_STATUSES)[number];
 
 export type Restriction = {
   capability: Capability;
@@ -50,6 +57,8 @@ export type Restriction = {
 export type UserActor = {
   kind: "user";
   userId: string;
+  /** The session backing this request, so a handler can act on "this device" specifically. */
+  sessionId: string;
   roles: ReadonlySet<Role>;
   status: UserStatus;
   restrictions: ReadonlyArray<Restriction>;

@@ -6,6 +6,7 @@
 export const ERROR_CATALOG = {
   BAD_REQUEST: { status: 400, title: "The request could not be understood" },
   UNAUTHENTICATED: { status: 401, title: "Authentication required" },
+  INVALID_CREDENTIALS: { status: 401, title: "Email or password is incorrect" },
   REAUTH_REQUIRED: { status: 401, title: "Please confirm it's you to continue" },
   MFA_REQUIRED: { status: 403, title: "Multi-factor authentication required" },
   FORBIDDEN: { status: 403, title: "You don't have permission to do this" },

@@ -1,6 +1,12 @@
 import { sql, type SQL } from "drizzle-orm";
+import { customType } from "drizzle-orm/pg-core";
 
 const SAFE_TOKEN = /^[a-z_][a-z0-9_]*$/;
+
+/** Case-insensitive text (extension enabled in 0000_extensions.sql). Used for emails. */
+export const citext = customType<{ data: string }>({
+  dataType: () => "citext",
+});
 
 /**
  * `column IN ('a', 'b')` for CHECK constraints built from compile-time constant enums. Every token is

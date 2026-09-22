@@ -9,9 +9,10 @@ import {
   type WorkerResult,
 } from "./platform/outbox/outbox";
 import { platformJobs, platformRecurringJobs } from "./platform/outbox/platform-jobs";
+import { authJobs } from "./modules/auth";
 
 /** Every job type in the system. Modules append their definitions here as they are built. */
-export const jobRegistry = createJobRegistry([...platformJobs]);
+export const jobRegistry = createJobRegistry([...platformJobs, ...authJobs]);
 
 export const recurringJobs = [...platformRecurringJobs];
 

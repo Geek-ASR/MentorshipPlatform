@@ -2,15 +2,26 @@ import { toProblem } from "../errors";
 
 export const NO_STORE = "no-store";
 
+/** Appends multi-valued headers (e.g. repeated `set-cookie`) individually rather than joining them. */
+function applyHeaders(
+  headers: Headers,
+  entries: Record<string, string | string[]> | undefined,
+): void {
+  for (const [key, value] of Object.entries(entries ?? {})) {
+    if (Array.isArray(value)) for (const item of value) headers.append(key, item);
+    else headers.set(key, value);
+  }
+}
+
 export function jsonResponse(
   body: unknown,
-  init: { status?: number; headers?: Record<string, string>; requestId?: string } = {},
+  init: { status?: number; headers?: Record<string, string | string[]>; requestId?: string } = {},
 ): Response {
   const headers = new Headers({
     "content-type": "application/json; charset=utf-8",
     "cache-control": NO_STORE,
-    ...init.headers,
   });
+  applyHeaders(headers, init.headers);
   if (init.requestId) headers.set("x-request-id", init.requestId);
   return new Response(init.status === 204 ? null : JSON.stringify(body), {
     status: init.status ?? 200,

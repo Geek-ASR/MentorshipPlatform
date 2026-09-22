@@ -21,7 +21,12 @@ import { getClientIp, rateLimitKeyForIp } from "./client-ip";
 import { assertSameOrigin, isSafeMethod, readJsonBody } from "./request-guards";
 import { jsonResponse, NO_STORE, problemResponse } from "./responses";
 
-export type RouteResult = { status?: number; body?: unknown; headers?: Record<string, string> };
+export type RouteResult = {
+  status?: number;
+  body?: unknown;
+  /** Array values append repeated headers individually (e.g. multiple `set-cookie`). */
+  headers?: Record<string, string | string[]>;
+};
 
 export type RouteContext<TBody, TQuery, TParams> = {
   request: Request;
@@ -131,7 +136,7 @@ export function defineRoute<TBody = undefined, TQuery = undefined, TParams = und
 
         const actor =
           (options.actor ?? "resolve") === "resolve"
-            ? await resolveActor(request, await lazyDb())
+            ? await resolveActor(request, await lazyDb(), env)
             : anonymousActor;
         const clientIp = getClientIp(request.headers, env.CLIENT_IP_HEADER);
 

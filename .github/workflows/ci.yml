@@ -22,6 +22,7 @@ env:
   TEST_DATABASE_ADMIN_URL: postgres://postgres:postgres@localhost:5432/postgres
   JOB_TICK_SECRET: ci-placeholder-job-tick-value-not-a-real-secret
   OPS_SECRET: ci-placeholder-ops-value-not-a-real-secret-000
+  MFA_ENCRYPTION_KEY: ci-placeholder-mfa-key-value-not-a-real-secret-0
   NEXT_TELEMETRY_DISABLED: "1"
 
 jobs:

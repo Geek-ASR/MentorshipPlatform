@@ -97,3 +97,21 @@ export function all(...decisions: Array<() => Decision>): Decision {
   }
   return allow();
 }
+
+/**
+ * Signed in, active, and authenticated recently enough for a sensitive action (docs/07 §5 step-up).
+ * Shaped as a `Policy<undefined>` so it can be passed straight to `authorize()` with no resource.
+ */
+export function requireRecentUserAuth(
+  actor: Actor,
+  _resource: unknown,
+  context: PolicyContext,
+): Decision {
+  return all(
+    () => requireUser(actor),
+    () =>
+      actor.kind === "user"
+        ? requireRecentAuth(actor, context)
+        : deny("UNAUTHENTICATED", "not signed in"),
+  );
+}

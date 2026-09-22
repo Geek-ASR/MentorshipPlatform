@@ -11,6 +11,7 @@ vi.mock("@/server/platform/http/actor-resolver", () => ({
       ? {
           kind: "user",
           userId: request.headers.get("x-test-user"),
+          sessionId: "s1",
           roles: new Set(["student"]),
           status: "active",
           restrictions: [],

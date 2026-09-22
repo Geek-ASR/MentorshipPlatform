@@ -25,6 +25,11 @@ export const envSchema = z
 
     JOB_TICK_SECRET: secret,
     OPS_SECRET: secret,
+    /** Derives the AES-256-GCM key that encrypts TOTP secrets at rest (docs/07 §3.6). */
+    MFA_ENCRYPTION_KEY: secret,
+
+    GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+    GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
 
     CLIENT_IP_HEADER: z
       .string()
@@ -40,11 +45,27 @@ export const envSchema = z
         message: "must use https in production",
       });
     }
-    if (env.JOB_TICK_SECRET === env.OPS_SECRET) {
+    const secrets = [
+      ["JOB_TICK_SECRET", env.JOB_TICK_SECRET] as const,
+      ["OPS_SECRET", env.OPS_SECRET] as const,
+      ["MFA_ENCRYPTION_KEY", env.MFA_ENCRYPTION_KEY] as const,
+    ];
+    for (let i = 0; i < secrets.length; i++) {
+      for (let j = i + 1; j < secrets.length; j++) {
+        if (secrets[i]![1] === secrets[j]![1]) {
+          ctx.addIssue({
+            code: "custom",
+            path: [secrets[j]![0]],
+            message: `must differ from ${secrets[i]![0]}`,
+          });
+        }
+      }
+    }
+    if (Boolean(env.GOOGLE_CLIENT_ID) !== Boolean(env.GOOGLE_CLIENT_SECRET)) {
       ctx.addIssue({
         code: "custom",
-        path: ["OPS_SECRET"],
-        message: "must differ from JOB_TICK_SECRET",
+        path: ["GOOGLE_CLIENT_SECRET"],
+        message: "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set together",
       });
     }
   });
