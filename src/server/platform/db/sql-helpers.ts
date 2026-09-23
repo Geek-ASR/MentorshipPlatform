@@ -14,6 +14,28 @@ export const tsvectorColumn = customType<{ data: string }>({
 });
 
 /**
+ * Half-open UTC instant range (`[start, end)`), stored as `tstzrange` so a GiST exclusion
+ * constraint can guarantee no double-booking at the database layer (docs/05 §4.1). Drizzle has no
+ * first-class range type, so this models it as text; Postgres accepts the bracket literal on
+ * write and returns it unquoted on read since our bounds never contain a comma or parenthesis.
+ */
+export const tstzrangeColumn = customType<{ data: string }>({
+  dataType: () => "tstzrange",
+});
+
+export function toTstzRange(start: Date, end: Date): string {
+  return `[${start.toISOString()},${end.toISOString()})`;
+}
+
+/** Inverse of {@link toTstzRange}: parses the literal Postgres returns for a `tstzrange` column. */
+export function parseTstzRange(raw: string): { start: Date; end: Date } {
+  const match = /^[[(]"?([^",]+)"?,"?([^",)\]]+)"?[)\]]$/.exec(raw.trim());
+  if (!match) throw new Error(`Unparseable tstzrange literal: ${raw}`);
+  const [, startRaw, endRaw] = match;
+  return { start: new Date(startRaw!), end: new Date(endRaw!) };
+}
+
+/**
  * `column IN ('a', 'b')` for CHECK constraints built from compile-time constant enums. Every token is
  * validated, so this can never carry user input; runtime values must use parameterized sql`` instead.
  */

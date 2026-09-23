@@ -163,8 +163,8 @@ Connection handling: serverless-friendly transaction pooler (Supavisor, port 654
 │  │  │                                #   rate-limit, settings, clock, logger, request-context, crypto
 │  │  └─ modules/
 │  │     ├─ auth/ (✅ P5)  ├─ profiles/ (✅ P6) ├─ taxonomy/ (platform reference) ├─ verification/ (✅ P6, email only)
-│  │     ├─ scheduling/   ├─ booking/      ├─ events/       ├─ payments/
-│  │     ├─ ledger/       ├─ reviews/      ├─ trust-safety/ ├─ messaging/
+│  │     ├─ booking/ (✅ P7, scheduling + 1:1 sessions; group/events Phase 9) ├─ payments/ ├─ events/
+│  │     ├─ ledger/       ├─ reviews/      ├─ trust-safety/ ├─ messaging/ (Phase 7b)
 │  │     ├─ notifications/├─ content/      ├─ analytics/    └─ admin/
 │  │        each module: domain/ (pure) · application/ (use-cases) · infra/ (repos, adapters) · http/ (schemas, DTOs) · index.ts (public API)
 │  ├─ ui/                              # design-system components (client-safe)

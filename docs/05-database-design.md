@@ -29,13 +29,18 @@ Status: Draft v0.1 · 2026-09-17 · Target: PostgreSQL 15+ (Supabase), portable 
 | Profiles | `student_profiles`, `mentor_profiles`, `mentor_affiliations`, `mentor_languages`, `mentor_links`, `mentor_expertise`, `mentor_eligibility_attestations`, `saved_mentors`, `mentor_stats` |
 | Taxonomy & geography | `taxonomy_terms`, `taxonomy_term_translations`, `countries`, `cities`, `universities`, `university_aliases`, `university_domains`, `departments`, `programs`, `companies`, `company_domains` |
 | Verification | `verification_requests`, `verification_evidence`, `credentials`, `verified_email_fingerprints` |
-| Scheduling & booking | `mentor_services`, `service_prices`, `scheduling_settings`, `availability_rules`, `availability_exceptions`, `sessions`, `calendar_blocks`, `bookings`, `booking_intake_answers`, `waitlist_entries`, `attendance_signals`, `attendance_claims`, `event_details`, `event_invites` |
+| Scheduling & booking | `mentor_services`, `service_prices`, `scheduling_settings`, `availability_rules`, `availability_exceptions`, `sessions`, `calendar_blocks`, `bookings`, `reschedule_requests`¹, `attendance_signals`, `attendance_claims`, `waitlist_entries`², `event_details`², `event_invites`² |
 | Payments & ledger | `orders`, `order_items`, `payment_intents`, `payments`, `refunds`, `payout_accounts`, `transfers`, `transfer_reversals`, `chargebacks`, `commission_rules`, `ledger_accounts`, `ledger_journals`, `ledger_lines`, `webhook_events`, `invoices`, `invoice_sequences`, `coupons` (B) |
 | Trust & safety | `reports`, `moderation_cases`, `moderation_case_events`, `moderation_actions`, `user_restrictions`, `appeals`, `trust_events`, `policy_rules`, `disputes`, `dispute_evidence`, `user_blocks`, `risk_signals` (B) |
 | Reviews | `reviews`, `review_responses`, `review_reports` (via `reports`) |
 | Messaging & notifications | `conversations`, `conversation_participants`, `messages`, `notifications`, `notification_preferences`, `email_deliveries` |
 | Content & community | `articles`, `article_sources`, `community_spaces` (B), `community_posts` (B), `community_comments` (B), `community_votes` (B) |
 | Platform | `platform_settings`, `feature_flags`, `outbox_jobs`, `idempotency_keys`, `rate_limit_buckets`, `audit_logs`, `analytics_events`, `mentor_search_documents`, `data_requests` |
+
+¹ `reschedule_requests` was missing from this row even though docs/09 §7.1 calls for it as its own entity — added here to match, not a new decision.
+² Group/event tables (`waitlist_entries`, `event_details`, `event_invites`) don't exist yet — `sessions.kind` already includes `group`/`event` so Phase 9 can add them without a breaking migration (docs/19 Phase 7 deviations). `booking_intake_answers` was folded into a `bookings.intake_answers` jsonb column instead of a separate table — intake answers are read only alongside their booking, never queried independently, so the join bought nothing.
+
+**Implementation note (Phase 7):** built in `src/server/modules/booking`, including a hand-written `EXCLUDE USING gist` migration for `calendar_blocks` (§4.1) since Drizzle ORM has no first-class range/exclusion-constraint support (ADR-027) — the table itself is still generated normally via `drizzle-kit`, only the constraint is hand-added.
 
 ## 3. ERDs
 
