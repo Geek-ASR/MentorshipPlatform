@@ -39,6 +39,7 @@ export {
   type MentorProfileRow,
 } from "./infra/mentor-repo";
 export { findAffiliation, type MentorAffiliationRow } from "./infra/affiliation-repo";
+export { latestAttestation, type AttestationRow } from "./infra/eligibility-repo";
 export { mentorAffiliations, mentorProfiles } from "./infra/tables";
 export {
   AFFILIATION_KINDS,

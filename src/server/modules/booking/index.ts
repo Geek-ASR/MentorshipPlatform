@@ -32,6 +32,7 @@ export {
 export {
   listBookingsForStudent,
   listBookingsForMentor,
+  listBookingsPendingPaymentSync,
   findBooking,
   type BookingRow,
   type BookingWithSession,
@@ -63,3 +64,11 @@ export {
 } from "./domain/types";
 export { AVAILABILITY_EXCEPTION_KINDS, type AvailabilityExceptionKind } from "./infra/tables";
 export { isValidTimeZone } from "./domain/time";
+export { bookings, sessions, mentorServices } from "./infra/tables";
+export { transitionBookingStatus } from "./infra/booking-repo";
+export { releaseHoldOnCancel } from "./application/booking";
+export {
+  confirmPaidBooking,
+  type ConfirmPaidBookingOutcome,
+} from "./application/paid-confirmation";
+export { syncPaidBookingsOnce, type SyncPaidBookingsSummary } from "./application/paid-sync";

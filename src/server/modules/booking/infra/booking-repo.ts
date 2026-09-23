@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import type { Executor } from "@/server/platform/db/client";
 import { newId } from "@/server/platform/ids";
 import { toTstzRange } from "@/server/platform/db/sql-helpers";
@@ -15,10 +15,13 @@ export async function findBooking(executor: Executor, id: string): Promise<Booki
 export async function insertBooking(
   executor: Executor,
   input: {
+    /** Pre-generated when a paid checkout needs the id before the row exists (docs/09 §6.1). */
+    id?: string;
     sessionId: string;
     studentId: string;
     status: BookingStatus;
     holdExpiresAt: Date | null;
+    orderItemId?: string | null;
     priceMinor: number;
     currency: string;
     intakeAnswers: { questionId: string; value: string }[];
@@ -27,7 +30,7 @@ export async function insertBooking(
 ): Promise<BookingRow> {
   const [row] = await executor
     .insert(bookings)
-    .values({ id: newId(), version: 0, ...input })
+    .values({ version: 0, orderItemId: null, ...input, id: input.id ?? newId() })
     .returning();
   return row!;
 }
@@ -214,4 +217,21 @@ export async function listConfirmedPastEnd(
       ),
     );
   return result.map((r) => ({ ...r.booking, session: r.session }));
+}
+
+const PENDING_PAYMENT_SYNC_STATUSES: readonly BookingStatus[] = [
+  "held",
+  "expired",
+  "cancelled_by_student",
+];
+
+/** Paid bookings whose payment status still needs checking (docs/08 §10 payment sweeper input) —
+ * `booking`'s own sync job polls this instead of `payments` calling into `booking` directly. */
+export async function listBookingsPendingPaymentSync(executor: Executor): Promise<BookingRow[]> {
+  return executor
+    .select()
+    .from(bookings)
+    .where(
+      and(inArray(bookings.status, PENDING_PAYMENT_SYNC_STATUSES), isNotNull(bookings.orderItemId)),
+    );
 }

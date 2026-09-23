@@ -13,6 +13,7 @@ import {
 } from "../domain/cancellation";
 import { canTransition, transition } from "../domain/state-machine";
 import { findUserById } from "@/server/modules/auth";
+import { createFakeGateway, refundOrderItem } from "@/server/modules/payments";
 import { notifyBookingCancelled } from "./notifications";
 import { findBooking, transitionBookingStatus, type BookingRow } from "../infra/booking-repo";
 import {
@@ -167,6 +168,24 @@ export async function cancelBooking(
         start,
         cancelledBy: role,
       });
+    }
+
+    // A `held` booking has no captured payment yet (nothing to refund) — cancelling it just drops
+    // the hold. Only a previously `confirmed` (paid and captured) booking needs money moved back.
+    if (booking.status === "confirmed" && booking.orderItemId && quote.refundMinor > 0) {
+      const gateway = createFakeGateway(tx);
+      await refundOrderItem(
+        tx,
+        gateway,
+        {
+          orderItemId: booking.orderItemId,
+          refundMinor: quote.refundMinor,
+          reasonCode: input.reasonCode,
+          initiatedBy: role === "mentor" ? "mentor" : "student",
+          idempotencyKey: `cancel-refund:${bookingId}`,
+        },
+        now,
+      );
     }
 
     return { booking: updated, quote };
