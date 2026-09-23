@@ -26,6 +26,11 @@ export type RouteResult = {
   body?: unknown;
   /** Array values append repeated headers individually (e.g. multiple `set-cookie`). */
   headers?: Record<string, string | string[]>;
+  /**
+   * Bypasses JSON encoding entirely — for a redirect (`GET /sessions/:id/join`) or a non-JSON body
+   * (`GET /bookings/:id/calendar.ics`). When set, `status`/`body` are ignored.
+   */
+  raw?: Response;
 };
 
 export type RouteContext<TBody, TQuery, TParams> = {
@@ -199,6 +204,15 @@ export function defineRoute<TBody = undefined, TQuery = undefined, TParams = und
           clock,
           logger,
         });
+        if (result.raw) {
+          logger.info({
+            event: "http.request",
+            method: request.method,
+            status: result.raw.status,
+            durationMs: Math.round(performance.now() - startedAt),
+          });
+          return result.raw;
+        }
         const status = result.status ?? 200;
         if (idempotencyScope) {
           await completeIdempotentRequest(await lazyDb(), idempotencyScope, {

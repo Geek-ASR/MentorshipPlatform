@@ -85,6 +85,139 @@ export const settingsRegistry = {
     defaultValue: 365,
     description: "Credential lifetime for a work email challenge.",
   }),
+  "scheduling.slot_step_min": defineSetting({
+    schema: z.union([z.literal(15), z.literal(30), z.literal(60)]),
+    defaultValue: 30,
+    description:
+      "Default slot granularity offered to new mentors (mentor-configurable per docs/09).",
+  }),
+  "scheduling.buffer_after_min": defineSetting({
+    schema: z.number().int().min(0).max(60),
+    defaultValue: 15,
+    description: "Default buffer added after a session before the mentor is bookable again.",
+  }),
+  "scheduling.min_notice_min": defineSetting({
+    schema: z.number().int().min(60).max(10_080),
+    defaultValue: 720,
+    description: "Default minimum notice required before a bookable slot.",
+  }),
+  "scheduling.max_advance_days": defineSetting({
+    schema: z.number().int().min(7).max(90),
+    defaultValue: 60,
+    description: "Default number of days ahead a mentor can be booked.",
+  }),
+  "scheduling.max_sessions_per_day": defineSetting({
+    schema: z.number().int().min(1).max(12),
+    defaultValue: 4,
+    description: "Default cap on sessions per mentor-local calendar day.",
+  }),
+  "service.allowed_durations_min": defineSetting({
+    schema: z.array(z.number().int().min(15).max(180)).min(1).max(6),
+    defaultValue: [30, 45, 60],
+    description: "Session durations mentors may offer without the custom-durations flag.",
+  }),
+  "booking.max_active_holds_per_student": defineSetting({
+    schema: z.number().int().min(1).max(10),
+    defaultValue: 3,
+    description: "Max simultaneous held (payment-in-progress) bookings per student.",
+  }),
+  "booking.max_expired_holds_per_day": defineSetting({
+    schema: z.number().int().min(1).max(50),
+    defaultValue: 5,
+    description: "Max holds a student may let expire in a day before booking is throttled.",
+  }),
+  "booking.max_upcoming_free_1on1_per_student": defineSetting({
+    schema: z.number().int().min(1).max(10),
+    defaultValue: 2,
+    description: "Max upcoming confirmed free 1:1 bookings per student (anti-abuse).",
+  }),
+  "reschedule.student_self_service_min_hours": defineSetting({
+    schema: z.number().int().min(1).max(168),
+    defaultValue: 24,
+    description: "Hours before start beyond which a student may self-service reschedule once.",
+  }),
+  "reschedule.max_self_service_per_booking": defineSetting({
+    schema: z.number().int().min(0).max(5),
+    defaultValue: 1,
+    description: "Self-service reschedules allowed per booking before mentor consent is required.",
+  }),
+  "reschedule.consent_timeout_hours": defineSetting({
+    schema: z.number().int().min(1).max(72),
+    defaultValue: 12,
+    description: "Hours a reschedule request waits for consent before it expires.",
+  }),
+  "join.window_before_min": defineSetting({
+    schema: z.number().int().min(1).max(60),
+    defaultValue: 15,
+    description: "Minutes before start the session join link becomes active.",
+  }),
+  "cancellation.student.full_refund_hours": defineSetting({
+    schema: z.number().int().min(1).max(168),
+    defaultValue: 24,
+    description: "Hours before start above which a student cancellation is refunded in full.",
+  }),
+  "cancellation.student.partial_refund_hours": defineSetting({
+    schema: z.number().int().min(0).max(48),
+    defaultValue: 6,
+    description: "Hours before start above which a student cancellation is refunded partially.",
+  }),
+  "cancellation.student.partial_refund_pct": defineSetting({
+    schema: z.number().int().min(0).max(100),
+    defaultValue: 50,
+    description: "Refund percentage for a partial-window student cancellation.",
+  }),
+  "cancellation.student.late_refund_pct": defineSetting({
+    schema: z.number().int().min(0).max(100),
+    defaultValue: 0,
+    description: "Refund percentage for a late student cancellation.",
+  }),
+  "cancellation.student.courtesy_late_cancels_per_90d": defineSetting({
+    schema: z.number().int().min(0).max(5),
+    defaultValue: 1,
+    description: "Late cancellations per rolling 90 days still refunded at the partial rate.",
+  }),
+  "cancellation.mentor.refund_pct": defineSetting({
+    schema: z.number().int().min(0).max(100),
+    defaultValue: 100,
+    description: "Refund percentage when a mentor cancels a confirmed booking.",
+  }),
+  "attendance.checkin_window_min": defineSetting({
+    schema: z.object({
+      beforeMin: z.number().int().min(0).max(60),
+      afterMin: z.number().int().min(0).max(60),
+    }),
+    defaultValue: { beforeMin: 10, afterMin: 20 },
+    description: "Window around start in which a check-in signal may be recorded.",
+  }),
+  "attendance.no_show_grace_min": defineSetting({
+    schema: z.object({
+      shortSessionMaxMin: z.number().int().min(1).max(60),
+      graceShortMin: z.number().int().min(1).max(60),
+      graceOtherMin: z.number().int().min(1).max(60),
+    }),
+    defaultValue: { shortSessionMaxMin: 30, graceShortMin: 10, graceOtherMin: 15 },
+    description: "Earliest a party may claim the other was absent, by session length.",
+  }),
+  "attendance.finalize_after_end_hours": defineSetting({
+    schema: z.number().int().min(0).max(24),
+    defaultValue: 2,
+    description: "Hours after session end before provisional attendance outcomes are computed.",
+  }),
+  "attendance.contest_window_hours": defineSetting({
+    schema: z.number().int().min(1).max(168),
+    defaultValue: 48,
+    description: "Hours a provisional no-show outcome may be contested before it finalises.",
+  }),
+  "attendance.silent_complete_after_end_hours": defineSetting({
+    schema: z.number().int().min(1).max(336),
+    defaultValue: 72,
+    description: "Hours after end a silent (no claims either way) session is marked completed.",
+  }),
+  "attendance.prompt_after_end_hours": defineSetting({
+    schema: z.array(z.number().int().min(1).max(168)).min(1).max(4),
+    defaultValue: [1, 24],
+    description: "Hours after session end to send 'did your session happen?' prompts.",
+  }),
 } as const satisfies Record<string, SettingDefinition<unknown>>;
 
 export type SettingKey = keyof typeof settingsRegistry;

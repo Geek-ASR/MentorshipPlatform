@@ -43,6 +43,20 @@
       "when": 1790081405097,
       "tag": "0005_profiles_and_verification",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790121667404,
+      "tag": "0006_booking_scheduling",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790121680161,
+      "tag": "0007_booking_calendar_exclusion",
+      "breakpoints": true
     }
   ]
 }

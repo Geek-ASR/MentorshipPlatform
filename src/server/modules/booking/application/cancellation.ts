@@ -1,0 +1,174 @@
+import { and, eq, gte } from "drizzle-orm";
+import type { Database, Executor } from "@/server/platform/db/client";
+import type { UserActor } from "@/server/platform/authz/actor";
+import { AppError } from "@/server/platform/errors";
+import { writeAudit } from "@/server/platform/audit";
+import { auditLogs } from "@/server/platform/db/tables/platform";
+import {
+  cancellationQuote,
+  mentorCancellationNoticePoints,
+  type CancellationActor,
+  type CancellationPolicySnapshot,
+  type CancellationQuote,
+} from "../domain/cancellation";
+import { canTransition, transition } from "../domain/state-machine";
+import { findUserById } from "@/server/modules/auth";
+import { notifyBookingCancelled } from "./notifications";
+import { findBooking, transitionBookingStatus, type BookingRow } from "../infra/booking-repo";
+import {
+  findSession,
+  releaseCalendarBlockForSession,
+  sessionWindow,
+  setSessionStatus,
+} from "../infra/session-repo";
+
+const COURTESY_WINDOW_DAYS = 90;
+
+async function hasCourtesyAvailable(
+  executor: Executor,
+  studentId: string,
+  now: Date,
+): Promise<boolean> {
+  const cutoff = new Date(now.getTime() - COURTESY_WINDOW_DAYS * 86_400_000);
+  const rows = await executor
+    .select({ metadata: auditLogs.metadata })
+    .from(auditLogs)
+    .where(
+      and(
+        eq(auditLogs.actorUserId, studentId),
+        eq(auditLogs.action, "booking.cancelled"),
+        gte(auditLogs.occurredAt, cutoff),
+      ),
+    );
+  return !rows.some((row) => row.metadata.usedCourtesy === true);
+}
+
+function hoursUntil(target: Date, now: Date): number {
+  return (target.getTime() - now.getTime()) / 3_600_000;
+}
+
+async function loadParticipant(
+  executor: Executor,
+  userId: string,
+  bookingId: string,
+): Promise<{ booking: BookingRow; start: Date; mentorUserId: string; role: CancellationActor }> {
+  const booking = await findBooking(executor, bookingId);
+  if (!booking) throw new AppError("NOT_FOUND");
+  const session = await findSession(executor, booking.sessionId);
+  if (!session) throw new AppError("NOT_FOUND");
+  const { start } = sessionWindow(session);
+  if (booking.studentId === userId)
+    return { booking, start, mentorUserId: session.hostUserId, role: "student" };
+  if (session.hostUserId === userId)
+    return { booking, start, mentorUserId: session.hostUserId, role: "mentor" };
+  throw new AppError("NOT_FOUND");
+}
+
+export async function getCancellationQuote(
+  db: Database,
+  userId: string,
+  bookingId: string,
+  now: Date,
+): Promise<CancellationQuote> {
+  const { booking, start, role } = await loadParticipant(db, userId, bookingId);
+  const policy = booking.policySnapshot.cancellation as CancellationPolicySnapshot;
+  const courtesyAvailable =
+    role === "student" ? await hasCourtesyAvailable(db, userId, now) : false;
+  return cancellationQuote({
+    actor: role,
+    hoursNotice: hoursUntil(start, now),
+    priceMinor: booking.priceMinor,
+    policy,
+    courtesyAvailable,
+  });
+}
+
+export async function cancelBooking(
+  db: Database,
+  actor: UserActor,
+  bookingId: string,
+  input: { reasonCode: string; note?: string },
+  now: Date,
+): Promise<{ booking: BookingRow; quote: CancellationQuote }> {
+  return db.transaction(async (tx) => {
+    const { booking, start, mentorUserId, role } = await loadParticipant(
+      tx,
+      actor.userId,
+      bookingId,
+    );
+    const event = role === "student" ? "student_cancel" : "mentor_cancel";
+    if (!canTransition(booking.status, event)) {
+      throw new AppError("INVALID_STATE_TRANSITION", {
+        detail: "This booking can't be cancelled from its current state.",
+      });
+    }
+    const result = transition(booking.status, event);
+    const updated = await transitionBookingStatus(tx, bookingId, booking.version, result.to, now);
+    if (!updated) throw new AppError("CONFLICT");
+
+    for (const intent of result.intents) {
+      if (intent.type === "release_calendar_block") {
+        await releaseCalendarBlockForSession(tx, booking.sessionId, now);
+      }
+    }
+    // Phase 7 is 1:1-only: a booking is the session's sole seat, so cancelling it cancels the
+    // session too. Group sessions (Phase 9) will need a seat-count check here instead.
+    await setSessionStatus(tx, booking.sessionId, "cancelled");
+
+    const policy = booking.policySnapshot.cancellation as CancellationPolicySnapshot;
+    const hoursNotice = hoursUntil(start, now);
+    const courtesyAvailable =
+      role === "student" ? await hasCourtesyAvailable(tx, actor.userId, now) : false;
+    const quote = cancellationQuote({
+      actor: role,
+      hoursNotice,
+      priceMinor: booking.priceMinor,
+      policy,
+      courtesyAvailable,
+    });
+
+    await writeAudit(tx, {
+      actorType: "user",
+      actorUserId: actor.userId,
+      action: "booking.cancelled",
+      targetType: "booking",
+      targetId: bookingId,
+      metadata: {
+        by: role,
+        reasonCode: input.reasonCode,
+        note: input.note,
+        hoursNotice,
+        refundPct: quote.refundPct,
+        usedCourtesy: quote.usedCourtesy,
+      },
+    });
+
+    if (role === "mentor") {
+      // Phase 10 owns the real trust-event ledger and reliability recompute; this audit entry is
+      // the signal until then (docs/19 Phase 7 deviations).
+      await writeAudit(tx, {
+        actorType: "user",
+        actorUserId: actor.userId,
+        action: "booking.mentor_cancel_reliability_signal",
+        targetType: "booking",
+        targetId: bookingId,
+        metadata: { points: mentorCancellationNoticePoints(hoursNotice) },
+      });
+    }
+
+    const [student, mentor] = await Promise.all([
+      findUserById(tx, booking.studentId),
+      findUserById(tx, mentorUserId),
+    ]);
+    if (student && mentor) {
+      await notifyBookingCancelled(tx, {
+        studentEmail: student.email,
+        mentorEmail: mentor.email,
+        start,
+        cancelledBy: role,
+      });
+    }
+
+    return { booking: updated, quote };
+  });
+}

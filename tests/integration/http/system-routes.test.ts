@@ -68,7 +68,9 @@ describe("system routes", () => {
     );
     expect(response.status).toBe(200);
     const body = await response.json();
-    expect(body.recurringEnqueued).toBe(1);
+    // One recurring slot per registered recurring job (platform purge + booking finaliser/reschedule
+    // expiry, docs/19 Phase 7) — grows as modules register more, so assert a floor, not an exact count.
+    expect(body.recurringEnqueued).toBeGreaterThanOrEqual(3);
     expect(body.completed).toBeGreaterThanOrEqual(1);
     const purge = await t.db
       .select()

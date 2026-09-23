@@ -2,6 +2,8 @@
 
 Status: Draft v0.1 · 2026-09-17
 
+**Implementation note (Phase 7):** built in `src/server/modules/booking` — §1–§7 (services, availability, DST-safe slot generation, the booking transaction and its concurrency guards including the GiST exclusion constraint, the full state machine), §10 (cancellation quotes, the courtesy exception), §11 (attendance signals/claims/finaliser), §12 (join redirect) and §13 (reminders, ICS) are all real and tested (docs/19 Phase 7). Only `one_on_one` sessions exist — §8 (group sessions) and §9 (free events) are Phase 9. §7.3's reschedule flow is built; the money side of §5 step 2–4 (orders, payment intents, checkout) is not, since Phase 8 doesn't exist yet — every booking this phase is free, by construction of `evaluateBookingEligibility`'s payability gate, not by omitting the check. Booking-scoped messaging (mentioned throughout as the thread a booking's participants share) is not built — see docs/19 Phase 7 deviations.
+
 ## 1. Concepts
 
 | Concept | Definition |
