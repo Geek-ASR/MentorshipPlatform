@@ -65,9 +65,10 @@ for (const section of sections) {
   const number = Number(numStr);
   const body = section.slice(headerLine.length).trim();
 
-  const inlineStatus = headerSuffix.match(/✅ complete \(([\d-]+)\)/);
+  // Tolerates a qualifier between the emoji and "complete", e.g. "✅ core booking complete (date)".
+  const inlineStatus = headerSuffix.match(/✅[^(]*?complete \(([\d-]+)\)/);
   const statusLine = body.match(/\*\*Status:\*\*\s*(.+?)(?:\n\n|\n$|$)/s);
-  const statusFromBody = statusLine?.[1].match(/✅ complete \(([\d-]+)\)/);
+  const statusFromBody = statusLine?.[1].match(/✅[^(]*?complete \(([\d-]+)\)/);
 
   let status = "planned";
   let date = null;
@@ -83,8 +84,8 @@ for (const section of sections) {
   const scopeMatch = body.match(/\*\*Scope:\*\*\s*(.+?)(?:\n\n|$)/s);
   const deliveredMatch = body.match(/\*\*Delivered:?\*\*\s*(.+?)(?:\n\n|$)/s);
   if (statusLine) {
-    // Drop the leading "✅ complete (date)[, with ... below].” clause and summarise what follows.
-    const rest = statusLine[1].replace(/^✅ complete \([\d-]+\)(,\s*with[^.]*\.)?\.?\s*/, "");
+    // Drop the leading "✅ [qualifier] complete (date)[, with ... below].” clause and summarise what follows.
+    const rest = statusLine[1].replace(/^✅[^(]*?complete \([\d-]+\)(,\s*with[^.]*\.)?\.?\s*/, "");
     summary = firstSentences(rest, 240);
   } else if (deliveredMatch) {
     summary = firstSentences(deliveredMatch[1], 240);
