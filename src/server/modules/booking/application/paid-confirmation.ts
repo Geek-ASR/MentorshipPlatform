@@ -63,8 +63,27 @@ export async function confirmPaidBooking(
       return { outcome: "confirmed", booking: updated };
     }
 
-    // Hold already lapsed (expired or the student abandoned/cancelled) — try to re-acquire the slot
-    // for this late-but-verified capture before giving up (docs/09 §6.3 point 2).
+    if (booking.status === "cancelled_by_student") {
+      // The student explicitly cancelled — a payment that captures after that must never silently
+      // re-confirm the booking against their decision, even if the slot happens to still be free
+      // (unlike a passive `expired` hold, there's no reason to believe they still want it). Always
+      // orphan it for a full refund rather than attempting a reacquire (docs/09 §6.3).
+      if (!canTransition(booking.status, "late_payment_slot_lost")) {
+        return { outcome: "already_settled", booking };
+      }
+      const result = transition(booking.status, "late_payment_slot_lost");
+      const updated = await transitionBookingStatus(
+        tx,
+        booking.id,
+        booking.version,
+        result.to,
+        now,
+      );
+      return { outcome: "orphaned", booking: updated ?? booking, refundMinor: booking.priceMinor };
+    }
+
+    // Only `expired` reaches here — try to re-acquire the slot for this late-but-verified capture
+    // before giving up (docs/09 §6.3 point 2).
     try {
       await insertCalendarBlock(tx, {
         mentorId: session.hostUserId,

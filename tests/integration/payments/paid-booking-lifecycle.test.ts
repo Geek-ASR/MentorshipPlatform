@@ -704,8 +704,12 @@ describe("paid booking lifecycle (docs/19 Phase 8 exit criteria)", () => {
     }
 
     // Whichever side of the race won, a payment that genuinely captured must not be silently lost —
-    // a second sweep tick converges a "cancelled while still held" booking via late-capture reacquire
-    // (docs/09 §6.3), exactly as the real recurring job would on its next poll.
+    // a second sweep tick converges the booking to one of two valid final states (docs/09 §6.3),
+    // exactly as the real recurring job would on its next poll:
+    //  - the sweep won the race first: the booking is `confirmed`, the cancel got a clean CONFLICT.
+    //  - the cancel won first: the student's explicit cancel is honoured — a payment that captures
+    //    after that is never silently re-confirmed against their decision — so the booking converges
+    //    to `payment_orphaned` with a full refund, never to `confirmed`.
     await syncPaidBookingsOnce(t.db, new Date(), "http://localhost:3000");
 
     const bookingAfter = await getBooking(
@@ -715,7 +719,7 @@ describe("paid booking lifecycle (docs/19 Phase 8 exit criteria)", () => {
       routeContext({ id: created.booking.id }),
     );
     const bookingBody = (await bookingAfter.json()) as { status: string };
-    expect(bookingBody.status).toBe("confirmed");
+    expect(["confirmed", "payment_orphaned"]).toContain(bookingBody.status);
 
     const transfersRes = await listMyTransfers(
       new Request("http://localhost:3000/api/v1/me/mentor/transfers", {
@@ -725,7 +729,23 @@ describe("paid booking lifecycle (docs/19 Phase 8 exit criteria)", () => {
     );
     const transfersBody = (await transfersRes.json()) as { transfers: { status: string }[] };
     expect(transfersBody.transfers).toHaveLength(1);
-    expect(transfersBody.transfers[0]!.status).toBe("on_hold");
+
+    if (bookingBody.status === "confirmed") {
+      expect(transfersBody.transfers[0]!.status).toBe("on_hold");
+    } else {
+      // Orphaned via the cancel-won branch: the mentor's transfer is fully clawed back and the
+      // student is made whole.
+      expect(transfersBody.transfers[0]!.status).toBe("reversed");
+      const refundsRes = await listMyRefunds(
+        new Request("http://localhost:3000/api/v1/me/refunds", {
+          headers: { cookie: student.cookie },
+        }),
+        routeContext(),
+      );
+      const refundsBody = (await refundsRes.json()) as { refunds: { amountMinor: number }[] };
+      expect(refundsBody.refunds).toHaveLength(1);
+      expect(refundsBody.refunds[0]!.amountMinor).toBe(PRICE_MINOR);
+    }
 
     await assertLedgerBalanced();
   });
