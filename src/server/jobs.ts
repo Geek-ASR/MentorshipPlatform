@@ -11,11 +11,21 @@ import {
 import { platformJobs, platformRecurringJobs } from "./platform/outbox/platform-jobs";
 import { authJobs } from "./modules/auth";
 import { bookingJobs, bookingRecurringJobs } from "./modules/booking";
+import { paymentsJobs, paymentsRecurringJobs } from "./modules/payments";
 
 /** Every job type in the system. Modules append their definitions here as they are built. */
-export const jobRegistry = createJobRegistry([...platformJobs, ...authJobs, ...bookingJobs]);
+export const jobRegistry = createJobRegistry([
+  ...platformJobs,
+  ...authJobs,
+  ...bookingJobs,
+  ...paymentsJobs,
+]);
 
-export const recurringJobs = [...platformRecurringJobs, ...bookingRecurringJobs];
+export const recurringJobs = [
+  ...platformRecurringJobs,
+  ...bookingRecurringJobs,
+  ...paymentsRecurringJobs,
+];
 
 export type TickResult = WorkerResult & { recurringEnqueued: number };
 

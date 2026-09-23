@@ -218,6 +218,62 @@ export const settingsRegistry = {
     defaultValue: [1, 24],
     description: "Hours after session end to send 'did your session happen?' prompts.",
   }),
+  "booking.late_payment_grace_min": defineSetting({
+    schema: z.number().int().min(0).max(1440),
+    defaultValue: 60,
+    description: "Minutes after hold expiry a late capture may still re-acquire the slot.",
+  }),
+  "commission.global_bps": defineSetting({
+    schema: z.number().int().min(0).max(5000),
+    defaultValue: 1000,
+    description: "Default marketplace commission, in basis points of the booking price (INR).",
+    critical: true,
+  }),
+  "commission.fee_bearer": defineSetting({
+    schema: z.enum(["mentor", "student", "split"]),
+    defaultValue: "mentor" as const,
+    description: "Who the commission is charged to by default.",
+  }),
+  "payout.hold_after_end_hours": defineSetting({
+    schema: z.number().int().min(0).max(720),
+    defaultValue: 72,
+    description: "Hours after session end before a mentor transfer is released, absent a dispute.",
+  }),
+  "payout.new_mentor_hold_after_end_hours": defineSetting({
+    schema: z.number().int().min(0).max(720),
+    defaultValue: 168,
+    description: "Longer hold applied to a mentor's first paid sessions.",
+  }),
+  "payout.account_change_cooling_off_hours": defineSetting({
+    schema: z.number().int().min(0).max(720),
+    defaultValue: 72,
+    description: "Hours transfers stay held after a mentor changes their payout account.",
+  }),
+  "refund.mentor_no_show_pct": defineSetting({
+    schema: z.number().int().min(0).max(100),
+    defaultValue: 100,
+    description: "Refund percentage when the mentor is confirmed absent.",
+  }),
+  "refund.student_no_show_pct": defineSetting({
+    schema: z.number().int().min(0).max(100),
+    defaultValue: 0,
+    description: "Refund percentage when the student is confirmed absent (mentor still paid).",
+  }),
+  "refund.orphaned_payment_pct": defineSetting({
+    schema: z.number().int().min(0).max(100),
+    defaultValue: 100,
+    description: "Refund percentage for a payment that captured after its slot was lost.",
+  }),
+  "refund.technical_platform_failure_pct": defineSetting({
+    schema: z.number().int().min(0).max(100),
+    defaultValue: 100,
+    description: "Refund percentage for a platform-caused technical failure.",
+  }),
+  "refund.goodwill_max_minor": defineSetting({
+    schema: z.number().int().min(0),
+    defaultValue: 1_000_000,
+    description: "Above this amount (INR minor units), a goodwill refund needs a second approver.",
+  }),
 } as const satisfies Record<string, SettingDefinition<unknown>>;
 
 export type SettingKey = keyof typeof settingsRegistry;

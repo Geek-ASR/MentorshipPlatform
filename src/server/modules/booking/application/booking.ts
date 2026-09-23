@@ -1,13 +1,20 @@
 import { sql } from "drizzle-orm";
 import type { Database } from "@/server/platform/db/client";
 import { hasSqlState } from "@/server/platform/db/client";
+import { newId } from "@/server/platform/ids";
 import { AppError } from "@/server/platform/errors";
 import { writeAudit } from "@/server/platform/audit";
 import { getSetting } from "@/server/platform/settings/settings";
 import type { UserActor } from "@/server/platform/authz/actor";
 import { activeRestriction } from "@/server/platform/authz/actor";
 import { findUserById } from "@/server/modules/auth";
-import { findMentorProfile } from "@/server/modules/profiles";
+import { findMentorProfile, latestAttestation } from "@/server/modules/profiles";
+import {
+  createCheckout,
+  createFakeGateway,
+  hasActivePayoutAccount,
+  type CheckoutResult,
+} from "@/server/modules/payments";
 import { generateAvailableSlots } from "../domain/availability";
 import { addMinutes, localDateKey } from "../domain/time";
 import { evaluateBookingEligibility } from "../domain/eligibility";
@@ -72,14 +79,18 @@ export type CreateBookingInput = {
   intakeAnswers: { questionId: string; value: string }[];
 };
 
-export type CreateBookingResult = { booking: BookingRow; isFree: boolean };
+export type CreateBookingResult = {
+  booking: BookingRow;
+  isFree: boolean;
+  checkout: CheckoutResult["checkout"] | null;
+};
 
 /**
  * The booking transaction (docs/09 §6.1): serialize per mentor-local day, lazily expire stale
  * holds, re-validate eligibility with fresh reads, then insert session + calendar block (guarded by
- * the database's exclusion constraint) + booking, all inside one transaction. Only free bookings
- * reach `confirmed` this phase — see docs/19 Phase 7 deviations for why (no payout accounts exist
- * until Phase 8, so `evaluateBookingEligibility` can never treat a priced service as payable yet).
+ * the database's exclusion constraint) + booking (+ order/order_item/payment_intent for a priced,
+ * payable service) — all inside one transaction, so a provider order failure rolls everything back.
+ * Only `fake` is wired up (docs/19 Phase 8 deviations: no live Razorpay test-mode keys available).
  */
 export async function createBooking(
   db: Database,
@@ -102,17 +113,29 @@ export async function createBooking(
     const { start: dayStart, end: dayEnd } = dayWindow(input.startsAt);
     await expireStaleHoldsOverlapping(tx, input.mentorUserId, dayStart, dayEnd, now);
 
-    const [mentor, service, price, user, rules, exceptions, activeBlocks, sessionCounts] =
-      await Promise.all([
-        findMentorProfile(tx, input.mentorUserId),
-        findService(tx, input.serviceId),
-        priceForDuration(tx, input.serviceId, input.durationMin),
-        findUserById(tx, actor.userId),
-        listAvailabilityRules(tx, input.mentorUserId),
-        listAvailabilityExceptions(tx, input.mentorUserId),
-        listActiveBlocksOverlapping(tx, input.mentorUserId, dayStart, dayEnd),
-        countSessionsByLocalDate(tx, input.mentorUserId, settings.timezone, dayStart, dayEnd),
-      ]);
+    const [
+      mentor,
+      service,
+      price,
+      user,
+      rules,
+      exceptions,
+      activeBlocks,
+      sessionCounts,
+      payoutAccountActive,
+      attestation,
+    ] = await Promise.all([
+      findMentorProfile(tx, input.mentorUserId),
+      findService(tx, input.serviceId),
+      priceForDuration(tx, input.serviceId, input.durationMin),
+      findUserById(tx, actor.userId),
+      listAvailabilityRules(tx, input.mentorUserId),
+      listAvailabilityExceptions(tx, input.mentorUserId),
+      listActiveBlocksOverlapping(tx, input.mentorUserId, dayStart, dayEnd),
+      countSessionsByLocalDate(tx, input.mentorUserId, settings.timezone, dayStart, dayEnd),
+      hasActivePayoutAccount(tx, input.mentorUserId),
+      latestAttestation(tx, input.mentorUserId),
+    ]);
 
     if (!mentor || !service || service.mentorUserId !== input.mentorUserId || !user) {
       throw new AppError("BOOKING_NOT_ELIGIBLE", { extensions: { reason: "MENTOR_UNAVAILABLE" } });
@@ -189,9 +212,8 @@ export async function createBooking(
       serviceActive: service.isActive,
       priceMinor: price?.priceMinor ?? 0,
       mentorPayoutMode: mentor.payoutMode,
-      // Phase 8 owns payout_accounts; no mentor can be "payable" until then (docs/19 Phase 7).
-      mentorHasActivePayoutAccount: false,
-      mentorEligibilityAttestationValid: false,
+      mentorHasActivePayoutAccount: payoutAccountActive,
+      mentorEligibilityAttestationValid: attestation !== undefined && attestation.expiresAt > now,
       durationAllowed:
         service.allowedDurationsMin.includes(input.durationMin) && price !== undefined,
       startsAt: input.startsAt,
@@ -244,11 +266,33 @@ export async function createBooking(
       throw error;
     }
 
+    const bookingId = newId();
+    let checkoutResult: CheckoutResult | null = null;
+    if (!isFree) {
+      // Fake is the only gateway wired up this phase (docs/19 Phase 8 deviations).
+      const gateway = createFakeGateway(tx);
+      checkoutResult = await createCheckout(tx, gateway, {
+        studentId: actor.userId,
+        bookingId,
+        mentorUserId: input.mentorUserId,
+        serviceKind: service.kind,
+        categoryId: null,
+        baseMinor: price!.priceMinor,
+        currency: price!.currency,
+        holdTtlMin,
+        now,
+      });
+    }
+
     const bookingRow = await insertBooking(tx, {
+      id: bookingId,
       sessionId: sessionRow.id,
       studentId: actor.userId,
       status: isFree ? "confirmed" : "held",
-      holdExpiresAt: isFree ? null : addMinutes(now, holdTtlMin),
+      holdExpiresAt: isFree
+        ? null
+        : (checkoutResult!.paymentIntent.holdExpiresAt ?? addMinutes(now, holdTtlMin)),
+      orderItemId: checkoutResult?.orderItem.id ?? null,
       priceMinor: price!.priceMinor,
       currency: price!.currency,
       intakeAnswers: input.intakeAnswers,
@@ -289,8 +333,10 @@ export async function createBooking(
       });
       await scheduleBookingTimers(tx, bookingRow.id, input.startsAt, end, now);
     }
+    // A `held` (paid) booking's confirmation email/timers wait for payment capture
+    // (`application/webhooks.ts` calls `confirmPaidBooking`), not booking creation.
 
-    return { booking: bookingRow, isFree };
+    return { booking: bookingRow, isFree, checkout: checkoutResult?.checkout ?? null };
   });
 }
 

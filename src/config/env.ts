@@ -31,6 +31,13 @@ export const envSchema = z
     GOOGLE_CLIENT_ID: z.string().min(1).optional(),
     GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
 
+    /** docs/08 §2, §14. Fake is the only implemented adapter this phase (docs/19 Phase 8 deviations). */
+    PAYMENTS_PROVIDER: z.enum(["fake", "razorpay"]).default("fake"),
+    PAYMENTS_MODE: z.enum(["test", "live"]).default("test"),
+    RAZORPAY_KEY_ID: z.string().min(1).optional(),
+    RAZORPAY_KEY_SECRET: z.string().min(1).optional(),
+    RAZORPAY_WEBHOOK_SECRET: z.string().min(1).optional(),
+
     CLIENT_IP_HEADER: z
       .string()
       .regex(/^[a-z0-9-]*$/, "must be a lowercase header name")
@@ -67,6 +74,32 @@ export const envSchema = z
         path: ["GOOGLE_CLIENT_SECRET"],
         message: "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set together",
       });
+    }
+    // docs/08 §13 point 9: live Razorpay keys are refused outside a production, live-mode boot.
+    if (env.RAZORPAY_KEY_ID?.startsWith("rzp_live_")) {
+      const allowed = env.NODE_ENV === "production" && env.PAYMENTS_MODE === "live";
+      if (!allowed) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["RAZORPAY_KEY_ID"],
+          message: "a live key (rzp_live_*) requires NODE_ENV=production and PAYMENTS_MODE=live",
+        });
+      }
+    }
+    if (env.PAYMENTS_PROVIDER === "razorpay") {
+      for (const key of [
+        "RAZORPAY_KEY_ID",
+        "RAZORPAY_KEY_SECRET",
+        "RAZORPAY_WEBHOOK_SECRET",
+      ] as const) {
+        if (!env[key]) {
+          ctx.addIssue({
+            code: "custom",
+            path: [key],
+            message: "required when PAYMENTS_PROVIDER=razorpay",
+          });
+        }
+      }
     }
   });
 

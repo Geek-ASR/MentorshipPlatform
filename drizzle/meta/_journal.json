@@ -57,6 +57,20 @@
       "when": 1790121680161,
       "tag": "0007_booking_calendar_exclusion",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790175175265,
+      "tag": "0008_payments_ledger",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790175184242,
+      "tag": "0009_ledger_integrity_triggers",
+      "breakpoints": true
     }
   ]
 }

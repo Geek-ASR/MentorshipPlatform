@@ -209,6 +209,10 @@ export const bookings = appSchema.table(
       .references(() => users.id),
     status: text("status").$type<(typeof BOOKING_STATUSES)[number]>().notNull(),
     holdExpiresAt: timestamp("hold_expires_at", { withTimezone: true }),
+    // No FK: `payments.order_items` would have to import this table, but booking's own transaction
+    // calls *into* payments to create that row (booking -> payments) — a hard FK the other way would
+    // cycle. Both sides store the other's id; they're always written together in one transaction.
+    orderItemId: uuid("order_item_id"),
     priceMinor: bigint("price_minor", { mode: "number" }).notNull(),
     currency: char("currency", { length: 3 }).notNull().default("INR"),
     intakeAnswers: jsonb("intake_answers")
