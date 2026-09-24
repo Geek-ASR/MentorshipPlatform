@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import type { Executor } from "@/server/platform/db/client";
 import { newId } from "@/server/platform/ids";
-import { attendanceClaims, attendanceSignals } from "./tables";
+import { attendanceClaims, attendanceSignals, bookings } from "./tables";
 import type { AttendanceClaimOutcome, AttendanceSignalKind } from "../domain/types";
 
 export type AttendanceSignalRow = typeof attendanceSignals.$inferSelect;
@@ -50,6 +50,20 @@ export async function listClaimsForBooking(
   bookingId: string,
 ): Promise<AttendanceClaimRow[]> {
   return executor.select().from(attendanceClaims).where(eq(attendanceClaims.bookingId, bookingId));
+}
+
+/** Every claim across every seat of a session (docs/18 S12: one student's claim can determine the
+ * mentor's absence for the whole group session, not just their own booking). */
+export async function listClaimsForSession(
+  executor: Executor,
+  sessionId: string,
+): Promise<AttendanceClaimRow[]> {
+  const rows = await executor
+    .select({ claim: attendanceClaims })
+    .from(attendanceClaims)
+    .innerJoin(bookings, eq(bookings.id, attendanceClaims.bookingId))
+    .where(eq(bookings.sessionId, sessionId));
+  return rows.map((r) => r.claim);
 }
 
 export async function findClaim(

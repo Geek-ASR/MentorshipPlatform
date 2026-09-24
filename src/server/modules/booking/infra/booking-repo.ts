@@ -87,6 +87,23 @@ export async function expireStaleHoldsOverlapping(
   return expired.map((r) => r.id);
 }
 
+/** Session-scoped analogue of `expireStaleHoldsOverlapping` (docs/09 §6.2) — group/event seats
+ * share one calendar block for the whole session, so unlike the 1:1 sweep this never touches
+ * `calendar_blocks`: only the whole-session cancel path (group-sessions.ts) releases that. */
+export async function expireStaleHoldsForSession(
+  executor: Executor,
+  sessionId: string,
+  now: Date,
+): Promise<number> {
+  const expired = await executor.execute<{ id: string }>(sql`
+    UPDATE app.bookings
+    SET status = 'expired', version = version + 1, updated_at = ${now.toISOString()}::timestamptz
+    WHERE session_id = ${sessionId} AND status = 'held' AND hold_expires_at <= ${now.toISOString()}::timestamptz
+    RETURNING id
+  `);
+  return expired.length;
+}
+
 export async function countActiveHoldsForStudent(
   executor: Executor,
   studentId: string,
@@ -223,6 +240,7 @@ const PENDING_PAYMENT_SYNC_STATUSES: readonly BookingStatus[] = [
   "held",
   "expired",
   "cancelled_by_student",
+  "cancelled_system",
 ];
 
 /** Paid bookings whose payment status still needs checking (docs/08 §10 payment sweeper input) —
@@ -234,4 +252,26 @@ export async function listBookingsPendingPaymentSync(executor: Executor): Promis
     .where(
       and(inArray(bookings.status, PENDING_PAYMENT_SYNC_STATUSES), isNotNull(bookings.orderItemId)),
     );
+}
+
+const LIVE_SEAT_STATUSES: readonly BookingStatus[] = ["held", "confirmed"];
+
+/** A session's currently-occupied seats (docs/09 §6.2) — the seat-booking transaction's own
+ * capacity count, the min-participants check's confirmed-seat count, and waitlist offer triggers
+ * all read this same live-seat definition. */
+export async function listLiveBookingsForSession(
+  executor: Executor,
+  sessionId: string,
+): Promise<BookingRow[]> {
+  return executor
+    .select()
+    .from(bookings)
+    .where(and(eq(bookings.sessionId, sessionId), inArray(bookings.status, LIVE_SEAT_STATUSES)));
+}
+
+export async function listBookingsForSession(
+  executor: Executor,
+  sessionId: string,
+): Promise<BookingRow[]> {
+  return executor.select().from(bookings).where(eq(bookings.sessionId, sessionId));
 }

@@ -56,6 +56,96 @@ export async function setSessionStatus(
   await executor.update(sessions).set({ status, updatedAt: new Date() }).where(eq(sessions.id, id));
 }
 
+/**
+ * Row-locks the session for the seat-booking / waitlist-offer transaction (docs/09 §6.2, §6.4) —
+ * serializes concurrent seat claims for one session, the group-capacity analogue of 1:1's
+ * per-mentor-day advisory lock.
+ */
+export async function findSessionForUpdate(
+  executor: Executor,
+  id: string,
+): Promise<SessionRow | undefined> {
+  const [row] = await executor
+    .select()
+    .from(sessions)
+    .where(eq(sessions.id, id))
+    .for("update")
+    .limit(1);
+  return row;
+}
+
+export async function insertGroupOrEventSession(
+  executor: Executor,
+  input: {
+    kind: "group" | "event";
+    hostUserId: string;
+    serviceId: string | null;
+    start: Date;
+    end: Date;
+    capacity: number;
+    minParticipants: number;
+    seatPriceMinor: number;
+    currency: string;
+    registrationClosesAt: Date;
+    minParticipantsCheckAt: Date | null;
+    meetingProvider: string | null;
+    meetingUrl: string | null;
+  },
+): Promise<SessionRow> {
+  const [row] = await executor
+    .insert(sessions)
+    .values({
+      id: newId(),
+      kind: input.kind,
+      hostUserId: input.hostUserId,
+      serviceId: input.serviceId,
+      during: toTstzRange(input.start, input.end),
+      status: "scheduled",
+      capacity: input.capacity,
+      minParticipants: input.minParticipants,
+      seatPriceMinor: input.seatPriceMinor,
+      currency: input.currency,
+      registrationClosesAt: input.registrationClosesAt,
+      minParticipantsCheckAt: input.minParticipantsCheckAt,
+      meetingProvider: input.meetingProvider,
+      meetingUrl: input.meetingUrl,
+    })
+    .returning();
+  return row!;
+}
+
+/** docs/18 B25: capacity may never drop below the seats already live. Validated by the caller
+ * (`canReduceCapacity`) before this ever runs. */
+export async function setSessionCapacity(
+  executor: Executor,
+  id: string,
+  capacity: number,
+): Promise<void> {
+  await executor
+    .update(sessions)
+    .set({ capacity, updatedAt: new Date() })
+    .where(eq(sessions.id, id));
+}
+
+/** Group/event sessions whose min-participants check is due (the recurring sweep's own safety net
+ * alongside the per-session scheduled outbox job — docs/09 §8 has no explicit job spec; this mirrors
+ * the payment sweeper's belt-and-suspenders pattern, docs/08 §10). */
+export async function listSessionsPendingMinCheck(
+  executor: Executor,
+  now: Date,
+): Promise<SessionRow[]> {
+  return executor
+    .select()
+    .from(sessions)
+    .where(
+      and(
+        eq(sessions.kind, "group"),
+        eq(sessions.status, "scheduled"),
+        sql`${sessions.minParticipantsCheckAt} IS NOT NULL AND ${sessions.minParticipantsCheckAt} <= ${now.toISOString()}::timestamptz`,
+      ),
+    );
+}
+
 /** Active blocks (`during` already includes buffer) for a mentor overlapping [from, to). */
 export async function listActiveBlocksOverlapping(
   executor: Executor,

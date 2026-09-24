@@ -55,4 +55,15 @@ describe("booking state machine", () => {
     expect(isTerminal("confirmed")).toBe(false);
     expect(isTerminal("disputed")).toBe(false);
   });
+
+  it("system-cancels an unpaid held group seat with no per-booking intents (docs/09 §8, Phase 9)", () => {
+    expect(transition("held", "system_cancel")).toEqual({ to: "cancelled_system", intents: [] });
+  });
+
+  it("a payment that captures after a system cancel always orphans, never reacquires (Phase 9)", () => {
+    expect(canTransition("cancelled_system", "late_payment_reacquired")).toBe(false);
+    const result = transition("cancelled_system", "late_payment_slot_lost");
+    expect(result.to).toBe("payment_orphaned");
+    expect(result.intents).toEqual([{ type: "refund_full", reason: "slot_lost" }]);
+  });
 });

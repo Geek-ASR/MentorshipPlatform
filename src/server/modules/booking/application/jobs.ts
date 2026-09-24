@@ -5,6 +5,8 @@ import { runAttendanceFinalizer } from "./attendance";
 import { expirePendingReschedules } from "./reschedule";
 import { syncPaidBookingsOnce } from "./paid-sync";
 import { bookingNotificationJobs } from "./notifications";
+import { checkGroupMinParticipants, sweepOverdueMinParticipantsChecks } from "./group-sessions";
+import { expireWaitlistOffers } from "./waitlist";
 
 export const finalizeAttendance = defineJob({
   type: "booking.finalize_attendance",
@@ -45,10 +47,29 @@ export const syncPaidBookings = defineJob({
   },
 });
 
+/** Recurring sweep alongside the per-session scheduled `checkGroupMinParticipants` job — see that
+ * function's own docstring (group-sessions.ts). */
+export const sweepGroupMinParticipants = defineJob({
+  type: "booking.sweep_group_min_participants",
+  schema: z.object({}),
+  maxAttempts: 3,
+  async handle(_payload, { db, clock, logger }) {
+    const count = await sweepOverdueMinParticipantsChecks(db, clock.now());
+    if (count > 0)
+      logger.info(
+        { event: "booking.sweep_group_min_participants", count },
+        "swept overdue group sessions",
+      );
+  },
+});
+
 export const bookingJobs = [
   finalizeAttendance,
   expireReschedules,
   syncPaidBookings,
+  checkGroupMinParticipants,
+  expireWaitlistOffers,
+  sweepGroupMinParticipants,
   ...bookingNotificationJobs,
 ];
 
@@ -56,4 +77,6 @@ export const bookingRecurringJobs: RecurringJob<Record<string, never>>[] = [
   { definition: finalizeAttendance, intervalSeconds: 300, payload: {} },
   { definition: expireReschedules, intervalSeconds: 300, payload: {} },
   { definition: syncPaidBookings, intervalSeconds: 60, payload: {} },
+  { definition: sweepGroupMinParticipants, intervalSeconds: 300, payload: {} },
+  { definition: expireWaitlistOffers, intervalSeconds: 60, payload: {} },
 ];
