@@ -71,6 +71,13 @@
       "when": 1790175184242,
       "tag": "0009_ledger_integrity_triggers",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790204694518,
+      "tag": "0010_harsh_the_hood",
+      "breakpoints": true
     }
   ]
 }

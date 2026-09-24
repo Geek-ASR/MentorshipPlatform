@@ -79,6 +79,26 @@ export async function createService(
   return { ...row!, prices };
 }
 
+/** A group session's "service" row (docs/09 §8) — kind='group', no `service_prices`: the seat price
+ * lives directly on the `sessions` row (one specific time, not duration-generated slots). */
+export async function insertGroupServiceRow(
+  executor: Executor,
+  input: { mentorUserId: string; title: string; descriptionMd: string | null },
+): Promise<MentorServiceRow> {
+  const [row] = await executor
+    .insert(mentorServices)
+    .values({
+      id: newId(),
+      mentorUserId: input.mentorUserId,
+      kind: "group",
+      title: input.title,
+      descriptionMd: input.descriptionMd,
+      allowedDurationsMin: [],
+    })
+    .returning();
+  return row!;
+}
+
 export async function setServiceActive(
   executor: Executor,
   mentorUserId: string,

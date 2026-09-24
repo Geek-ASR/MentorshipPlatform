@@ -65,6 +65,25 @@ const TRANSITIONS: readonly TransitionRule[] = [
     intents: [{ type: "refund_full", reason: "slot_lost" }],
   },
   {
+    // A group seat that was still `held` (unpaid) when the min-participants check cancelled its
+    // session (docs/09 §8) — no per-booking intents: the session's calendar block and any actually
+    // captured payments are handled once, at the session level, by the caller (`application/
+    // group-sessions.ts`), not per booking.
+    from: "held",
+    event: "system_cancel",
+    to: "cancelled_system",
+  },
+  {
+    // Mirrors the `cancelled_by_student` row above: a payment that captures after the *system*
+    // already cancelled the seat (session went below minimum, or the session no longer exists) must
+    // never be silently reconciled by re-acquiring anything — there's no session left to reacquire
+    // into. Always orphan for a full refund.
+    from: "cancelled_system",
+    event: "late_payment_slot_lost",
+    to: "payment_orphaned",
+    intents: [{ type: "refund_full", reason: "slot_lost" }],
+  },
+  {
     from: "confirmed",
     event: "student_cancel",
     to: "cancelled_by_student",

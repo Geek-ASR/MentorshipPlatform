@@ -4,16 +4,23 @@ import type { UserActor } from "@/server/platform/authz/actor";
 import { AppError } from "@/server/platform/errors";
 import { writeAudit } from "@/server/platform/audit";
 import { getSetting } from "@/server/platform/settings/settings";
-import { determineAttendanceOutcome, noShowGraceMinutes } from "../domain/attendance";
+import {
+  determineAttendanceOutcome,
+  determineEventAttendanceOutcome,
+  noShowGraceMinutes,
+  sessionMentorAbsenceCascadeApplies,
+} from "../domain/attendance";
 import { canTransition, transition } from "../domain/state-machine";
 import type { AttendanceClaimOutcome } from "../domain/types";
 import { findSession, sessionWindow } from "../infra/session-repo";
 import { bookings } from "../infra/tables";
 import {
   listClaimsForBooking,
+  listClaimsForSession,
   listSignalsForSession,
   recordSignal,
   upsertClaim,
+  type AttendanceClaimRow,
 } from "../infra/attendance-repo";
 import {
   findBooking,
@@ -158,42 +165,84 @@ export async function runAttendanceFinalizer(db: Database, now: Date): Promise<F
     getSetting(db, "attendance.silent_complete_after_end_hours", now),
   ]);
 
+  // Per-run cache: a group session's claims are session-wide evidence (docs/18 S12), so every seat
+  // in the same session reuses one query instead of one per booking.
+  const sessionClaimsCache = new Map<string, AttendanceClaimRow[]>();
+  async function claimsForSession(sessionId: string): Promise<AttendanceClaimRow[]> {
+    const cached = sessionClaimsCache.get(sessionId);
+    if (cached) return cached;
+    const claims = await listClaimsForSession(db, sessionId);
+    sessionClaimsCache.set(sessionId, claims);
+    return claims;
+  }
+
   const awaiting = await listAwaitingOutcome(db);
   for (const booking of awaiting) {
     const session = await findSession(db, booking.sessionId);
     if (!session) continue;
     const { end } = sessionWindow(session);
     const elapsedHours = (now.getTime() - end.getTime()) / 3_600_000;
-
-    const claims = await listClaimsForBooking(db, booking.id);
-    const studentClaim =
-      claims.find((c) => c.claimantUserId === booking.studentId)?.outcome ?? null;
-    const mentorClaim =
-      claims.find((c) => c.claimantUserId === session.hostUserId)?.outcome ?? null;
     const signals = await listSignalsForSession(db, session.id);
-    const mentorSignaled = signals.some((s) => s.userId === session.hostUserId);
     const studentSignaled = signals.some((s) => s.userId === booking.studentId);
 
-    const outcome = determineAttendanceOutcome({
-      studentClaim,
-      mentorClaim,
-      mentorSignaled,
-      studentSignaled,
-    });
+    let event: Parameters<typeof transition>[1];
+    let outcomeLabel: string;
+    let requiredHours: number;
 
-    const bothSilent = studentClaim === null && mentorClaim === null;
-    const requiredHours = bothSilent ? silentCompleteAfterHours : finalizeAfterHours;
+    if (session.kind === "event") {
+      // Free events have no money at stake and no claim/contest workflow (docs/10 §4.2) — a signal
+      // check alone, finalised on the same cadence as a claim-backed outcome (there's no reason to
+      // wait the longer silent-complete grace when no claim will ever arrive to wait for).
+      const outcome = determineEventAttendanceOutcome({ studentSignaled });
+      event =
+        outcome === "completed"
+          ? "attendance_finalized_no_dispute"
+          : "attendance_finalized_provisional_no_show_student";
+      outcomeLabel = outcome;
+      requiredHours = finalizeAfterHours;
+    } else {
+      const mentorSignaled = signals.some((s) => s.userId === session.hostUserId);
+      const sessionClaims =
+        session.kind === "group"
+          ? await claimsForSession(session.id)
+          : await listClaimsForBooking(db, booking.id);
+      const studentClaim =
+        sessionClaims.find((c) => c.claimantUserId === booking.studentId)?.outcome ?? null;
+      const mentorClaim =
+        sessionClaims.find((c) => c.claimantUserId === session.hostUserId)?.outcome ?? null;
+      const cascadeApplies =
+        session.kind === "group" &&
+        studentClaim === null &&
+        sessionMentorAbsenceCascadeApplies(
+          sessionClaims
+            .filter((c) => c.claimantUserId !== session.hostUserId)
+            .map((c) => c.outcome),
+          mentorSignaled,
+        );
+
+      const outcome = cascadeApplies
+        ? "provisional_no_show_mentor"
+        : determineAttendanceOutcome({
+            studentClaim,
+            mentorClaim,
+            mentorSignaled,
+            studentSignaled,
+          });
+
+      const hasEvidence = studentClaim !== null || mentorClaim !== null || cascadeApplies;
+      requiredHours = hasEvidence ? finalizeAfterHours : silentCompleteAfterHours;
+      outcomeLabel = outcome;
+      event =
+        outcome === "completed"
+          ? "attendance_finalized_no_dispute"
+          : outcome === "provisional_no_show_mentor"
+            ? "attendance_finalized_provisional_no_show_mentor"
+            : outcome === "provisional_no_show_student"
+              ? "attendance_finalized_provisional_no_show_student"
+              : "attendance_disputed"; // 'disputed' and 'technical' both route to human review.
+    }
+
     if (elapsedHours < requiredHours) continue;
-
-    const event =
-      outcome === "completed"
-        ? "attendance_finalized_no_dispute"
-        : outcome === "provisional_no_show_mentor"
-          ? "attendance_finalized_provisional_no_show_mentor"
-          : outcome === "provisional_no_show_student"
-            ? "attendance_finalized_provisional_no_show_student"
-            : "attendance_disputed"; // 'disputed' and 'technical' both route to human review.
-
     if (!canTransition(booking.status, event)) continue;
     const result = transition(booking.status, event);
     const updated = await transitionBookingStatus(db, booking.id, booking.version, result.to, now);
@@ -204,8 +253,20 @@ export async function runAttendanceFinalizer(db: Database, now: Date): Promise<F
         action: "booking.attendance_finalized",
         targetType: "booking",
         targetId: booking.id,
-        metadata: { outcome, technicalIssue: outcome === "technical" },
+        metadata: { outcome: outcomeLabel, technicalIssue: outcomeLabel === "technical" },
       });
+      if (session.kind === "event" && outcomeLabel === "no_show_student") {
+        // Phase 10 owns the real trust-event ledger and policy enforcement (docs/10 §4.2
+        // `free_event_no_show`, 1 point, 90-day decay); this audit entry is the signal until then,
+        // matching the reliability-signal precedent already established for mentor cancellations.
+        await writeAudit(db, {
+          actorType: "system",
+          action: "booking.free_event_no_show_signal",
+          targetType: "booking",
+          targetId: booking.id,
+          metadata: { studentId: booking.studentId, sessionId: session.id },
+        });
+      }
     }
   }
 

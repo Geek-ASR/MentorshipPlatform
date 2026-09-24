@@ -17,10 +17,17 @@ export const POST = defineRoute(
     body: bodySchema,
     idempotency: "required",
   },
-  async ({ actor, params, body, getDb, clock }) => {
+  async ({ actor, params, body, getDb, clock, env }) => {
     authorize(actor, requireVerifiedUser, undefined, { now: clock.now() });
     if (actor.kind !== "user") throw new AppError("UNAUTHENTICATED");
-    const result = await cancelBooking(await getDb(), actor, params.id, body, clock.now());
+    const result = await cancelBooking(
+      await getDb(),
+      actor,
+      params.id,
+      body,
+      clock.now(),
+      env.APP_BASE_URL,
+    );
     return { body: result };
   },
 );

@@ -33,7 +33,8 @@ export async function confirmPaidBooking(
     if (
       booking.status !== "held" &&
       booking.status !== "expired" &&
-      booking.status !== "cancelled_by_student"
+      booking.status !== "cancelled_by_student" &&
+      booking.status !== "cancelled_system"
     ) {
       // Already confirmed by an earlier delivery, or moved on to some other terminal state.
       return { outcome: "already_settled", booking };
@@ -63,11 +64,13 @@ export async function confirmPaidBooking(
       return { outcome: "confirmed", booking: updated };
     }
 
-    if (booking.status === "cancelled_by_student") {
-      // The student explicitly cancelled — a payment that captures after that must never silently
-      // re-confirm the booking against their decision, even if the slot happens to still be free
-      // (unlike a passive `expired` hold, there's no reason to believe they still want it). Always
-      // orphan it for a full refund rather than attempting a reacquire (docs/09 §6.3).
+    if (booking.status === "cancelled_by_student" || booking.status === "cancelled_system") {
+      // The student explicitly cancelled, or the system already cancelled this seat's session
+      // outright (group min-participants not met, docs/09 §8) — either way a payment that captures
+      // after that must never silently re-confirm the booking, even if the slot happens to still be
+      // free (unlike a passive `expired` hold, there's no reason to believe it's still wanted, and
+      // for `cancelled_system` there may be no session left to reacquire into at all). Always orphan
+      // for a full refund rather than attempting a reacquire (docs/09 §6.3).
       if (!canTransition(booking.status, "late_payment_slot_lost")) {
         return { outcome: "already_settled", booking };
       }

@@ -21,10 +21,14 @@ import {
   ATTENDANCE_CLAIM_OUTCOMES,
   ATTENDANCE_SIGNAL_KINDS,
   BOOKING_STATUSES,
+  EVENT_VISIBILITIES,
+  RECORDING_VISIBILITIES,
   RESCHEDULE_STATUSES,
   SESSION_KINDS,
   SESSION_STATUSES,
+  WAITLIST_ENTRY_STATUSES,
 } from "../domain/types";
+import type { EventVisibility, RecordingVisibility, WaitlistEntryStatus } from "../domain/types";
 
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
 const updatedAt = () => timestamp("updated_at", { withTimezone: true }).notNull().defaultNow();
@@ -298,4 +302,87 @@ export const attendanceClaims = appSchema.table(
     check("attendance_claims_outcome_valid", checkIn("outcome", ATTENDANCE_CLAIM_OUTCOMES)),
     uniqueIndex("attendance_claims_one_per_party").on(t.bookingId, t.claimantUserId),
   ],
+);
+
+/**
+ * Phase 9: one waitlist shape shared by the paid group-seat path (`offered` → `claimed`, a claim
+ * step with a deadline) and the free-event path (`waiting` jumps straight to a confirmed booking —
+ * auto-promotion, no `offered`/claim step at all, docs/09 §9). `offerExpiresAt` is only ever set on
+ * the paid path.
+ */
+export const waitlistEntries = appSchema.table(
+  "waitlist_entries",
+  {
+    id: uuid("id").primaryKey(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => sessions.id, { onDelete: "cascade" }),
+    studentId: uuid("student_id")
+      .notNull()
+      .references(() => users.id),
+    status: text("status").$type<WaitlistEntryStatus>().notNull().default("waiting"),
+    joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
+    offerExpiresAt: timestamp("offer_expires_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    check("waitlist_entries_status_valid", checkIn("status", WAITLIST_ENTRY_STATUSES)),
+    // One active (waiting or offered) entry per student per session — matches
+    // `bookings_one_active_seat`'s shape for the same reason (docs/05 §4.2).
+    uniqueIndex("waitlist_entries_one_active_per_student")
+      .on(t.sessionId, t.studentId)
+      .where(sql`status IN ('waiting','offered')`),
+    index("waitlist_entries_fifo_idx").on(t.sessionId, t.status, t.joinedAt),
+  ],
+);
+
+/** Event-only fields, split from `sessions` rather than added to it (docs/05 §2's own precedent for
+ * `booking_intake_answers`-style splits: these columns are only ever read alongside an event, never
+ * queried across all session kinds). `sessionId` is also the primary key — exactly one row per event. */
+export const eventDetails = appSchema.table(
+  "event_details",
+  {
+    sessionId: uuid("session_id")
+      .primaryKey()
+      .references(() => sessions.id, { onDelete: "cascade" }),
+    slug: text("slug").notNull().unique("event_details_slug_unique"),
+    title: text("title").notNull(),
+    descriptionMd: text("description_md"),
+    visibility: text("visibility").$type<EventVisibility>().notNull().default("public"),
+    recordingUrl: text("recording_url"),
+    recordingVisibility: text("recording_visibility").$type<RecordingVisibility>(),
+    recordingPostedAt: timestamp("recording_posted_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    check("event_details_visibility_valid", checkIn("visibility", EVENT_VISIBILITIES)),
+    check(
+      "event_details_recording_visibility_valid",
+      sql`${t.recordingVisibility} IS NULL OR ${checkIn("recording_visibility", RECORDING_VISIBILITIES)}`,
+    ),
+  ],
+);
+
+/** Single-use invite tokens gating registration for a `private` event (docs/09 §9). A host mints
+ * one token per invitee rather than one shared reusable link — simplest possible "invite tokens"
+ * reading of an otherwise unspecified design (docs/19 Phase 9 research: no schema given). */
+export const eventInvites = appSchema.table(
+  "event_invites",
+  {
+    id: uuid("id").primaryKey(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => sessions.id, { onDelete: "cascade" }),
+    token: text("token").notNull().unique("event_invites_token_unique"),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    usedByUserId: uuid("used_by_user_id").references(() => users.id),
+    createdAt: createdAt(),
+  },
+  (t) => [index("event_invites_session_idx").on(t.sessionId)],
 );

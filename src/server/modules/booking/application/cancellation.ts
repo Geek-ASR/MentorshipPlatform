@@ -15,6 +15,7 @@ import { canTransition, transition } from "../domain/state-machine";
 import { findUserById } from "@/server/modules/auth";
 import { createFakeGateway, refundOrderItem } from "@/server/modules/payments";
 import { notifyBookingCancelled } from "./notifications";
+import { offerOrPromoteNextInLine } from "./waitlist";
 import { findBooking, transitionBookingStatus, type BookingRow } from "../infra/booking-repo";
 import {
   findSession,
@@ -22,6 +23,7 @@ import {
   sessionWindow,
   setSessionStatus,
 } from "../infra/session-repo";
+import type { SessionKind } from "../domain/types";
 
 const COURTESY_WINDOW_DAYS = 90;
 
@@ -52,16 +54,34 @@ async function loadParticipant(
   executor: Executor,
   userId: string,
   bookingId: string,
-): Promise<{ booking: BookingRow; start: Date; mentorUserId: string; role: CancellationActor }> {
+): Promise<{
+  booking: BookingRow;
+  start: Date;
+  mentorUserId: string;
+  sessionKind: SessionKind;
+  role: CancellationActor;
+}> {
   const booking = await findBooking(executor, bookingId);
   if (!booking) throw new AppError("NOT_FOUND");
   const session = await findSession(executor, booking.sessionId);
   if (!session) throw new AppError("NOT_FOUND");
   const { start } = sessionWindow(session);
   if (booking.studentId === userId)
-    return { booking, start, mentorUserId: session.hostUserId, role: "student" };
+    return {
+      booking,
+      start,
+      mentorUserId: session.hostUserId,
+      sessionKind: session.kind,
+      role: "student",
+    };
   if (session.hostUserId === userId)
-    return { booking, start, mentorUserId: session.hostUserId, role: "mentor" };
+    return {
+      booking,
+      start,
+      mentorUserId: session.hostUserId,
+      sessionKind: session.kind,
+      role: "mentor",
+    };
   throw new AppError("NOT_FOUND");
 }
 
@@ -90,9 +110,10 @@ export async function cancelBooking(
   bookingId: string,
   input: { reasonCode: string; note?: string },
   now: Date,
+  appBaseUrl: string,
 ): Promise<{ booking: BookingRow; quote: CancellationQuote }> {
   return db.transaction(async (tx) => {
-    const { booking, start, mentorUserId, role } = await loadParticipant(
+    const { booking, start, mentorUserId, sessionKind, role } = await loadParticipant(
       tx,
       actor.userId,
       bookingId,
@@ -107,14 +128,20 @@ export async function cancelBooking(
     const updated = await transitionBookingStatus(tx, bookingId, booking.version, result.to, now);
     if (!updated) throw new AppError("CONFLICT");
 
-    for (const intent of result.intents) {
-      if (intent.type === "release_calendar_block") {
-        await releaseCalendarBlockForSession(tx, booking.sessionId, now);
+    if (sessionKind === "one_on_one") {
+      // A 1:1 booking is its session's sole seat, so cancelling it cancels the session too.
+      for (const intent of result.intents) {
+        if (intent.type === "release_calendar_block") {
+          await releaseCalendarBlockForSession(tx, booking.sessionId, now);
+        }
       }
+      await setSessionStatus(tx, booking.sessionId, "cancelled");
+    } else {
+      // Group/event: this is one seat of many sharing a single session-level calendar block —
+      // cancelling it never touches the session itself or that shared block (docs/09 §8/§9); it
+      // just frees a seat, which may have someone waiting for it.
+      await offerOrPromoteNextInLine(tx, booking.sessionId, now, appBaseUrl);
     }
-    // Phase 7 is 1:1-only: a booking is the session's sole seat, so cancelling it cancels the
-    // session too. Group sessions (Phase 9) will need a seat-count check here instead.
-    await setSessionStatus(tx, booking.sessionId, "cancelled");
 
     const policy = booking.policySnapshot.cancellation as CancellationPolicySnapshot;
     const hoursNotice = hoursUntil(start, now);

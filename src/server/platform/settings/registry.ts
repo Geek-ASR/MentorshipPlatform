@@ -274,6 +274,68 @@ export const settingsRegistry = {
     defaultValue: 1_000_000,
     description: "Above this amount (INR minor units), a goodwill refund needs a second approver.",
   }),
+  "group.capacity_max": defineSetting({
+    schema: z.number().int().min(2).max(100),
+    defaultValue: 50,
+    description: "Highest seat capacity a group session may be created with.",
+  }),
+  "group.min_participants_default": defineSetting({
+    schema: z.number().int().min(1),
+    defaultValue: 2,
+    description: "Default minimum-participants suggestion when a mentor doesn't specify one.",
+  }),
+  "group.min_seat_price_minor": defineSetting({
+    schema: z.number().int().min(0),
+    defaultValue: 15_000,
+    description: "Unit-economics floor for a group session's per-seat price (INR minor units).",
+  }),
+  "group.registration_close_before_min": defineSetting({
+    schema: z.number().int().min(0).max(1440),
+    defaultValue: 120,
+    description: "Minutes before start that group/event registration closes.",
+  }),
+  "group.min_check_before_hours": defineSetting({
+    schema: z.number().int().min(1).max(168),
+    defaultValue: 24,
+    description: "Hours before start the min-participants check runs.",
+  }),
+  "group.min_participants_unmet_refund_pct": defineSetting({
+    schema: z.number().int().min(0).max(100),
+    defaultValue: 100,
+    description: "Refund percentage when a group session auto-cancels for missing its minimum.",
+  }),
+  "waitlist.claim_window_min": defineSetting({
+    schema: z.number().int().min(15).max(1440),
+    defaultValue: 120,
+    description:
+      "Minutes a paid group-seat waitlist offer stays claimable (capped at registration close).",
+  }),
+  "events.waitlist_auto_promote_until_min": defineSetting({
+    schema: z.number().int().min(0).max(1440),
+    defaultValue: 120,
+    description:
+      "Free events auto-promote the waitlist on a cancellation until this many minutes before start.",
+  }),
+  "events.no_show_limit_90d": defineSetting({
+    schema: z.number().int().min(1).max(20),
+    defaultValue: 3,
+    description: "Free-event no-shows within 90 days before a registration restriction applies.",
+  }),
+  "events.max_upcoming_registrations": defineSetting({
+    schema: z.number().int().min(1).max(50),
+    defaultValue: 10,
+    description: "Baseline cap on a student's upcoming free-event registrations (anti-hoarding).",
+  }),
+  "events.max_upcoming_registrations_restricted": defineSetting({
+    schema: z.number().int().min(1).max(50),
+    defaultValue: 2,
+    description: "Lowered upcoming-registration cap while a no-show restriction is active.",
+  }),
+  "events.no_show_restriction_days": defineSetting({
+    schema: z.number().int().min(1).max(365),
+    defaultValue: 30,
+    description: "Days the lowered free-event registration cap stays in effect after it triggers.",
+  }),
 } as const satisfies Record<string, SettingDefinition<unknown>>;
 
 export type SettingKey = keyof typeof settingsRegistry;

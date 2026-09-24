@@ -46,6 +46,32 @@ export function determineAttendanceOutcome(evidence: AttendanceEvidence): Attend
   return "disputed";
 }
 
+/**
+ * Group-session cascade (docs/18 S12): "Any participant's claim [of mentor absence] + no mentor
+ * signals → provisional no-show for all seats." A single student proving the mentor never showed
+ * shouldn't require every other silent student to separately file the same claim. The caller only
+ * applies this to a booking whose own student is silent (no claim of their own) — a booking with
+ * its own explicit claim (confirming it happened, or a technical-issue claim) keeps resolving
+ * through the ordinary single-booking `determineAttendanceOutcome` instead.
+ */
+export function sessionMentorAbsenceCascadeApplies(
+  studentClaimOutcomesInSession: readonly AttendanceClaimOutcome[],
+  mentorSignaled: boolean,
+): boolean {
+  return !mentorSignaled && studentClaimOutcomesInSession.includes("mentor_absent");
+}
+
+/**
+ * Free events have no money at stake and no claim/contest workflow (docs/10 §4.2: the
+ * `free_event_no_show` trust event is "registered, no join signal" — purely automatic). A
+ * registrant who never fired a join/check-in signal is a no-show; everyone else completed.
+ */
+export function determineEventAttendanceOutcome(input: {
+  studentSignaled: boolean;
+}): "completed" | "no_show_student" {
+  return input.studentSignaled ? "completed" : "no_show_student";
+}
+
 export type NoShowGraceInput = {
   durationMin: number;
   shortSessionMaxMin: number;

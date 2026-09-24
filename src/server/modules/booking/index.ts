@@ -72,3 +72,55 @@ export {
   type ConfirmPaidBookingOutcome,
 } from "./application/paid-confirmation";
 export { syncPaidBookingsOnce, type SyncPaidBookingsSummary } from "./application/paid-sync";
+
+// --- Phase 9: group sessions, free events, waitlists ---
+export {
+  previewGroupSeatPricing,
+  createGroupSession,
+  updateGroupSessionCapacity,
+  cancelGroupSession,
+  getGroupSessionForMentor,
+  sweepOverdueMinParticipantsChecks,
+  type CreateGroupSessionInput,
+  type SeatPricingPreview,
+  type CreateGroupSessionResult,
+  type LiveGroupSession,
+} from "./application/group-sessions";
+export { bookSeat, type BookSeatInput, type BookSeatResult } from "./application/seat-booking";
+export {
+  joinWaitlist,
+  leaveWaitlist,
+  listMyWaitlistEntries,
+  claimWaitlistOffer,
+  expireWaitlistOffersOnce,
+} from "./application/waitlist";
+export {
+  createEvent,
+  cancelEvent,
+  setEventRecordingUrl,
+  createEventInvite,
+  listEventInvites,
+  listPublicEvents,
+  getEventBySlug,
+  getEventDetailsForSession,
+  type CreateEventInput,
+  type CreateEventResult,
+  type CreatedInvite,
+} from "./application/events";
+export { listLiveBookingsForSession, listBookingsForSession } from "./infra/booking-repo";
+export { findWaitlistEntry, type WaitlistEntryRow } from "./infra/waitlist-repo";
+export {
+  findEventBySlug,
+  findEventInviteByToken,
+  type EventDetailsRow,
+  type EventInviteRow,
+  type EventWithSession,
+} from "./infra/event-repo";
+export {
+  EVENT_VISIBILITIES,
+  RECORDING_VISIBILITIES,
+  WAITLIST_ENTRY_STATUSES,
+  type EventVisibility,
+  type RecordingVisibility,
+  type WaitlistEntryStatus,
+} from "./domain/types";

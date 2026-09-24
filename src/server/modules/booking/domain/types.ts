@@ -48,6 +48,25 @@ export type AttendanceClaimOutcome = (typeof ATTENDANCE_CLAIM_OUTCOMES)[number];
 export const CANCEL_ACTORS = ["student", "mentor", "admin", "system"] as const;
 export type CancelActor = (typeof CANCEL_ACTORS)[number];
 
+/** Phase 9: group-seat waitlist and free-event waitlist share one table and state shape (docs/09
+ * §8/§9), even though the paid path uses `offered`/`claimed` (a claim step) and the free-event path
+ * jumps straight from `waiting` to a confirmed booking (auto-promotion, no claim). */
+export const WAITLIST_ENTRY_STATUSES = [
+  "waiting",
+  "offered",
+  "claimed",
+  "expired",
+  "declined",
+  "left",
+] as const;
+export type WaitlistEntryStatus = (typeof WAITLIST_ENTRY_STATUSES)[number];
+
+export const EVENT_VISIBILITIES = ["public", "unlisted", "private"] as const;
+export type EventVisibility = (typeof EVENT_VISIBILITIES)[number];
+
+export const RECORDING_VISIBILITIES = ["attendees", "public"] as const;
+export type RecordingVisibility = (typeof RECORDING_VISIBILITIES)[number];
+
 export const BOOKING_ELIGIBILITY_REASONS = [
   "EMAIL_NOT_VERIFIED",
   "AGE_POLICY",

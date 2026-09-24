@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   determineAttendanceOutcome,
+  determineEventAttendanceOutcome,
   noShowGraceMinutes,
+  sessionMentorAbsenceCascadeApplies,
 } from "@/server/modules/booking/domain/attendance";
 
 describe("determineAttendanceOutcome (docs/09 §11)", () => {
@@ -122,5 +124,33 @@ describe("noShowGraceMinutes", () => {
 
   it("longer sessions get the standard grace window", () => {
     expect(noShowGraceMinutes({ durationMin: 60, ...config })).toBe(15);
+  });
+});
+
+describe("sessionMentorAbsenceCascadeApplies (docs/18 S12, Phase 9)", () => {
+  it("applies when any student claims mentor_absent and the mentor never signaled", () => {
+    expect(sessionMentorAbsenceCascadeApplies(["held", "mentor_absent"], false)).toBe(true);
+  });
+
+  it("does not apply when the mentor did signal, even with a mentor_absent claim", () => {
+    expect(sessionMentorAbsenceCascadeApplies(["mentor_absent"], true)).toBe(false);
+  });
+
+  it("does not apply when nobody claimed mentor_absent", () => {
+    expect(sessionMentorAbsenceCascadeApplies(["held", "technical_issue"], false)).toBe(false);
+  });
+
+  it("does not apply with no claims at all", () => {
+    expect(sessionMentorAbsenceCascadeApplies([], false)).toBe(false);
+  });
+});
+
+describe("determineEventAttendanceOutcome (docs/10 §4.2 free_event_no_show)", () => {
+  it("a registrant who signaled (joined/checked in) completed the event", () => {
+    expect(determineEventAttendanceOutcome({ studentSignaled: true })).toBe("completed");
+  });
+
+  it("a registrant with no join/check-in signal is a no-show — no claim, no contest", () => {
+    expect(determineEventAttendanceOutcome({ studentSignaled: false })).toBe("no_show_student");
   });
 });
