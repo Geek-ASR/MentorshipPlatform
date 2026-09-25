@@ -243,6 +243,25 @@ const PENDING_PAYMENT_SYNC_STATUSES: readonly BookingStatus[] = [
   "cancelled_system",
 ];
 
+/** docs/19 Phase 11 admin bookings view — most recent bookings platform-wide, optionally filtered. */
+export async function listBookingsForAdmin(
+  executor: Executor,
+  options: { status?: BookingStatus; limit?: number } = {},
+): Promise<BookingWithSession[]> {
+  const limit = options.limit ?? 50;
+  const query = executor
+    .select({ booking: bookings, session: sessions })
+    .from(bookings)
+    .innerJoin(sessions, eq(sessions.id, bookings.sessionId));
+  const rows = options.status
+    ? await query
+        .where(eq(bookings.status, options.status))
+        .orderBy(desc(bookings.createdAt))
+        .limit(limit)
+    : await query.orderBy(desc(bookings.createdAt)).limit(limit);
+  return rows.map((r) => ({ ...r.booking, session: r.session }));
+}
+
 /** Paid bookings whose payment status still needs checking (docs/08 §10 payment sweeper input) —
  * `booking`'s own sync job polls this instead of `payments` calling into `booking` directly. */
 export async function listBookingsPendingPaymentSync(executor: Executor): Promise<BookingRow[]> {

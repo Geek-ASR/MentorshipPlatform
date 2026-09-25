@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import type { Executor } from "@/server/platform/db/client";
 import { mentorProfiles, type MentorApplicationStatus, type PayoutMode } from "./tables";
 
@@ -26,6 +26,20 @@ export async function findMentorProfileBySlug(
     .where(eq(mentorProfiles.slug, slug))
     .limit(1);
   return row;
+}
+
+/** docs/06 §7.9 `GET /admin/mentor-applications` — defaults to the review queue (`submitted`). */
+export async function listMentorApplicationsForAdmin(
+  executor: Executor,
+  options: { status?: MentorApplicationStatus; limit?: number } = {},
+): Promise<MentorProfileRow[]> {
+  const status = options.status ?? "submitted";
+  return executor
+    .select()
+    .from(mentorProfiles)
+    .where(eq(mentorProfiles.applicationStatus, status))
+    .orderBy(desc(mentorProfiles.submittedAt))
+    .limit(options.limit ?? 50);
 }
 
 export async function slugTaken(executor: Executor, slug: string): Promise<boolean> {

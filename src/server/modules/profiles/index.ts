@@ -36,6 +36,7 @@ export { toggleSavedMentor, getSavedMentorIds, checkIsSaved } from "./applicatio
 export {
   findMentorProfile,
   findMentorProfileBySlug,
+  listMentorApplicationsForAdmin,
   type MentorProfileRow,
 } from "./infra/mentor-repo";
 export { findAffiliation, type MentorAffiliationRow } from "./infra/affiliation-repo";

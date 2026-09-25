@@ -80,6 +80,11 @@ export {
   type IngestionSummary,
 } from "./application/trust-event-ingestion";
 export { seedPolicyRules } from "./application/seed-policy-rules";
+export {
+  listPolicyRulesForAdmin,
+  updatePolicyRuleForAdmin,
+  type UpdatePolicyRuleInput,
+} from "./application/policy-rules-admin";
 export type { PolicyRuleRow } from "./infra/policy-rules-repo";
 export type {
   PolicyCondition,

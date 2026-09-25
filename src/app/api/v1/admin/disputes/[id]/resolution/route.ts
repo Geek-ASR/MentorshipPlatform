@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { defineRoute } from "@/server/platform/http/route";
-import { authorize, requireStaff } from "@/server/platform/authz/authorize";
+import { authorize, requireRecentUserAuth, requireStaff } from "@/server/platform/authz/authorize";
 import { AppError } from "@/server/platform/errors";
+import { getSetting } from "@/server/platform/settings/settings";
 import {
   DISPUTE_RESOLUTIONS,
   decideDisputeAppeal,
@@ -31,12 +32,16 @@ export const POST = defineRoute(
     rateLimit: { limit: 60, windowSeconds: 3600, by: "actor" },
   },
   async ({ actor, params, body, getDb, clock }) => {
+    const now = clock.now();
     authorize(actor, requireStaff(["moderator", "finance", "admin", "super_admin"]), undefined, {
-      now: clock.now(),
+      now,
     });
+    const db = await getDb();
+    // docs/07 §5: this route moves money via a refund — step-up required.
+    const recentAuthWindowMinutes = await getSetting(db, "auth.recent_auth_window_min", now);
+    authorize(actor, requireRecentUserAuth, undefined, { now, recentAuthWindowMinutes });
     if (actor.kind !== "user") throw new AppError("UNAUTHENTICATED");
 
-    const db = await getDb();
     const dispute = await getDisputeForAdmin(db, params.id);
 
     if (dispute.status === "appealed") {

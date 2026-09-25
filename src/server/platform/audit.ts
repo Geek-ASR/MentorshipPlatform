@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import type { Executor } from "./db/client";
 import { auditLogs, type AuditActorType } from "./db/tables/platform";
 import { getRequestContext } from "./request-context";
@@ -62,4 +62,25 @@ export async function verifyAuditChain(executor: Executor): Promise<number | nul
   );
   const brokenId = rows[0]?.broken_id;
   return brokenId ? Number(brokenId) : null;
+}
+
+export type AuditLogRow = typeof auditLogs.$inferSelect;
+
+/** docs/19 Phase 11 "audit log viewer" — most recent entries, optionally filtered by target type. */
+export async function listAuditLogsForAdmin(
+  executor: Executor,
+  options: { targetType?: string; actorUserId?: string; limit?: number } = {},
+): Promise<AuditLogRow[]> {
+  const limit = options.limit ?? 100;
+  const conditions = [];
+  if (options.targetType) conditions.push(eq(auditLogs.targetType, options.targetType));
+  if (options.actorUserId) conditions.push(eq(auditLogs.actorUserId, options.actorUserId));
+  const query = executor.select().from(auditLogs);
+  const rows = conditions.length
+    ? await query
+        .where(and(...conditions))
+        .orderBy(desc(auditLogs.id))
+        .limit(limit)
+    : await query.orderBy(desc(auditLogs.id)).limit(limit);
+  return rows;
 }

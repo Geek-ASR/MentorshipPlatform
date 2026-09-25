@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { defineRoute } from "@/server/platform/http/route";
-import { authorize, requireStaff } from "@/server/platform/authz/authorize";
+import { authorize, requireRecentUserAuth, requireStaff } from "@/server/platform/authz/authorize";
 import { AppError } from "@/server/platform/errors";
+import { getSetting } from "@/server/platform/settings/settings";
 import { adminRefundPayment, createFakeGateway } from "@/server/modules/payments";
 
 const paramsSchema = z.object({ id: z.uuid() });
@@ -18,11 +19,13 @@ export const POST = defineRoute(
     idempotency: "required",
   },
   async ({ actor, params, body, getDb, clock }) => {
-    authorize(actor, requireStaff(["finance", "admin", "super_admin"]), undefined, {
-      now: clock.now(),
-    });
-    if (actor.kind !== "user") throw new AppError("UNAUTHENTICATED");
+    const now = clock.now();
+    authorize(actor, requireStaff(["finance", "admin", "super_admin"]), undefined, { now });
     const db = await getDb();
+    // docs/07 §5: refunds require step-up (recent primary auth), not just a staff role.
+    const recentAuthWindowMinutes = await getSetting(db, "auth.recent_auth_window_min", now);
+    authorize(actor, requireRecentUserAuth, undefined, { now, recentAuthWindowMinutes });
+    if (actor.kind !== "user") throw new AppError("UNAUTHENTICATED");
     const gateway = createFakeGateway(db);
     // adminRefundPayment posts a multi-line ledger journal, whose balance check is deferred to
     // commit — it must run inside an explicit transaction (see payments/infra/ledger-repo.ts).

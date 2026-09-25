@@ -3,7 +3,7 @@ import { defineRoute } from "@/server/platform/http/route";
 import { authorize, requireRecentUserAuth } from "@/server/platform/authz/authorize";
 import { AppError } from "@/server/platform/errors";
 import { getSetting } from "@/server/platform/settings/settings";
-import { confirmMfaEnrollment } from "@/server/modules/auth";
+import { confirmMfaEnrollment, markSessionMfaVerified } from "@/server/modules/auth";
 
 const bodySchema = z.object({ code: z.string().min(6).max(6) });
 
@@ -21,6 +21,10 @@ export const POST = defineRoute(
       clock,
       mfaEncryptionKey: env.MFA_ENCRYPTION_KEY,
     });
+    // Confirming enrollment already proves live possession of a valid code — steps this session up
+    // immediately rather than making a just-enrolled staff member enter a second code right after
+    // (docs/19 Phase 11: the gap this closes is documented in `mfa-step-up.ts`).
+    await markSessionMfaVerified(db, actor.sessionId, now);
     return { body: result };
   },
 );

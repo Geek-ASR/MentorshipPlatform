@@ -24,6 +24,7 @@ export {
   revertEmailChange,
 } from "./application/email-change";
 export { startMfaEnrollment, confirmMfaEnrollment, disableMfa, mfaStatus } from "./application/mfa";
+export { verifyMfaStepUp } from "./application/mfa-step-up";
 export { listSessions, revokeAllSessions, type SessionSummary } from "./application/sessions";
 export {
   startGoogleSignIn,
@@ -44,11 +45,12 @@ export {
   findUserById,
   findUsersByIds,
   grantRole,
+  listUsersForAdmin,
   rolesForUser,
   updateUserStatus,
   type UserRow,
 } from "./infra/user-repo";
-export { revokeAllSessionsForUser } from "./infra/session-repo";
+export { revokeAllSessionsForUser, markSessionMfaVerified } from "./infra/session-repo";
 export { createHibpChecker } from "./infra/hibp-checker";
 export { users } from "./infra/tables";
 
