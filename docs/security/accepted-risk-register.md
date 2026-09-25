@@ -13,9 +13,9 @@ Severity follows a plain scale: **Critical** (exploitable now, causes major harm
 - **Severity:** Medium
 - **ASVS:** 2.4.1, 6.1.1, 6.3.1
 - **What:** docs/11 §9.6 and docs/13 §2 both describe Turnstile as part of the design ("Turnstile on sign-up, sign-in after failures, password reset, event registration and reports"). It was never built in any phase. Rate limits (real, tested, per-route) are the only anti-automation control that actually exists.
-- **Why accepted for now:** Turnstile needs a Cloudflare account (docs/19's own founder-action-items table lists it under "Before Phase 15"), so it was never in scope to build before that account exists. Rate limits alone meaningfully raise the cost of credential-stuffing/scraping even without a challenge.
-- **Recommendation:** Build Turnstile integration once the account exists (Phase 15), gated behind a feature flag so it can ship disabled and be turned on after verifying the integration works.
-- **Owner / next review:** Phase 15.
+- **Why accepted for now:** Turnstile needs a Cloudflare account (docs/19's own founder-action-items table lists it under "Before Phase 16"), so it was never in scope to build before that account exists. Rate limits alone meaningfully raise the cost of credential-stuffing/scraping even without a challenge.
+- **Recommendation:** Build Turnstile integration once the account exists (Phase 16), gated behind a feature flag so it can ship disabled and be turned on after verifying the integration works.
+- **Owner / next review:** Phase 16.
 
 ## R2 — MFA is staff-only; regular students/mentors have no MFA option
 
@@ -51,7 +51,7 @@ Severity follows a plain scale: **Critical** (exploitable now, causes major harm
 - **What:** `next.config.ts`'s CSP is otherwise strong (`object-src 'none'`, `base-uri 'none'`, `frame-ancestors 'none'`, no wildcard origins) but `'unsafe-inline'` on `script-src` removes CSP's ability to block inline-script-based XSS specifically. A stale code comment (fixed this review) previously claimed a nonce layer existed via a `proxy.ts` file that was never built.
 - **Why accepted for now:** There is no known live XSS sink in the app today (V1 chapter: output encoding is consistently handled by React; no raw HTML rendering of untrusted content exists anywhere). This is a defense-in-depth gap, not an active hole — but it means *if* an XSS bug is ever introduced elsewhere, CSP won't be the backstop it's designed to be.
 - **Recommendation:** Build a per-request nonce middleware layer (the originally-planned `proxy.ts` approach) that threads a nonce into every inline script Next emits, and tighten `script-src` to `'self' 'nonce-{value}' 'strict-dynamic'`. Real engineering work (~1 day), not a config tweak — scope it as its own small task rather than bundling it into an unrelated phase.
-- **Owner / next review:** Before Phase 15 beta, or immediately if any XSS-adjacent finding ever surfaces (ZAP, pentest, bug report) that would make this the actual last line of defense.
+- **Owner / next review:** Before Phase 16 beta, or immediately if any XSS-adjacent finding ever surfaces (ZAP, pentest, bug report) that would make this the actual last line of defense.
 
 ## R6 — No key rotation / `kid`-versioning for `MFA_ENCRYPTION_KEY`
 
@@ -60,7 +60,7 @@ Severity follows a plain scale: **Critical** (exploitable now, causes major harm
 - **What:** docs/11 §9.4/9.5 describe "rotation... supporting two active keys (kid)" as an existing capability. It was never implemented — confirmed by grep (`kid` appears nowhere in `src/server`). A single fixed key, with no rotation path, currently protects TOTP secrets at rest.
 - **Why accepted for now:** No real TOTP secrets have ever been encrypted with this key (no live staff beyond testing) — there is nothing to migrate and no urgency yet. The key-derivation function itself was upgraded this review (HKDF, see the checklist §0) as the cheap, safe-to-do-now half of this fix.
 - **Recommendation:** Before real staff TOTP enrollment happens at scale, add a `kid` prefix to `EncryptedSecret` and a small in-memory key registry (`Map<kid, key>`) so a rotation is a config change + a background re-encryption job, not a breaking migration.
-- **Owner / next review:** Before Phase 15 (real staff onboarding).
+- **Owner / next review:** Before Phase 16 (real staff onboarding).
 
 ## R7 — No user-facing "view/terminate my active sessions" page
 
@@ -78,16 +78,16 @@ Severity follows a plain scale: **Critical** (exploitable now, causes major harm
 - **What:** `authorize()` denials and rate-limit rejections produce a normal typed error response (visible as a 401/403/404/429 in general request logs) but not a purpose-built, separately-queryable security-event log entry. docs/11 §10's own alerting design ("spike detection — possible BOLA probing") assumes such a stream exists; today it doesn't.
 - **Why accepted for now:** With no log-aggregation/alerting system wired up at all yet (R9 below), a dedicated event stream would have nowhere useful to go — this is naturally sequenced after, not instead of, real log shipping.
 - **Recommendation:** Add a small `logger.warn({event: "security.authz_denied", ...})` (and equivalent for rate-limit/CSRF rejections) at the points `authorize()` and `consumeRateLimit` already throw, once there's a log destination that can alert on it.
-- **Owner / next review:** Alongside R9, Phase 15.
+- **Owner / next review:** Alongside R9, Phase 16.
 
 ## R9 — No log shipping / aggregation destination (Sentry or equivalent)
 
 - **Severity:** Low
 - **ASVS:** 16.2.3, 16.4.2, 16.4.3
 - **What:** Logs currently go to stdout only. There's no external, tamper-resistant destination logs are shipped to.
-- **Why accepted:** Explicitly Phase 15 scope (docs/19's founder-action-items table: "Before Phase 15: ...Sentry account"). Nothing to build without the account existing first.
-- **Recommendation:** Wire up Sentry (or equivalent) as part of Phase 15's deploy-sandbox-beta work, then revisit R8 immediately after.
-- **Owner / next review:** Phase 15.
+- **Why accepted:** Explicitly Phase 16 scope (docs/19's founder-action-items table: "Before Phase 16: ...Sentry account"). Nothing to build without the account existing first.
+- **Recommendation:** Wire up Sentry (or equivalent) as part of Phase 16's deploy-sandbox-beta work, then revisit R8 immediately after.
+- **Owner / next review:** Phase 16.
 
 ## R10 — Database connection TLS not asserted in application code
 
@@ -95,8 +95,8 @@ Severity follows a plain scale: **Critical** (exploitable now, causes major harm
 - **ASVS:** 12.3.3, 12.3.4
 - **What:** `src/server/platform/db/client.ts` passes no explicit `ssl` option to the Postgres driver — connection encryption depends entirely on `DATABASE_URL`'s own `sslmode` parameter and the driver's default, not on anything the app itself enforces or verifies.
 - **Why accepted for now:** No real staging/production database exists yet; local same-machine Postgres makes this moot today.
-- **Recommendation:** When Phase 15 provisions a real (Supabase) database, explicitly verify `sslmode=require` (or stronger) in the connection string, and consider adding a startup-time assertion that refuses to boot in a non-local `APP_ENV` without TLS configured, so this can never silently regress.
-- **Owner / next review:** Phase 15, at DB provisioning time.
+- **Recommendation:** When Phase 16 provisions a real (Supabase) database, explicitly verify `sslmode=require` (or stronger) in the connection string, and consider adding a startup-time assertion that refuses to boot in a non-local `APP_ENV` without TLS configured, so this can never silently regress.
+- **Owner / next review:** Phase 16, at DB provisioning time.
 
 ## R11 — No SBOM generation; no formally tracked dependency-remediation SLA
 
@@ -105,7 +105,7 @@ Severity follows a plain scale: **Critical** (exploitable now, causes major harm
 - **What:** Dependabot + `npm audit --audit-level=high` + OSV-Scanner (Phase 13) give real, running vulnerability detection, but there's no CycloneDX SBOM artifact and no enforced "critical fixed within 24h" policy beyond prose in docs/11.
 - **Why accepted:** docs/11 §7 (A03) already explicitly named SBOM generation as "Beta" scope, a decision made before this review, not something this review is newly deferring.
 - **Recommendation:** Add `cyclonedx-npm` (or equivalent) as a CI artifact once Beta planning starts; formalize the SLA as an actual tracked process (e.g., a label + a due-date bot on Dependabot PRs) at the same time.
-- **Owner / next review:** Phase 15/Beta planning.
+- **Owner / next review:** Phase 16/Beta planning.
 
 ## R12 — esbuild `<=0.24.2` dev-server CORS issue (transitive, via drizzle-kit)
 
@@ -124,8 +124,8 @@ Severity follows a plain scale: **Critical** (exploitable now, causes major harm
 - **Severity:** Low
 - **What:** This review triggered the weekly ZAP scan manually (rather than waiting for Sunday) to get real findings for this register — see `docs/security/asvs-l2-checklist.md` §0 for the one real bug it found and the one alert it raised that turned out to be a false positive. ZAP also flagged `Cross-Origin-Opener-Policy Header Missing or Invalid`, `Cross-Origin-Embedder-Policy Header Missing or Invalid`, and `Cross-Origin-Resource-Policy Header Missing or Invalid`. Verified directly: COOP **is** set (`same-origin-allow-popups`, confirmed via `curl -D-`) — ZAP's rule wants the strictest `same-origin` value and flags anything else as "invalid," which doesn't account for `next.config.ts`'s documented, deliberate reason for the looser value (Razorpay/Google OAuth popup windows need it). Not a real gap. COEP and CORP genuinely aren't set.
 - **Why accepted for now:** COEP specifically requires care — setting `require-corp` could break the Google OAuth popup flow (a cross-origin embed) without also configuring `credentialless` or verifying Google's own response headers cooperate, and this review had no way to test that against a real OAuth flow (no live Google credentials in this environment). Adding it without testing risks silently breaking login, which is a worse outcome than leaving it unset a little longer. CORP is lower-risk to add (protects this app's own resources from cross-origin loading) but wasn't rushed in alongside an untested COEP change in the same pass.
-- **Recommendation:** Add `Cross-Origin-Resource-Policy: same-origin` on its own first (lower risk, testable via the existing E2E suite). Add `Cross-Origin-Embedder-Policy` only after testing it against a real Google OAuth sign-in flow (staging, Phase 15) — or scope it to `credentialless` from the start to sidestep the popup-breaking risk entirely.
-- **Owner / next review:** Before Phase 15 beta, alongside real OAuth flow testing.
+- **Recommendation:** Add `Cross-Origin-Resource-Policy: same-origin` on its own first (lower risk, testable via the existing E2E suite). Add `Cross-Origin-Embedder-Policy` only after testing it against a real Google OAuth sign-in flow (staging, Phase 16) — or scope it to `credentialless` from the start to sidestep the popup-breaking risk entirely.
+- **Owner / next review:** Before Phase 16 beta, alongside real OAuth flow testing.
 
 ---
 

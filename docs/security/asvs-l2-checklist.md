@@ -88,7 +88,7 @@ Caught while walking the checklist against real code (and, for #4, a real ZAP sc
 | # | Requirement | Status | Evidence |
 |---|---|---|---|
 | 4.1.1 | Correct `Content-Type` incl. charset | ✅ | `jsonResponse`/`problemResponse` (`src/server/platform/http/responses.ts`) set `application/json; charset=utf-8` / `application/problem+json; charset=utf-8` consistently |
-| 4.1.2 | Only user-facing endpoints auto-redirect HTTP→HTTPS | ➖ | HTTP→HTTPS redirection is host-managed (Phase 15+ hosting decision), not application code; HSTS is set application-side (3.4.1) which is the app's actual responsibility here |
+| 4.1.2 | Only user-facing endpoints auto-redirect HTTP→HTTPS | ➖ | HTTP→HTTPS redirection is host-managed (Phase 16+ hosting decision), not application code; HSTS is set application-side (3.4.1) which is the app's actual responsibility here |
 | 4.1.3 | Intermediary-set headers (`X-Forwarded-*`) can't be overridden by the end user | ✅ | `getClientIp` only trusts a specific, deploy-configured header name (`CLIENT_IP_HEADER`) and validates the value is a real IP; it does not trust arbitrary client-supplied `X-Forwarded-For` (`src/server/platform/http/client-ip.ts`, re-verified this review) |
 | 4.2.1 | Request-smuggling-safe boundary parsing | ➖ | Delegated to the Node/Next HTTP server and the eventual hosting platform's edge — not application code's responsibility to reimplement |
 | 4.3.1–4.3.2 | GraphQL query cost/introspection limits | ➖ | No GraphQL anywhere in this app (plain REST route handlers only) |
@@ -124,7 +124,7 @@ Caught while walking the checklist against real code (and, for #4, a real ZAP sc
 | 6.4.1 | System-generated initial secrets expire, aren't reusable as long-term passwords | ✅ | Password-reset and email-verification tokens are single-use, hashed, short-lived (docs/07); there's no "initial password" flow at all (users always set their own password at sign-up) |
 | 6.4.2 | No security questions | ✅ | Never built, never planned |
 | 6.4.3 | Password reset doesn't bypass MFA | ✅ | Password reset issues a new session the same way sign-in does — `mfa_verified` starts `false` on the new session, so a staff account still hits the same MFA gate on its next privileged action; confirmed by re-reading `password-reset.ts`'s session issuance this review |
-| 6.4.4 | Lost-MFA-factor recovery re-proofs identity | ➖ | No MFA-recovery flow exists yet (staff who lose their TOTP device currently need direct DB/admin intervention) — a real operational gap once there are real staff members beyond the founder, tracked as a Phase 15 pre-beta item, not a code vulnerability |
+| 6.4.4 | Lost-MFA-factor recovery re-proofs identity | ➖ | No MFA-recovery flow exists yet (staff who lose their TOTP device currently need direct DB/admin intervention) — a real operational gap once there are real staff members beyond the founder, tracked as a Phase 16 pre-beta item, not a code vulnerability |
 | 6.5.1 | One-time-use lookup secrets/TOTP | ✅ | `verifyTotp`'s `lastUsedCounter` replay guard (re-verified this review, `domain/totp.ts`); password-reset and email-verification tokens are consumed atomically |
 | 6.5.2 | Lookup secrets hashed w/ salted password hash if < 112 bits entropy | ✅ | Reset/verification tokens are `randomToken(32)` (256 bits — well above the 112-bit threshold that would require password-grade hashing), stored as a plain SHA-256 lookup hash, which is the correct construction for high-entropy tokens per this same requirement's own text |
 | 6.5.3 | CSPRNG for secrets | ✅ | `node:crypto`'s `randomBytes` throughout (`randomToken`, TOTP secret generation) |
@@ -225,12 +225,12 @@ The app is an OIDC **relying party** (client) using Google Sign-In only — it i
 
 | # | Requirement | Status | Evidence |
 |---|---|---|---|
-| 12.1.1–12.2.2 | TLS version/cipher suite, no fallback, trusted certs (client↔app) | ➖ | Host-managed (docs/11: "TLS 1.2+ (host-managed)") — no hosting decision has been made yet (Phase 15). Correctly out of this codebase's control today; must be explicitly re-verified once a host is chosen, not assumed |
+| 12.1.1–12.2.2 | TLS version/cipher suite, no fallback, trusted certs (client↔app) | ➖ | Host-managed (docs/11: "TLS 1.2+ (host-managed)") — no hosting decision has been made yet (Phase 16). Correctly out of this codebase's control today; must be explicitly re-verified once a host is chosen, not assumed |
 | 12.1.3 | mTLS client-cert validation | ➖ | No mTLS anywhere in this app's design |
 | 12.3.1–12.3.2 | TLS for all outbound app→third-party connections; cert validation | ✅ | Every outbound HTTP call this app makes (Google's JWKS/token endpoint, and eventually Razorpay/Resend once real adapters exist) goes over HTTPS via standard `fetch`, which validates certificates by default and has no code path that disables that |
-| 12.3.3–12.3.4 | TLS between internal services | ⚠️ | **The Postgres connection has no explicit TLS enforcement in application code** — `src/server/platform/db/client.ts` passes no `ssl` option to the `postgres` driver, so whether the DB connection is encrypted depends entirely on `DATABASE_URL`'s own `sslmode` and the driver's default behavior, not on anything this app asserts. Locally this is moot (same-machine Postgres); it becomes a real, must-verify item the moment a real staging/production database exists (Phase 15) — flagged now so it isn't forgotten then |
+| 12.3.3–12.3.4 | TLS between internal services | ⚠️ | **The Postgres connection has no explicit TLS enforcement in application code** — `src/server/platform/db/client.ts` passes no `ssl` option to the `postgres` driver, so whether the DB connection is encrypted depends entirely on `DATABASE_URL`'s own `sslmode` and the driver's default behavior, not on anything this app asserts. Locally this is moot (same-machine Postgres); it becomes a real, must-verify item the moment a real staging/production database exists (Phase 16) — flagged now so it isn't forgotten then |
 
-**Section result:** 2 Met, 1 Partial (DB TLS, tracked for Phase 15), 3 N/A (host-managed, correctly deferred).
+**Section result:** 2 Met, 1 Partial (DB TLS, tracked for Phase 16), 3 N/A (host-managed, correctly deferred).
 
 ## V13 — Configuration (13 items)
 
@@ -291,7 +291,7 @@ The app is an OIDC **relying party** (client) using Google Sign-In only — it i
 | 16.1.1 | Logging inventory documented | ✅ | docs/11 §10's security event catalogue |
 | 16.2.1 | Log entries carry who/what/when/where | ✅ | Every audit-log write includes `actorType`/`actorUserId`/`action`/`targetType`/`targetId`; pino's `mixin()` attaches `requestId` to every structured log line automatically (`logger.ts`) |
 | 16.2.2 | UTC/explicit-offset timestamps | ✅ | `pino.stdTimeFunctions.isoTime` — ISO 8601 with explicit offset, confirmed in `logger.ts` |
-| 16.2.3 | Logs only go where documented | ⚠️ | Currently logs only go to stdout (no shipping/aggregation destination is wired up in code) — technically satisfies "only documented destinations" trivially (there's exactly one, and it matches docs/11's current MVP-stage description), but real log shipping (Sentry or equivalent) is Phase 15 scope, not yet built — flagged so it's verified against this same list once it lands, not assumed |
+| 16.2.3 | Logs only go where documented | ⚠️ | Currently logs only go to stdout (no shipping/aggregation destination is wired up in code) — technically satisfies "only documented destinations" trivially (there's exactly one, and it matches docs/11's current MVP-stage description), but real log shipping (Sentry or equivalent) is Phase 16 scope, not yet built — flagged so it's verified against this same list once it lands, not assumed |
 | 16.2.4 | Correlatable, common log format | ✅ | Structured JSON (pino) throughout, `requestId` as the correlation key |
 | 16.2.5 | Sensitive-data logging follows protection level | ✅ | **Fixed this review** (§0) — the one real violation found (email address) is closed, with a regression test now guarding the redact config itself |
 | 16.3.1 | Auth attempts logged (success + failure) | ✅ | Sign-in/sign-up/MFA challenge events are audited (docs/11 §10's table maps directly to real `writeAudit` calls verified throughout this session's auth/admin work) |
@@ -299,13 +299,13 @@ The app is an OIDC **relying party** (client) using Google Sign-In only — it i
 | 16.3.3 | Security-control-bypass attempts logged | ⚠️ | Same gap as 16.3.2 — rate-limit hits and CSRF/origin rejections currently produce a typed error response but not a distinct, queryable security-event log entry |
 | 16.3.4 | Unexpected errors/TLS failures logged | ✅ | `defineRoute`'s catch-all error handler logs every unhandled exception (`toProblem`) before returning a safe response |
 | 16.4.1 | Log-injection prevention | ✅ | Structured JSON logging (pino) — no string-concatenation log lines exist to inject into |
-| 16.4.2 | Logs protected from tampering/unauthorized access | ➖ | Currently stdout-only, captured by whatever the eventual hosting platform's log retention does — this is a hosting-platform property, not something this app's code can assert about itself yet (Phase 15) |
-| 16.4.3 | Logs shipped to a logically separate system | ➖ | Not yet built (Sentry/log-shipping is Phase 15 scope, per docs/19's founder-action-items table) |
+| 16.4.2 | Logs protected from tampering/unauthorized access | ➖ | Currently stdout-only, captured by whatever the eventual hosting platform's log retention does — this is a hosting-platform property, not something this app's code can assert about itself yet (Phase 16) |
+| 16.4.3 | Logs shipped to a logically separate system | ➖ | Not yet built (Sentry/log-shipping is Phase 16 scope, per docs/19's founder-action-items table) |
 | 16.5.1 | Generic error messages, no internals leaked | ✅ | RFC 9457 problem+json responses never include stack traces/queries/secrets — spot-checked across dozens of error paths this session, and `toProblem`'s implementation structurally cannot leak internals since it only ever emits a fixed set of typed fields |
 | 16.5.2 | Graceful degradation on external-resource failure | ✅ | The payment sweeper's per-intent error isolation (Phase 13 fix) is a direct example: one provider failure no longer takes down the whole batch |
 | 16.5.3 | Fail closed, not fail open | ✅ | `authorize()`'s design principle throughout (docs/11 A10): every exception path denies rather than defaults to allow; transactions roll back completely on any error (verified repeatedly via chaos tests) |
 
-**Section result:** 11 Met, 3 Partial (log-shipping destination, dedicated security-event stream for denials — both real, tracked), 2 N/A (hosting-platform-dependent, Phase 15).
+**Section result:** 11 Met, 3 Partial (log-shipping destination, dedicated security-event stream for denials — both real, tracked), 2 N/A (hosting-platform-dependent, Phase 16).
 
 ## V17 — WebRTC (7 items)
 

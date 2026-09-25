@@ -36,7 +36,7 @@ jobs:
       - run: osv-scanner scan source -r .
 
   # docs/13 §10: ZAP baseline DAST, weekly, against the real production build (no staging
-  # environment exists yet — docs/19 Phase 15). `fail_action: false` deliberately: this is the
+  # environment exists yet — docs/19 Phase 16). `fail_action: false` deliberately: this is the
   # first time ZAP has ever run against this app, so there's no `.zap/rules.tsv` triage file yet to
   # separate real findings from baseline-scan noise — Phase 14 ("Security review") is explicitly
   # where findings get triaged and this gate gets tightened, per docs/19's own phase boundaries.
