@@ -1,8 +1,10 @@
 # 11 — Security Threat Model
 
-Status: Draft v0.1 · 2026-09-17 · Method: asset/actor analysis + STRIDE per trust boundary + abuse cases + OWASP Top 10:2025 and API Security Top 10 (2023) mapping. Verification target: **OWASP ASVS 5.0 Level 2**.
+Status: Draft v0.1 · 2026-09-17, reviewed against real Phase 0–13 code in Phase 14 (2026-09-26) · Method: asset/actor analysis + STRIDE per trust boundary + abuse cases + OWASP Top 10:2025 and API Security Top 10 (2023) mapping. Verification target: **OWASP ASVS 5.0 Level 2**.
 
 This is a living document, updated whenever a new external integration, data class or privileged workflow is added.
+
+**Phase 14 review note:** this document was originally written design-first, ahead of most of the implementation it describes. The Phase 14 pass (`docs/security/asvs-l2-checklist.md`) walked every ASVS 5.0 L1/L2 requirement against the actual code and found this doc's design intent mostly matches reality, with a few real gaps between what's described here and what's built — each is called out inline below with a pointer to `docs/security/accepted-risk-register.md`, rather than silently left for a reader to discover the mismatch later. Zero critical/high findings; every gap is Medium or lower.
 
 ## 1. Security objectives
 
@@ -125,6 +127,7 @@ flowchart TB
 | AC16 | Free-event registration bots | Turnstile on registration, verified email required, per-account caps | E2E |
 | AC17 | Meeting-link phishing (mentor sets a lookalike URL) | Strict host allowlist, punycode rejection, join via platform redirect | Unit |
 | AC18 | Moderator doxxing a user from verification docs | Docs accessible only to verification reviewers, audited views, short retention | Audit review |
+| AC19 | A compromised or careless `content_editor` account publishes misleading "official" immigration/legal/financial guidance under the platform's name (Phase 12 addition) | Publish gate refuses to publish with zero sources (docs/12 §14); mandatory disclaimer banner on any sensitive-topic guide; `verified_by`/`last_verified_at`/`next_review_due_at` create an accountable, auditable trail per guide; `article.published` is a `writeAudit`-logged action tied to the actor | Integration (Phase 12: publish-gate rejection test); no dedicated abuse-simulation test yet — tracked as a Phase 14 follow-up rather than assumed covered by the publish-gate test alone |
 
 ## 7. OWASP Top 10:2025 mapping
 
@@ -177,10 +180,12 @@ Cross-Origin-Opener-Policy: same-origin-allow-popups   (Razorpay/Google OAuth po
 
 Exact Razorpay/Turnstile hosts are validated during integration (CSP report-only first, then enforce). Nonce-based CSP makes pages dynamic, so for static/ISR public pages a hash-based policy or a separate stricter no-script-exception policy is evaluated at Phase 4.
 
+**Phase 14 note:** the shipped CSP (`next.config.ts`) is otherwise this strong or stronger (`object-src 'none'`, `base-uri 'none'`, `frame-ancestors 'none'`, no third-party origins allowlisted since none are integrated yet), but `script-src` still uses `'self' 'unsafe-inline'` rather than the nonce-based policy shown above — the nonce middleware layer described here was never built. Tracked as accepted-risk register R5 (Medium severity, no known live XSS sink today, but a real defense-in-depth gap).
+
 ### 9.2 Input & output
 - zod validation at every boundary (HTTP, webhooks, job payloads, env).
 - String length caps on every field; Unicode normalisation (NFC) for names/slugs; slugs `[a-z0-9-]` only.
-- Rich text = Markdown subset rendered server-side with `rehype-sanitize` (allowlist: p, strong, em, ul/ol/li, a[href https only], code, pre, blockquote, h3–h4). No images from arbitrary hosts.
+- Rich text = Markdown subset rendered server-side with `rehype-sanitize` (allowlist: p, strong, em, ul/ol/li, a[href https only], code, pre, blockquote, h3–h4). No images from arbitrary hosts. **Phase 14 note:** this markdown-to-HTML pipeline was never built — every free-text field shipped so far (mentor bios, Phase 6; guide bodies, Phase 12) renders as plain `white-space: pre-line` text via ordinary JSX interpolation instead, which React auto-escapes by construction. That sidesteps this exact risk class differently than originally designed, not by accident — but it means the moment any field *does* need real formatting (headings, lists, links), this sanitizer needs to be built before switching that field to HTML rendering, not assumed already in place.
 - Email templates: escaped variables; plain-text alternative.
 
 ### 9.3 File uploads
@@ -190,12 +195,12 @@ Presigned PUT with exact `Content-Type` + `Content-Length` conditions → `POST 
 - Local: `.env.local` (git-ignored); `.env.example` documents names only.
 - CI: GitHub Actions **environment** secrets (production environment requires approval).
 - Runtime: host environment variables; never `NEXT_PUBLIC_*` for secrets (lint rule: only an allowlisted set of public vars).
-- Rotation: webhook secret, job tick secret and app encryption keys have documented rotation procedures supporting two active keys (`kid`).
+- Rotation: webhook secret, job tick secret and app encryption keys have documented rotation procedures supporting two active keys (`kid`). **Phase 14 note:** this is the target design; no `kid`-based rotation is actually implemented yet (`MFA_ENCRYPTION_KEY` is a single fixed key with no rotation path) — tracked as accepted-risk register R6, low urgency since no real TOTP secrets exist in production yet.
 - Detection: gitleaks in pre-commit (optional) and CI (required); GitHub secret scanning (free for public repos).
 
 ### 9.5 Encryption
 - In transit: TLS 1.2+ (host-managed), HSTS.
-- At rest: provider disk encryption (Supabase/host). App-level AES-256-GCM (envelope-ready, `kid`-versioned) for TOTP secrets, verification reviewer notes, and any future sensitive fields.
+- At rest: provider disk encryption (Supabase/host). App-level AES-256-GCM (envelope-ready, `kid`-versioned) for TOTP secrets, verification reviewer notes, and any future sensitive fields. **Phase 14 note:** the key is derived via HKDF-SHA256 (fixed in Phase 14 — previously a bare SHA-256 hash), but is not yet actually `kid`-versioned; see the rotation note above.
 - Hashing: Argon2id (passwords), SHA-256 (token lookup hashes), HMAC-SHA256 with a pepper (email fingerprints, cursors).
 
 ### 9.6 Rate limiting & bot defence
@@ -243,11 +248,11 @@ Log retention ⚖️: CERT-In Directions (April 2022) require maintaining ICT sy
 | SAST / lint security rules | Every PR | ESLint security plugins, `eslint-plugin-no-unsanitized`, CodeQL (if repo public or GHAS available) |
 | Dependency scanning | Every PR + daily | Dependabot, `npm audit`, OSV-Scanner |
 | Secret scanning | Every PR | gitleaks |
-| Authz matrix tests | Every PR | Vitest integration ([13 §5](13-testing-strategy.md#5-authorization-bola-matrix)) |
+| Authz matrix tests | Every PR | Vitest integration ([13 §5](13-testing-strategy.md#5-authorization-bola-matrix)); route-inventory + CI drift-gate built Phase 13 (docs/21 ADR-047) — the full per-actor assertion matrix itself is still a tracked follow-up, not yet exhaustive |
 | Webhook forgery / replay tests | Every PR | Integration |
-| DAST baseline | Weekly on staging | OWASP ZAP baseline (GitHub Action) |
-| Header/CSP checks | Every deploy | Automated test hitting staging |
-| Manual review against ASVS L2 checklist | Before Beta and before live money | Checklist in `docs/security/asvs-l2-checklist.md` (Phase 14) |
+| DAST baseline | Weekly (against the real production build — no staging exists yet) | OWASP ZAP baseline (`.github/workflows/weekly.yml`, built Phase 13; `fail_action: false` until a triage baseline exists, docs/21 ADR-048) |
+| Header/CSP checks | Every PR | `tests/e2e/foundation.spec.ts` (Phase 5) |
+| Manual review against ASVS L2 checklist | Phase 14 (2026-09-26), then before Beta and before live money | `docs/security/asvs-l2-checklist.md` — done; ~136/253 Met, ~20 Partial, 1 Not Met, ~89 N/A, zero Critical/High. Accepted risks tracked in `docs/security/accepted-risk-register.md` (founder sign-off pending) |
 | External penetration test | **Production-critical, before live money** | Paid (out of ₹0 scope) |
 
 ## Sources

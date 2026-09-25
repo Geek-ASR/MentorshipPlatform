@@ -5,9 +5,11 @@ const appBaseUrl = process.env.APP_BASE_URL ?? "http://localhost:3000";
 const isProductionSite = process.env.APP_ENV === "production";
 
 /**
- * Baseline CSP for all routes (docs/11 §9.1, ADR-021). Scripts still allow 'unsafe-inline' because
- * statically rendered SEO pages cannot carry per-request nonces; a strict nonce-based policy is added
- * for authenticated, dynamic areas via proxy.ts in Phase 5. Third-party origins (Razorpay, Turnstile)
+ * Baseline CSP for all routes (docs/11 §9.1, ADR-021). Scripts still allow 'unsafe-inline' —
+ * a real, tracked gap (docs/21 ADR, docs/security/asvs-l2-checklist.md V13): a per-request-nonce CSP
+ * for authenticated, dynamic areas was planned for Phase 5 but never built, since it needs a
+ * middleware layer threading nonces into every inline script Next itself emits, which is real
+ * engineering work of its own rather than a config tweak. Third-party origins (Razorpay, Turnstile)
  * are added only when those integrations land.
  */
 const contentSecurityPolicy = [

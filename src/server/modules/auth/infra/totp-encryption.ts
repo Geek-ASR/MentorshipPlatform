@@ -1,10 +1,19 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
+import { createCipheriv, createDecipheriv, hkdfSync, randomBytes } from "node:crypto";
 
-/** AES-256-GCM encryption at rest for TOTP secrets (docs/07 §3.6). Key is derived from env, never stored. */
+/**
+ * AES-256-GCM encryption at rest for TOTP secrets (docs/07 §3.6). Key is derived from env, never
+ * stored, via HKDF (RFC 5869, ASVS 11.4.4) rather than a bare SHA-256 hash — `MFA_ENCRYPTION_KEY`
+ * is already a high-entropy random secret (32+ chars, `envSchema`), not a human password, so this
+ * isn't stretching a weak input; HKDF still buys real domain separation (the `info` string below)
+ * so the same env secret can't be replayed as a key for an unrelated purpose, and it's the standard,
+ * crypto-agile way to expand key material rather than a one-off hash construction.
+ */
 export type EncryptedSecret = { ciphertext: string; iv: string; tag: string };
 
 function deriveKey(masterSecret: string): Buffer {
-  return createHash("sha256").update(masterSecret).digest();
+  return Buffer.from(
+    hkdfSync("sha256", masterSecret, Buffer.alloc(0), "aheadly:totp-secret:v1", 32),
+  );
 }
 
 export function encryptTotpSecret(secret: Uint8Array, masterSecret: string): EncryptedSecret {

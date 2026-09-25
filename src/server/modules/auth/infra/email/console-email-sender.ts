@@ -8,8 +8,10 @@ import type { EmailMessage, EmailSender } from "../../application/ports";
 export function createConsoleEmailSender(logger: Logger): EmailSender {
   return {
     async send(message: EmailMessage): Promise<void> {
+      // `email` (not `to`) so the logger's own redact config (docs/11 §2: email is Confidential,
+      // requires redacted logs) actually masks it — a field named `to` wouldn't match that path.
       logger.info(
-        { event: "email.sent", to: message.to, subject: message.subject },
+        { event: "email.sent", email: message.to, subject: message.subject },
         "email (console adapter)",
       );
       if (process.env.NODE_ENV !== "production") {
