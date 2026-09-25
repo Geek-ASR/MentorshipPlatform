@@ -17,10 +17,10 @@ export function SkipLink() {
 
 const NAV = [
   { href: "/mentors", label: "Explore mentors" },
+  { href: "/career", label: "Career" },
+  { href: "/study-abroad", label: "Study abroad" },
+  { href: "/guides", label: "Guides" },
   { href: "/events", label: "Free events" },
-  { href: "/#paths", label: "Career & study abroad" },
-  { href: "/#how-it-works", label: "How it works" },
-  { href: "/#trust", label: "Trust & safety" },
 ];
 
 export function SiteHeader() {
@@ -54,6 +54,16 @@ export function SiteHeader() {
   );
 }
 
+const FOOTER_LINKS = [
+  { href: "/#how-it-works", label: "How it works" },
+  { href: "/#trust", label: "Trust & safety" },
+  { href: "/legal/terms", label: "Terms" },
+  { href: "/legal/privacy", label: "Privacy" },
+  { href: "/legal/refund-cancellation", label: "Refunds" },
+  { href: "/legal/community-guidelines", label: "Community guidelines" },
+  { href: "/legal/grievance", label: "Grievance" },
+];
+
 export function SiteFooter() {
   return (
     <footer className="mt-24 border-t border-line">
@@ -62,7 +72,17 @@ export function SiteFooter() {
           <Logo />
           <p className="mt-3 max-w-sm text-sm text-ink-muted">{brand.tagline}</p>
         </div>
-        <div className="space-y-3 text-sm text-ink-muted md:text-right">
+        <div className="space-y-4 text-sm text-ink-muted md:text-right">
+          <nav
+            aria-label="Legal and trust"
+            className="flex flex-wrap gap-x-4 gap-y-1.5 md:justify-end"
+          >
+            {FOOTER_LINKS.map((link) => (
+              <Link key={link.href} href={link.href} className="hover:text-ink">
+                {link.label}
+              </Link>
+            ))}
+          </nav>
           <p>
             Mentors share personal experience. It is not official university, immigration, legal or
             financial advice — always confirm with official sources.

@@ -18,6 +18,10 @@ const NAV: NavGroup[] = [
     ],
   },
   {
+    label: "Content",
+    items: [{ href: "/admin/articles", label: "Articles & guides" }],
+  },
+  {
     label: "Trust & safety",
     items: [
       { href: "/admin/cases", label: "Cases" },

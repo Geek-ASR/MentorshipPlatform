@@ -13,6 +13,10 @@ export const brand = {
   supportEmail: "support@aheadly.invalid",
   securityEmail: "security@aheadly.invalid",
   legalEntityName: "Aheadly (entity to be registered)",
+  /** docs/12 §6, §15: a named grievance officer is a founder action item due before public beta
+   * (docs/19 §"Founder action items"); support handles the role until then. */
+  grievanceOfficerName: "To be designated before public beta",
+  grievanceContactEmail: "support@aheadly.invalid",
 } as const;
 
 export type Brand = typeof brand;
