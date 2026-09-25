@@ -152,29 +152,33 @@ export default function HomePage() {
               {
                 icon: Briefcase,
                 title: "Career & academic",
+                href: "/career",
                 description: "From placements and interviews to research and portfolios.",
                 topics: careerTopics,
               },
               {
                 icon: Plane,
                 title: "Study abroad",
+                href: "/study-abroad",
                 description:
                   "Admissions, the visa process as others experienced it, housing and life in a new city.",
                 topics: abroadTopics,
               },
             ].map((path) => (
-              <Card key={path.title}>
-                <path.icon className="size-6 text-primary" aria-hidden="true" />
-                <CardTitle className="mt-4">{path.title}</CardTitle>
-                <CardDescription>{path.description}</CardDescription>
-                <ul className="mt-5 flex flex-wrap gap-2" aria-label={`${path.title} topics`}>
-                  {path.topics.map((topic) => (
-                    <li key={topic}>
-                      <Badge>{topic}</Badge>
-                    </li>
-                  ))}
-                </ul>
-              </Card>
+              <Link key={path.title} href={path.href} className="block h-full">
+                <Card className="h-full transition-colors hover:border-primary">
+                  <path.icon className="size-6 text-primary" aria-hidden="true" />
+                  <CardTitle className="mt-4">{path.title}</CardTitle>
+                  <CardDescription>{path.description}</CardDescription>
+                  <ul className="mt-5 flex flex-wrap gap-2" aria-label={`${path.title} topics`}>
+                    {path.topics.map((topic) => (
+                      <li key={topic}>
+                        <Badge>{topic}</Badge>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+              </Link>
             ))}
           </div>
         </Container>
