@@ -106,6 +106,18 @@ test.describe("public foundation", () => {
     expect(api.headers()["content-type"]).toContain("application/problem+json");
   });
 
+  test("mentor search tolerates malformed filter values instead of crashing (docs/19 Phase 14)", async ({
+    request,
+  }) => {
+    // Found by a real ZAP scan during the Phase 14 security review: `university`/`category`/
+    // `language` are cast to `::uuid` in the search query, and the page passed them through
+    // unvalidated — any non-UUID value 500'd the whole page instead of just ignoring that filter.
+    const response = await request.get(
+      "/mentors?category=not-a-uuid&language=en&university=also-not-a-uuid",
+    );
+    expect(response.status()).toBe(200);
+  });
+
   test("has no horizontal overflow on small screens", async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 800 });
     await page.goto("/");

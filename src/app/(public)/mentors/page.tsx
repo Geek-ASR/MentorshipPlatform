@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/server/platform/db/client";
+import { isUuid } from "@/server/platform/ids";
 import { taxonomyTerms } from "@/server/platform/db/tables/reference";
 import { universities } from "@/server/platform/db/tables/geo";
 import { searchMentors, type SearchFilters } from "@/server/modules/profiles";
@@ -88,12 +89,16 @@ export default async function MentorsExplorePage({
   const params = await searchParams;
   const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
   const db = await getDb();
+  // `university`/`category`/`language` are cast to `::uuid` in the search query (mentor_search_
+  // documents' array columns) — a malformed value (a stale link, a crafted URL, a scanner probe)
+  // must not 500 the whole page; treat it the same as the filter not being set (docs/19 Phase 14
+  // finding, confirmed via a real ZAP scan: `/mentors?language=en` crashed before this validation).
   const [{ mentors, total }, { universityRows, categoryRows, languageRows }] = await Promise.all([
     searchMentors(db, {
       q: params.q,
-      universityId: params.university,
-      categoryId: params.category,
-      languageId: params.language,
+      universityId: isUuid(params.university) ? params.university : undefined,
+      categoryId: isUuid(params.category) ? params.category : undefined,
+      languageId: isUuid(params.language) ? params.language : undefined,
       countryIso2: params.country,
       limit: PAGE_SIZE,
       offset: (page - 1) * PAGE_SIZE,
