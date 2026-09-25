@@ -2,7 +2,7 @@ import { inArray } from "drizzle-orm";
 import type { Database, Executor } from "@/server/platform/db/client";
 import { taxonomyTerms } from "@/server/platform/db/tables/reference";
 import { companies, universities } from "@/server/platform/db/tables/geo";
-import { findUserById } from "@/server/modules/auth";
+import { findUserById, hasActiveRestriction } from "@/server/modules/auth";
 import { isListable } from "../domain/listing";
 import { listAffiliations } from "../infra/affiliation-repo";
 import { listExpertise, listLanguages } from "../infra/details-repo";
@@ -25,12 +25,19 @@ export async function recomputeListingEligibility(
   executor: Executor,
   mentorUserId: string,
   activeCredentialCount?: number,
+  now: Date = new Date(),
 ): Promise<void> {
   const profile = await findMentorProfile(executor, mentorUserId);
   if (!profile) return;
 
   const count = activeCredentialCount ?? profile.activeCredentialCount;
-  const listed = isListable(profile.applicationStatus, count);
+  const listingRestricted = await hasActiveRestriction(
+    executor,
+    mentorUserId,
+    "listing.visible",
+    now,
+  );
+  const listed = isListable(profile.applicationStatus, count, listingRestricted);
   await setListingState(executor, mentorUserId, listed, count);
 
   const [affiliations, expertiseTermIds, languages, attestation, user] = await Promise.all([
@@ -109,4 +116,17 @@ export async function refreshListingFromCredentials(
   await db.transaction((tx) =>
     recomputeListingEligibility(tx, mentorUserId, activeCredentialCount),
   );
+}
+
+/** Called by `trust` right after applying or lifting a `listing.visible` restriction (docs/10 §7.3
+ * `hide_profile`, reliability-ladder suspensions) so the change is reflected immediately rather than
+ * waiting for the mentor's own next unrelated edit — reuses whatever credential count is already
+ * persisted, matching `recomputeListingEligibility`'s own "omit the count, reuse the last one"
+ * contract. */
+export async function refreshMentorListing(
+  executor: Executor,
+  mentorUserId: string,
+  now: Date = new Date(),
+): Promise<void> {
+  await recomputeListingEligibility(executor, mentorUserId, undefined, now);
 }

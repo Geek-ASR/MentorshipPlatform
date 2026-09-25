@@ -1,7 +1,9 @@
 import { sql, type SQL } from "drizzle-orm";
 import { customType } from "drizzle-orm/pg-core";
 
-const SAFE_TOKEN = /^[a-z_][a-z0-9_]*$/;
+// Allows a single embedded dot so dotted enum values (e.g. `Capability`'s `"booking.create"`,
+// docs/10 §7.3) can go through `checkIn` too, not just plain snake_case values.
+const SAFE_TOKEN = /^[a-z_][a-z0-9_]*(\.[a-z_][a-z0-9_]*)?$/;
 
 /** Case-insensitive text (extension enabled in 0000_extensions.sql). Used for emails. */
 export const citext = customType<{ data: string }>({

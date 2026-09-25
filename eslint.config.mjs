@@ -1,6 +1,7 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import security from "eslint-plugin-security";
 import prettier from "eslint-config-prettier/flat";
 
 export default defineConfig([
@@ -24,6 +25,14 @@ export default defineConfig([
         },
       ],
     },
+  },
+  {
+    // ReDoS guard (docs/11 AC14) for the trust module's contact-info/claim-phrase detectors —
+    // scoped there rather than repo-wide so it doesn't need auditing every pre-existing regex in
+    // the codebase in one pass.
+    files: ["src/server/modules/trust/domain/detectors.ts"],
+    plugins: { security },
+    rules: { "security/detect-unsafe-regex": "error" },
   },
   {
     files: ["scripts/**", "tests/**"],

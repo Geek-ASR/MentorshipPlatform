@@ -1,5 +1,6 @@
 import { closeDatabase, createDatabase } from "../../src/server/platform/db/client";
 import { seedReferenceData } from "../../src/server/platform/db/seed/seed";
+import { seedPolicyRules } from "../../src/server/modules/trust";
 import { loadLocalEnv, requireEnv } from "../lib/load-env";
 
 loadLocalEnv();
@@ -11,6 +12,8 @@ const db = createDatabase({
 try {
   const summary = await db.transaction((tx) => seedReferenceData(tx));
   console.log(`Seed complete (newly inserted): ${JSON.stringify(summary)}`);
+  await db.transaction((tx) => seedPolicyRules(tx));
+  console.log("Trust policy rules seeded.");
 } finally {
   await closeDatabase(db);
 }

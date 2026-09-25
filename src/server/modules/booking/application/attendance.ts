@@ -4,6 +4,7 @@ import type { UserActor } from "@/server/platform/authz/actor";
 import { AppError } from "@/server/platform/errors";
 import { writeAudit } from "@/server/platform/audit";
 import { getSetting } from "@/server/platform/settings/settings";
+import { createFakeGateway, refundOrderItem } from "@/server/modules/payments";
 import {
   determineAttendanceOutcome,
   determineEventAttendanceOutcome,
@@ -255,13 +256,57 @@ export async function runAttendanceFinalizer(db: Database, now: Date): Promise<F
         targetId: booking.id,
         metadata: { outcome: outcomeLabel, technicalIssue: outcomeLabel === "technical" },
       });
+      // Trust-event signals (docs/10 §4.2) — `booking` only ever writes an audit-log fact; `trust`'s
+      // own ingestion poller converts these into real, decaying trust_events (ADR-035: `booking`
+      // must never import `trust`, matching the one-directional-DAG discipline ADR-029 established
+      // for payments). A group no-show cascade (docs/18 S12) produces one signal per affected seat —
+      // "booking final no_show_mentor" reads as per-booking in the docs, so a group incident that
+      // strands more students really does compound the mentor's points, not just count once.
       if (session.kind === "event" && outcomeLabel === "no_show_student") {
-        // Phase 10 owns the real trust-event ledger and policy enforcement (docs/10 §4.2
-        // `free_event_no_show`, 1 point, 90-day decay); this audit entry is the signal until then,
-        // matching the reliability-signal precedent already established for mentor cancellations.
         await writeAudit(db, {
           actorType: "system",
           action: "booking.free_event_no_show_signal",
+          targetType: "booking",
+          targetId: booking.id,
+          metadata: { studentId: booking.studentId, sessionId: session.id },
+        });
+      } else if (outcomeLabel === "provisional_no_show_mentor") {
+        await writeAudit(db, {
+          actorType: "system",
+          action: "booking.mentor_no_show_signal",
+          targetType: "booking",
+          targetId: booking.id,
+          metadata: { mentorUserId: session.hostUserId, sessionId: session.id },
+        });
+        // docs/10 §5 Level 0: "Any mentor no-show -> Student full refund" — automatic, not gated on
+        // a dispute (a student can still dispute a *wrong* no-show call afterwards via trust's
+        // dispute flow, which walks this back). A `held` (unpaid) or free (priceMinor 0) booking has
+        // nothing to refund.
+        if (booking.orderItemId && booking.priceMinor > 0) {
+          // Must run inside its own transaction: `refundOrderItem` posts a multi-line ledger journal
+          // and the balance check is a deferred constraint trigger, only validated at transaction
+          // end — calling it with the bare `db` (auto-commit per statement) would check the journal
+          // balanced after each individual line, which a 2+-line journal never is until complete.
+          await db.transaction(async (tx) => {
+            const gateway = createFakeGateway(tx);
+            await refundOrderItem(
+              tx,
+              gateway,
+              {
+                orderItemId: booking.orderItemId!,
+                refundMinor: booking.priceMinor,
+                reasonCode: "mentor_no_show",
+                initiatedBy: "system",
+                idempotencyKey: `no-show-refund:${booking.id}`,
+              },
+              now,
+            );
+          });
+        }
+      } else if (outcomeLabel === "provisional_no_show_student") {
+        await writeAudit(db, {
+          actorType: "system",
+          action: "booking.student_no_show_signal",
           targetType: "booking",
           targetId: booking.id,
           metadata: { studentId: booking.studentId, sessionId: session.id },

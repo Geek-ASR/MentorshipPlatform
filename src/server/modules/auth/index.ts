@@ -3,7 +3,13 @@
  * on this file — never on `application/*`, `domain/*` or `infra/*` directly (tests/architecture).
  */
 
-export { ROLES, STAFF_ROLES, type Role } from "@/server/platform/authz/actor";
+export {
+  ROLES,
+  STAFF_ROLES,
+  CAPABILITIES,
+  type Role,
+  type Capability,
+} from "@/server/platform/authz/actor";
 
 export { signUp, type SignUpInput, type SignUpResult } from "./application/sign-up";
 export { verifyEmail } from "./application/verify-email";
@@ -39,10 +45,25 @@ export {
   findUsersByIds,
   grantRole,
   rolesForUser,
+  updateUserStatus,
   type UserRow,
 } from "./infra/user-repo";
+export { revokeAllSessionsForUser } from "./infra/session-repo";
 export { createHibpChecker } from "./infra/hibp-checker";
 export { users } from "./infra/tables";
+
+export { blockUser, unblockUser, isBlocked, listMyBlocks } from "./application/blocking";
+export type { UserBlockRow } from "./infra/block-repo";
+export {
+  insertRestriction,
+  hasActiveRestriction,
+  liftRestriction,
+  liftAllRestrictionsFromAction,
+  liftAllActiveRestrictionsForUser,
+  listRestrictionRowsForUser,
+  toActiveRestrictions,
+  type UserRestrictionRow,
+} from "./infra/restriction-repo";
 
 export {
   sessionCookieName,

@@ -23,7 +23,7 @@ export {
   type ApplicationDecision,
   type ApplicationCompleteness,
 } from "./application/mentor-application";
-export { refreshListingFromCredentials } from "./application/search-index";
+export { refreshListingFromCredentials, refreshMentorListing } from "./application/search-index";
 export { searchMentors, type MentorCard, type SearchResults } from "./application/search";
 export {
   getMentorProfileDetail,
@@ -57,3 +57,8 @@ export {
 } from "./infra/tables";
 
 export type { SearchFilters } from "./infra/search-repo";
+export {
+  upsertStats as updateMentorStats,
+  findStats as findMentorStats,
+  type MentorStatsRow,
+} from "./infra/stats-repo";

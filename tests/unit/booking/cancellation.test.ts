@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   cancellationQuote,
   mentorCancellationNoticePoints,
+  mentorCancellationTrustEventSignal,
   type CancellationPolicySnapshot,
 } from "@/server/modules/booking/domain/cancellation";
 
@@ -108,5 +109,20 @@ describe("mentorCancellationNoticePoints", () => {
     [0, 3],
   ])("hoursNotice=%d -> %d points", (hours, points) => {
     expect(mentorCancellationNoticePoints(hours)).toBe(points);
+  });
+});
+
+describe("mentorCancellationTrustEventSignal (docs/10 §4.2 three-tier cancel ladder)", () => {
+  it.each([
+    [100, null],
+    [72, null],
+    [48, "mentor_cancel_24_72h"],
+    [24, "mentor_cancel_24_72h"],
+    [10, "mentor_late_cancel_24h"],
+    [2, "mentor_late_cancel_24h"],
+    [1, "mentor_late_cancel_2h"],
+    [0, "mentor_late_cancel_2h"],
+  ] as const)("hoursNotice=%d -> %s", (hours, signal) => {
+    expect(mentorCancellationTrustEventSignal(hours)).toBe(signal);
   });
 });

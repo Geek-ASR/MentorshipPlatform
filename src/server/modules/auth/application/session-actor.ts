@@ -9,6 +9,7 @@ import type { Executor } from "@/server/platform/db/client";
 import { findSessionByTokenHash, touchLastSeen } from "../infra/session-repo";
 import { findUserById, rolesForUser } from "../infra/user-repo";
 import { isSessionExpired, shouldRefreshLastSeen } from "../domain/session-policy";
+import { listRestrictionRowsForUser, toActiveRestrictions } from "../infra/restriction-repo";
 
 /**
  * Resolves the bearer session cookie into an Actor (docs/07 §5). Called on every authenticated
@@ -36,14 +37,14 @@ export async function resolveSessionActor(
     await touchLastSeen(executor, session.id, now).catch(() => undefined);
   }
 
+  const restrictionRows = await listRestrictionRowsForUser(executor, user.id);
   const actor: UserActor = {
     kind: "user",
     userId: user.id,
     sessionId: session.id,
     roles: new Set(roles),
     status: user.status,
-    // Trust & safety restrictions land in Phase 10; every actor has none until then.
-    restrictions: [],
+    restrictions: toActiveRestrictions(restrictionRows, now),
     emailVerified: user.emailVerified,
     mfaVerified: session.mfaVerified,
     authenticatedAt: session.authTime,
