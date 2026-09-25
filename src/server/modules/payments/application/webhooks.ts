@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Database } from "@/server/platform/db/client";
+import { AppError } from "@/server/platform/errors";
 import { defineJob, enqueueJob } from "@/server/platform/outbox/outbox";
 import { resolvePaymentTransition } from "../domain/state-machines";
 import type { Provider } from "../domain/types";
@@ -135,3 +136,27 @@ export const processPaymentWebhook = defineJob({
     await processWebhookEventById(db, payload.webhookEventId, clock.now());
   },
 });
+
+/**
+ * docs/06 §7.9 `POST /admin/webhook-events/{id}/replay`. `processWebhookEventById` no-ops on
+ * anything but `status: "received"`, so a replay resets the event back to that state first — and
+ * needs a fresh dedupe key, since the original `webhook:{provider}:{providerEventId}` key is still
+ * on the first (already-processed-or-failed) enqueue and would make a same-keyed re-enqueue a no-op.
+ */
+export async function replayWebhookEvent(
+  db: Database,
+  webhookEventId: string,
+  now: Date,
+): Promise<void> {
+  const event = await findWebhookEvent(db, webhookEventId);
+  if (!event) throw new AppError("NOT_FOUND");
+  await db.transaction(async (tx) => {
+    await setWebhookEventStatus(tx, webhookEventId, "received", now);
+    await enqueueJob(
+      tx,
+      processPaymentWebhook,
+      { webhookEventId },
+      { dedupeKey: `webhook-replay:${webhookEventId}:${now.getTime()}` },
+    );
+  });
+}

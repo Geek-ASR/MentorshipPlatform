@@ -131,6 +131,29 @@ export async function updateSetting<K extends SettingKey>(
   return { version };
 }
 
+export type SettingSummary = {
+  key: SettingKey;
+  value: unknown;
+  description: string;
+  critical: boolean;
+};
+
+/** docs/06 §7.9 `GET /admin/settings` — every registered key with its current effective value. */
+export async function listSettingsForAdmin(
+  executor: Executor,
+  now: Date,
+): Promise<SettingSummary[]> {
+  const keys = Object.keys(settingsRegistry) as SettingKey[];
+  return Promise.all(
+    keys.map(async (key) => ({
+      key,
+      value: await getSetting(executor, key, now, { bypassCache: true }),
+      description: settingsRegistry[key].description,
+      critical: settingsRegistry[key].critical ?? false,
+    })),
+  );
+}
+
 export async function isFeatureEnabled(
   executor: Executor,
   key: FeatureFlagKey,
@@ -150,6 +173,23 @@ export async function isFeatureEnabled(
   const enabled = row?.enabled ?? featureFlagRegistry[key].defaultValue;
   cache.set(cacheKey, { value: enabled, expiresAt: now.getTime() + CACHE_TTL_MS });
   return enabled;
+}
+
+export type FeatureFlagSummary = { key: FeatureFlagKey; enabled: boolean; description: string };
+
+/** docs/06 §7.9 `GET /admin/feature-flags`. */
+export async function listFeatureFlagsForAdmin(
+  executor: Executor,
+  now: Date,
+): Promise<FeatureFlagSummary[]> {
+  const keys = Object.keys(featureFlagRegistry) as FeatureFlagKey[];
+  return Promise.all(
+    keys.map(async (key) => ({
+      key,
+      enabled: await isFeatureEnabled(executor, key, now, { bypassCache: true }),
+      description: featureFlagRegistry[key].description,
+    })),
+  );
 }
 
 export async function setFeatureFlag(

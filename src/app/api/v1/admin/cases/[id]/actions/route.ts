@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { defineRoute } from "@/server/platform/http/route";
-import { authorize, requireStaff } from "@/server/platform/authz/authorize";
+import { authorize, requireRecentUserAuth, requireStaff } from "@/server/platform/authz/authorize";
 import { AppError } from "@/server/platform/errors";
+import { getSetting } from "@/server/platform/settings/settings";
 import { CAPABILITIES } from "@/server/modules/auth";
 import { decideCase, dismissCase, MODERATION_ACTION_TYPES } from "@/server/modules/trust";
 import type { ModerationActionType } from "@/server/modules/trust";
@@ -51,16 +52,23 @@ export const POST = defineRoute(
       return { status: 204 };
     }
 
+    const now = clock.now();
     const requiredRoles =
       body.action === "ban"
         ? (["admin", "super_admin"] as const)
         : (["moderator", "admin", "super_admin"] as const);
-    authorize(actor, requireStaff(requiredRoles), undefined, { now: clock.now() });
+    authorize(actor, requireStaff(requiredRoles), undefined, { now });
+    const db = await getDb();
+    // docs/07 §5: "bans and suspensions" require step-up; warn/restrict/etc. don't.
+    if (body.action === "suspend" || body.action === "ban") {
+      const recentAuthWindowMinutes = await getSetting(db, "auth.recent_auth_window_min", now);
+      authorize(actor, requireRecentUserAuth, undefined, { now, recentAuthWindowMinutes });
+    }
     if (actor.kind !== "user") throw new AppError("UNAUTHENTICATED");
     assertRoleForAction(body.action, Boolean(body.secondReviewerId));
 
     const action = await decideCase(
-      await getDb(),
+      db,
       {
         caseId: params.id,
         action: body.action,

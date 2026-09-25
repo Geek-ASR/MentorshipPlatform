@@ -79,6 +79,22 @@ export async function listPaymentsForStudent(
   return rows.map((r) => r.payment);
 }
 
+/** docs/06 §7.9 `GET /admin/payments`. */
+export async function listPaymentsForAdmin(
+  executor: Executor,
+  options: { status?: PaymentStatus; limit?: number } = {},
+): Promise<PaymentRow[]> {
+  const limit = options.limit ?? 50;
+  const query = executor.select().from(payments);
+  const rows = options.status
+    ? await query
+        .where(eq(payments.status, options.status))
+        .orderBy(desc(payments.createdAt))
+        .limit(limit)
+    : await query.orderBy(desc(payments.createdAt)).limit(limit);
+  return rows;
+}
+
 /** Atomically increments `refunded_minor` — the DB's own CHECK (0..amount_minor) is the real guard
  * against over-refunding under concurrent refund attempts (docs/13 §6 refund double-submit). */
 export async function addRefundedAmount(

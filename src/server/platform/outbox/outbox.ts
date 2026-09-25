@@ -1,9 +1,9 @@
-import { sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import type { Logger } from "pino";
 import type { z } from "zod";
 import { systemClock, type Clock } from "../clock";
 import type { Database, Executor } from "../db/client";
-import { outboxJobs } from "../db/tables/platform";
+import { outboxJobs, type OutboxStatus } from "../db/tables/platform";
 import { newId } from "../ids";
 import { retryDelayMs, summarizeJobError } from "./backoff";
 
@@ -236,4 +236,38 @@ export async function scheduleRecurringJobs(
     if (result.enqueued) enqueued += 1;
   }
   return enqueued;
+}
+
+export type OutboxJobRow = typeof outboxJobs.$inferSelect;
+
+/** docs/19 Phase 11 "outbox & jobs inspector". */
+export async function listOutboxJobsForAdmin(
+  executor: Executor,
+  options: { status?: OutboxStatus; limit?: number } = {},
+): Promise<OutboxJobRow[]> {
+  const limit = options.limit ?? 50;
+  const query = executor.select().from(outboxJobs);
+  const rows = options.status
+    ? await query
+        .where(eq(outboxJobs.status, options.status))
+        .orderBy(desc(outboxJobs.createdAt))
+        .limit(limit)
+    : await query.orderBy(desc(outboxJobs.createdAt)).limit(limit);
+  return rows;
+}
+
+/** Resets a job to run again from a clean slate — used for a `failed` (attempts exhausted) job an
+ * admin has decided is now safe to retry (e.g. after fixing whatever made every attempt fail). */
+export async function retryOutboxJob(executor: Executor, id: string, now: Date): Promise<void> {
+  await executor
+    .update(outboxJobs)
+    .set({
+      status: "pending",
+      attempts: 0,
+      runAt: now,
+      lastError: null,
+      lockedBy: null,
+      lockedUntil: null,
+    })
+    .where(eq(outboxJobs.id, id));
 }

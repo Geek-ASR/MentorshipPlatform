@@ -38,6 +38,22 @@ export async function findTransfer(
   return row;
 }
 
+/** docs/06 §7.9 `GET /admin/transfers`. */
+export async function listTransfersForAdmin(
+  executor: Executor,
+  options: { status?: TransferStatus; limit?: number } = {},
+): Promise<TransferRow[]> {
+  const limit = options.limit ?? 50;
+  const query = executor.select().from(transfers);
+  const rows = options.status
+    ? await query
+        .where(eq(transfers.status, options.status))
+        .orderBy(desc(transfers.createdAt))
+        .limit(limit)
+    : await query.orderBy(desc(transfers.createdAt)).limit(limit);
+  return rows;
+}
+
 export async function findTransferByOrderItem(
   executor: Executor,
   orderItemId: string,

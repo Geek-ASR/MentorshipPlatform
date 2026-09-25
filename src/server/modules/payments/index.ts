@@ -34,6 +34,7 @@ export {
 export {
   receiveWebhook,
   processPaymentWebhook,
+  replayWebhookEvent,
   type ReceiveWebhookResult,
 } from "./application/webhooks";
 export {
@@ -80,6 +81,7 @@ export {
 } from "./infra/payment-intents-repo";
 export {
   findPayment,
+  listPaymentsForAdmin,
   listPaymentsForIntent,
   listPaymentsForStudent,
   type PaymentRow,
@@ -94,6 +96,7 @@ export { findPayoutAccount, type PayoutAccountRow } from "./infra/payout-account
 export {
   findTransfer,
   findTransferByOrderItem,
+  listTransfersForAdmin,
   listTransfersForMentor,
   type TransferRow,
 } from "./infra/transfers-repo";

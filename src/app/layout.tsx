@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Sans, Source_Serif_4 } from "next/font/google";
 import { brand } from "@/config/brand";
-import { SiteFooter, SiteHeader, SkipLink } from "@/ui/site-chrome";
 import "./globals.css";
 
 const instrumentSans = Instrument_Sans({
@@ -38,17 +37,13 @@ export const viewport: Viewport = {
   ],
 };
 
+/** Deliberately minimal — document shell only. Public pages get their nav/footer from
+ * `(public)/layout.tsx`; `/admin/*` gets its own staff shell from `admin/layout.tsx` (docs/19
+ * Phase 11) — neither should inherit the other's chrome. */
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${instrumentSans.variable} ${sourceSerif.variable} antialiased`}>
-      <body className="flex min-h-dvh flex-col">
-        <SkipLink />
-        <SiteHeader />
-        <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
-          {children}
-        </main>
-        <SiteFooter />
-      </body>
+      <body className="flex min-h-dvh flex-col">{children}</body>
     </html>
   );
 }

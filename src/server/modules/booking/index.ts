@@ -32,6 +32,7 @@ export {
 export {
   listBookingsForStudent,
   listBookingsForMentor,
+  listBookingsForAdmin,
   listBookingsPendingPaymentSync,
   findBooking,
   type BookingRow,

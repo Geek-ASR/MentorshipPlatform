@@ -11,7 +11,7 @@ export {
   type ConfirmChallengeResult,
 } from "./application/email-challenge";
 export { listCredentials, revokeCredentialAsStaff } from "./application/credentials";
-export { countActiveCredentials } from "./infra/credential-repo";
+export { countActiveCredentials, listCredentialsForAdmin } from "./infra/credential-repo";
 export {
   VERIFICATION_METHODS,
   CREDENTIAL_KINDS,

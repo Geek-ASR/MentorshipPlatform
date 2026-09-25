@@ -1,4 +1,4 @@
-import { and, eq, gt, isNull, or } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, or } from "drizzle-orm";
 import type { Executor } from "@/server/platform/db/client";
 import { newId } from "@/server/platform/ids";
 import { credentials, type CredentialKind } from "./tables";
@@ -28,6 +28,16 @@ export async function listCredentialsForUser(
   userId: string,
 ): Promise<CredentialRow[]> {
   return executor.select().from(credentials).where(eq(credentials.userId, userId));
+}
+
+/** docs/06 §7.9 `GET /admin/verification-requests` — the queue this phase actually has: every
+ * email-challenge-issued credential, most recent first. Document-review still doesn't exist (see
+ * this module's own docstring), so there's no separate "pending decision" queue to list yet. */
+export async function listCredentialsForAdmin(
+  executor: Executor,
+  limit = 100,
+): Promise<CredentialRow[]> {
+  return executor.select().from(credentials).orderBy(desc(credentials.verifiedAt)).limit(limit);
 }
 
 /** Active meaning not revoked/expired *right now* — expiry is time-relative, so `now` is required. */

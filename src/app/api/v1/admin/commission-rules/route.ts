@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { defineRoute } from "@/server/platform/http/route";
-import { authorize, requireStaff } from "@/server/platform/authz/authorize";
+import { authorize, requireRecentUserAuth, requireStaff } from "@/server/platform/authz/authorize";
 import { AppError } from "@/server/platform/errors";
+import { getSetting } from "@/server/platform/settings/settings";
 import {
   COMMISSION_SCOPE_TYPES,
   FEE_BEARERS,
@@ -39,9 +40,14 @@ const bodySchema = z.object({
 export const POST = defineRoute(
   { name: "POST /api/v1/admin/commission-rules", body: bodySchema, idempotency: "required" },
   async ({ actor, body, getDb, clock }) => {
-    authorize(actor, requireStaff(["admin", "super_admin"]), undefined, { now: clock.now() });
+    const now = clock.now();
+    authorize(actor, requireStaff(["admin", "super_admin"]), undefined, { now });
+    const db = await getDb();
+    // docs/07 §5: commission/settings changes require step-up.
+    const recentAuthWindowMinutes = await getSetting(db, "auth.recent_auth_window_min", now);
+    authorize(actor, requireRecentUserAuth, undefined, { now, recentAuthWindowMinutes });
     if (actor.kind !== "user") throw new AppError("UNAUTHENTICATED");
-    const rule = await createCommissionRule(await getDb(), actor.userId, {
+    const rule = await createCommissionRule(db, actor.userId, {
       scopeType: body.scopeType,
       scopeRef: body.scopeRef ?? null,
       percentBps: body.percentBps,

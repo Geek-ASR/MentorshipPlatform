@@ -1,4 +1,4 @@
-import { eq, inArray } from "drizzle-orm";
+import { desc, eq, ilike, inArray, or } from "drizzle-orm";
 import type { Executor } from "@/server/platform/db/client";
 import { newId } from "@/server/platform/ids";
 import type { Role, UserStatus } from "@/server/platform/authz/actor";
@@ -30,6 +30,22 @@ export async function findUserById(executor: Executor, id: string): Promise<User
 export async function findUsersByIds(executor: Executor, ids: string[]): Promise<UserRow[]> {
   if (ids.length === 0) return [];
   return executor.select().from(users).where(inArray(users.id, ids));
+}
+
+/** docs/06 §7.9 `GET /admin/users` — a plain email/display-name search, most recent first. */
+export async function listUsersForAdmin(
+  executor: Executor,
+  options: { q?: string; limit?: number } = {},
+): Promise<UserRow[]> {
+  const limit = options.limit ?? 50;
+  const query = executor.select().from(users);
+  const rows = options.q
+    ? await query
+        .where(or(ilike(users.email, `%${options.q}%`), ilike(users.displayName, `%${options.q}%`)))
+        .orderBy(desc(users.createdAt))
+        .limit(limit)
+    : await query.orderBy(desc(users.createdAt)).limit(limit);
+  return rows;
 }
 
 export type NewUser = {
