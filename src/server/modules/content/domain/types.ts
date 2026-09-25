@@ -2,7 +2,12 @@ export const ARTICLE_STATUSES = ["draft", "published", "archived"] as const;
 export type ArticleStatus = (typeof ARTICLE_STATUSES)[number];
 
 /** docs/12 §14 content metadata: where the information comes from. */
-export const ARTICLE_SOURCE_TYPES = ["official", "mentor_experience", "community", "editorial"] as const;
+export const ARTICLE_SOURCE_TYPES = [
+  "official",
+  "mentor_experience",
+  "community",
+  "editorial",
+] as const;
 export type ArticleSourceType = (typeof ARTICLE_SOURCE_TYPES)[number];
 
 /** Matches `TaxonomyFlags.sensitiveTopic` (platform reference data) — the same vocabulary drives

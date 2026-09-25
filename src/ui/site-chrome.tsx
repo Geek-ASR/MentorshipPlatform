@@ -73,7 +73,10 @@ export function SiteFooter() {
           <p className="mt-3 max-w-sm text-sm text-ink-muted">{brand.tagline}</p>
         </div>
         <div className="space-y-4 text-sm text-ink-muted md:text-right">
-          <nav aria-label="Legal and trust" className="flex flex-wrap gap-x-4 gap-y-1.5 md:justify-end">
+          <nav
+            aria-label="Legal and trust"
+            className="flex flex-wrap gap-x-4 gap-y-1.5 md:justify-end"
+          >
             {FOOTER_LINKS.map((link) => (
               <Link key={link.href} href={link.href} className="hover:text-ink">
                 {link.label}

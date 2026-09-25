@@ -12,8 +12,19 @@ type ArticleSourceType = "official" | "mentor_experience" | "community" | "edito
 type ArticleDisclaimerKind = "immigration" | "legal" | "financial" | "medical";
 type ArticleSource = { url: string; publisher: string; isOfficial: boolean; accessedAt: string };
 
-const SOURCE_TYPES: ArticleSourceType[] = ["official", "mentor_experience", "community", "editorial"];
-const DISCLAIMER_KINDS: (ArticleDisclaimerKind | "")[] = ["", "immigration", "legal", "financial", "medical"];
+const SOURCE_TYPES: ArticleSourceType[] = [
+  "official",
+  "mentor_experience",
+  "community",
+  "editorial",
+];
+const DISCLAIMER_KINDS: (ArticleDisclaimerKind | "")[] = [
+  "",
+  "immigration",
+  "legal",
+  "financial",
+  "medical",
+];
 
 type Option = { id?: string; iso2?: string; name: string };
 
@@ -140,7 +151,11 @@ export function ArticleForm({
           Regenerate the URL slug from the new title (leaves a redirect from the old one)
         </label>
       ) : null}
-      <Field label="Standfirst" htmlFor="dek" hint="Shown on cards and as the meta description fallback">
+      <Field
+        label="Standfirst"
+        htmlFor="dek"
+        hint="Shown on cards and as the meta description fallback"
+      >
         <Input id="dek" value={values.dek} onChange={(e) => set("dek", e.target.value)} />
       </Field>
       <Field label="Body (Markdown)" htmlFor="bodyMd">
@@ -238,7 +253,10 @@ export function ArticleForm({
         <legend className="px-1 text-sm font-medium text-ink">Sources</legend>
         <div className="space-y-3">
           {values.sources.map((source, index) => (
-            <div key={index} className="grid gap-2 rounded-[var(--radius-control)] border border-line p-3 sm:grid-cols-[2fr_1fr_1fr_auto]">
+            <div
+              key={index}
+              className="grid gap-2 rounded-[var(--radius-control)] border border-line p-3 sm:grid-cols-[2fr_1fr_1fr_auto]"
+            >
               <Input
                 aria-label="Source URL"
                 placeholder="https://…"

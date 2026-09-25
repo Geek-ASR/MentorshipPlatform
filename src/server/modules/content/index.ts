@@ -23,7 +23,11 @@ export {
 } from "./application/articles";
 
 export { articles, articleSlugRedirects } from "./infra/tables";
-export type { ArticleRow, ArticleAdminFilters, PublishedArticleFilters } from "./infra/article-repo";
+export type {
+  ArticleRow,
+  ArticleAdminFilters,
+  PublishedArticleFilters,
+} from "./infra/article-repo";
 
 export {
   ARTICLE_STATUSES,

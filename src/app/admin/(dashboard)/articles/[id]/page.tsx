@@ -101,13 +101,17 @@ export default async function EditArticlePage({ params }: { params: Promise<Page
         <div>
           <dt className="text-ink-muted">Last verified</dt>
           <dd className="tabular text-ink">
-            {article.lastVerifiedAt ? new Date(article.lastVerifiedAt).toLocaleDateString("en-GB") : "Never"}
+            {article.lastVerifiedAt
+              ? new Date(article.lastVerifiedAt).toLocaleDateString("en-GB")
+              : "Never"}
           </dd>
         </div>
         <div>
           <dt className="text-ink-muted">Review due</dt>
           <dd className="tabular text-ink">
-            {article.nextReviewDueAt ? new Date(article.nextReviewDueAt).toLocaleDateString("en-GB") : "—"}
+            {article.nextReviewDueAt
+              ? new Date(article.nextReviewDueAt).toLocaleDateString("en-GB")
+              : "—"}
           </dd>
         </div>
         <div>

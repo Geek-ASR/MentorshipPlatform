@@ -14,7 +14,11 @@ type PageParams = { country: string; city: string };
 
 async function loadCity(countrySlug: string, citySlug: string) {
   const db = await getDb();
-  const [country] = await db.select().from(countries).where(eq(countries.slug, countrySlug)).limit(1);
+  const [country] = await db
+    .select()
+    .from(countries)
+    .where(eq(countries.slug, countrySlug))
+    .limit(1);
   if (!country) return null;
   const [city] = await db
     .select()

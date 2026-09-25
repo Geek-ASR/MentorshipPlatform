@@ -32,11 +32,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function GuidesByCountryPage({
-  params,
-}: {
-  params: Promise<PageParams>;
-}) {
+export default async function GuidesByCountryPage({ params }: { params: Promise<PageParams> }) {
   const { country: slug } = await params;
   const country = await loadCountry(slug);
   if (!country) notFound();

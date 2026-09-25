@@ -81,8 +81,8 @@ export default async function StudyAbroadCountryPage({ params }: { params: Promi
       <div className="mt-4 flex items-start gap-2 rounded-[var(--radius-card)] border border-line bg-primary-soft/30 px-4 py-3 text-sm text-ink">
         <Scale className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
         <p>
-          Mentor experience, not official university, immigration, legal or financial advice.
-          Always confirm with official sources.
+          Mentor experience, not official university, immigration, legal or financial advice. Always
+          confirm with official sources.
         </p>
       </div>
 
@@ -125,7 +125,9 @@ export default async function StudyAbroadCountryPage({ params }: { params: Promi
                     <Link href={`/mentors/${mentor.slug}`} className="block h-full">
                       <Card className="h-full transition-colors hover:border-primary">
                         <CardTitle>{mentor.displayName}</CardTitle>
-                        {mentor.headline ? <CardDescription>{mentor.headline}</CardDescription> : null}
+                        {mentor.headline ? (
+                          <CardDescription>{mentor.headline}</CardDescription>
+                        ) : null}
                         <div className="mt-4">
                           <Badge>{country.iso2}</Badge>
                         </div>

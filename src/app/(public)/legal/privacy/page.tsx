@@ -44,8 +44,8 @@ export default function PrivacyPage() {
 
       <h2>2. Why we collect it</h2>
       <p>
-        To create your account and deliver the service you request, to process payments, to keep
-        the platform safe (fraud prevention, trust &amp; safety enforcement), and to meet legal
+        To create your account and deliver the service you request, to process payments, to keep the
+        platform safe (fraud prevention, trust &amp; safety enforcement), and to meet legal
         obligations (tax records, security-incident logging). Optional purposes — such as marketing
         email or analytics beyond what the service itself needs — are only used with your separate,
         specific consent, which you can withdraw at any time in Settings.
@@ -53,10 +53,10 @@ export default function PrivacyPage() {
 
       <h2>3. Who we share it with</h2>
       <p>
-        Your counterparty in a booking sees what a session naturally requires. Staff see reported
-        or disputed content when reviewing a case. Processors that help us run the service —
-        payments (Razorpay), transactional email, hosting/database, error monitoring — see only
-        what their function needs. We do not sell personal data or use marketing pixels.
+        Your counterparty in a booking sees what a session naturally requires. Staff see reported or
+        disputed content when reviewing a case. Processors that help us run the service — payments
+        (Razorpay), transactional email, hosting/database, error monitoring — see only what their
+        function needs. We do not sell personal data or use marketing pixels.
       </p>
 
       <h2>4. Where your data is stored</h2>
@@ -71,17 +71,26 @@ export default function PrivacyPage() {
         <li>See and export the personal data we hold about you.</li>
         <li>Correct or update inaccurate data.</li>
         <li>Withdraw a consent you previously gave.</li>
-        <li>Request deletion of your account, subject to a short grace period and any legal retention we must honour (e.g. financial records).</li>
-        <li>Raise a grievance — see our <Link href="/legal/grievance" className="text-primary hover:underline">Grievance Redressal Policy</Link>.</li>
+        <li>
+          Request deletion of your account, subject to a short grace period and any legal retention
+          we must honour (e.g. financial records).
+        </li>
+        <li>
+          Raise a grievance — see our{" "}
+          <Link href="/legal/grievance" className="text-primary hover:underline">
+            Grievance Redressal Policy
+          </Link>
+          .
+        </li>
       </ul>
 
       <h2>6. Retention</h2>
       <p>
         We keep data only as long as its purpose requires: verification documents 30 days after a
         decision, messages 12 months after a conversation closes, financial records for the
-        statutory period, and security logs at least 180 days. A deleted account&apos;s personal data
-        is scrubbed after a 14-day grace period, except where we must keep pseudonymised records for
-        legal or financial reasons.
+        statutory period, and security logs at least 180 days. A deleted account&apos;s personal
+        data is scrubbed after a 14-day grace period, except where we must keep pseudonymised
+        records for legal or financial reasons.
       </p>
 
       <h2>7. Cookies</h2>
@@ -99,7 +108,8 @@ export default function PrivacyPage() {
 
       <h2>Contact</h2>
       <p>
-        Privacy questions or requests: <a href={`mailto:${brand.supportEmail}`}>{brand.supportEmail}</a>.
+        Privacy questions or requests:{" "}
+        <a href={`mailto:${brand.supportEmail}`}>{brand.supportEmail}</a>.
       </p>
     </LegalDocument>
   );

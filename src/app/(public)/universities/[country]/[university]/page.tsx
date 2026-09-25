@@ -16,7 +16,11 @@ type PageParams = { country: string; university: string };
 
 async function loadUniversity(countrySlug: string, universitySlug: string) {
   const db = await getDb();
-  const [country] = await db.select().from(countries).where(eq(countries.slug, countrySlug)).limit(1);
+  const [country] = await db
+    .select()
+    .from(countries)
+    .where(eq(countries.slug, countrySlug))
+    .limit(1);
   if (!country) return null;
   const [row] = await db
     .select({ university: universities, cityName: cities.name })
@@ -73,7 +77,12 @@ export default async function UniversityPage({ params }: { params: Promise<PageP
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: appBaseUrl },
-          { "@type": "ListItem", position: 2, name: "Study abroad", item: `${appBaseUrl}/study-abroad` },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Study abroad",
+            item: `${appBaseUrl}/study-abroad`,
+          },
           {
             "@type": "ListItem",
             position: 3,
@@ -91,7 +100,15 @@ export default async function UniversityPage({ params }: { params: Promise<PageP
       {
         "@type": "CollegeOrUniversity",
         name: university.name,
-        ...(cityName ? { address: { "@type": "PostalAddress", addressLocality: cityName, addressCountry: country.iso2 } } : {}),
+        ...(cityName
+          ? {
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: cityName,
+                addressCountry: country.iso2,
+              },
+            }
+          : {}),
         ...(university.website ? { sameAs: university.website } : {}),
       },
     ],
@@ -120,7 +137,12 @@ export default async function UniversityPage({ params }: { params: Promise<PageP
         {university.website ? (
           <>
             {" · "}
-            <a href={university.website} target="_blank" rel="noreferrer noopener" className="text-primary hover:underline">
+            <a
+              href={university.website}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="text-primary hover:underline"
+            >
               Official website
             </a>
           </>
@@ -146,7 +168,9 @@ export default async function UniversityPage({ params }: { params: Promise<PageP
                     <Link href={`/mentors/${mentor.slug}`} className="block h-full">
                       <Card className="h-full transition-colors hover:border-primary">
                         <CardTitle>{mentor.displayName}</CardTitle>
-                        {mentor.headline ? <CardDescription>{mentor.headline}</CardDescription> : null}
+                        {mentor.headline ? (
+                          <CardDescription>{mentor.headline}</CardDescription>
+                        ) : null}
                         {mentor.countryIso2 ? (
                           <div className="mt-4">
                             <Badge>{mentor.countryIso2}</Badge>

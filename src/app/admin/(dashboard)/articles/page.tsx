@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { ARTICLE_STATUSES, listArticlesForAdmin, type ArticleStatus } from "@/server/modules/content";
+import {
+  ARTICLE_STATUSES,
+  listArticlesForAdmin,
+  type ArticleStatus,
+} from "@/server/modules/content";
 import { getDb } from "@/server/platform/db/client";
 import { requireStaffPage } from "@/server/platform/http/page-actor";
 import { Badge } from "@/ui/badge";
@@ -27,7 +31,9 @@ export default async function AdminArticlesPage({
   const params = await searchParams;
   const dueForReview = params.due === "1";
   const status =
-    !dueForReview && params.status && (ARTICLE_STATUSES as readonly string[]).includes(params.status)
+    !dueForReview &&
+    params.status &&
+    (ARTICLE_STATUSES as readonly string[]).includes(params.status)
       ? (params.status as ArticleStatus)
       : undefined;
 
@@ -103,13 +109,20 @@ export default async function AdminArticlesPage({
                   </Td>
                   <Td className="text-xs">{a.sourceType.replace("_", " ")}</Td>
                   <Td className="tabular text-xs">
-                    {a.lastVerifiedAt ? new Date(a.lastVerifiedAt).toLocaleDateString("en-GB") : "—"}
+                    {a.lastVerifiedAt
+                      ? new Date(a.lastVerifiedAt).toLocaleDateString("en-GB")
+                      : "—"}
                   </Td>
                   <Td className="tabular text-xs">
-                    {a.nextReviewDueAt ? new Date(a.nextReviewDueAt).toLocaleDateString("en-GB") : "—"}
+                    {a.nextReviewDueAt
+                      ? new Date(a.nextReviewDueAt).toLocaleDateString("en-GB")
+                      : "—"}
                   </Td>
                   <Td>
-                    <Link href={`/admin/articles/${a.id}`} className="text-sm text-primary hover:underline">
+                    <Link
+                      href={`/admin/articles/${a.id}`}
+                      className="text-sm text-primary hover:underline"
+                    >
                       Edit
                     </Link>
                   </Td>

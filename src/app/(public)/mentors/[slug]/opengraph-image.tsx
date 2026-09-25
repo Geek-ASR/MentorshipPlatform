@@ -19,29 +19,31 @@ export default async function Image({ params }: { params: Promise<ImageParams> }
   const headline = detail?.profile.headline ?? brand.tagline;
 
   return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          padding: "80px",
-          background: "#FAFAF7",
-          color: "#0B1B2B",
-          fontFamily: "sans-serif",
-        }}
-      >
-        <div style={{ display: "flex", fontSize: 28, color: "#0E5A6B", fontWeight: 600 }}>
-          {brand.name}
-        </div>
-        <div style={{ display: "flex", marginTop: 40, fontSize: 64, fontWeight: 600, lineHeight: 1.15 }}>
-          {name}
-        </div>
-        <div style={{ display: "flex", marginTop: 24, fontSize: 32, color: "#5B6470" }}>{headline}</div>
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        padding: "80px",
+        background: "#FAFAF7",
+        color: "#0B1B2B",
+        fontFamily: "sans-serif",
+      }}
+    >
+      <div style={{ display: "flex", fontSize: 28, color: "#0E5A6B", fontWeight: 600 }}>
+        {brand.name}
       </div>
-    ),
+      <div
+        style={{ display: "flex", marginTop: 40, fontSize: 64, fontWeight: 600, lineHeight: 1.15 }}
+      >
+        {name}
+      </div>
+      <div style={{ display: "flex", marginTop: 24, fontSize: 32, color: "#5B6470" }}>
+        {headline}
+      </div>
+    </div>,
     { ...size },
   );
 }

@@ -38,7 +38,10 @@ async function loadFilterOptions() {
   return { categoryRows, countryRows };
 }
 
-function freshnessLine(article: { lastVerifiedAt: Date | null; appliesToIntake: string | null }): string | null {
+function freshnessLine(article: {
+  lastVerifiedAt: Date | null;
+  appliesToIntake: string | null;
+}): string | null {
   if (!article.lastVerifiedAt) return null;
   const parts = [`Last verified ${new Date(article.lastVerifiedAt).toLocaleDateString("en-GB")}`];
   if (article.appliesToIntake) parts.push(`Applies to ${article.appliesToIntake} intake`);
@@ -74,7 +77,9 @@ export default async function GuidesPage({
 
   return (
     <Container className="py-12 md:py-16">
-      <h1 className="font-serif text-3xl font-semibold tracking-tight text-ink sm:text-4xl">Guides</h1>
+      <h1 className="font-serif text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+        Guides
+      </h1>
       <p className="mt-2 max-w-2xl text-ink-muted">
         Written from real experience, with sources and a last-verified date on every page.
       </p>

@@ -96,7 +96,9 @@ export default async function CareerCategoryPage({ params }: { params: Promise<P
                     <Link href={`/mentors/${mentor.slug}`} className="block h-full">
                       <Card className="h-full transition-colors hover:border-primary">
                         <CardTitle>{mentor.displayName}</CardTitle>
-                        {mentor.headline ? <CardDescription>{mentor.headline}</CardDescription> : null}
+                        {mentor.headline ? (
+                          <CardDescription>{mentor.headline}</CardDescription>
+                        ) : null}
                         {mentor.countryIso2 ? (
                           <div className="mt-4">
                             <Badge>{mentor.countryIso2}</Badge>

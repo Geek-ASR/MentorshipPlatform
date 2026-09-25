@@ -13,10 +13,9 @@ export default function TermsPage() {
   return (
     <LegalDocument title="Terms of Service" lastUpdated="25 September 2026">
       <p>
-        These Terms govern use of {brand.name} (operated by {brand.legalEntityName}, &ldquo;we&rdquo;,
-        &ldquo;us&rdquo;),
-        a marketplace connecting students with independent mentors for paid and free sessions,
-        group sessions and events.
+        These Terms govern use of {brand.name} (operated by {brand.legalEntityName},
+        &ldquo;we&rdquo;, &ldquo;us&rdquo;), a marketplace connecting students with independent
+        mentors for paid and free sessions, group sessions and events.
       </p>
 
       <h2>1. Our role</h2>
@@ -29,10 +28,9 @@ export default function TermsPage() {
 
       <h2>2. Eligibility</h2>
       <p>
-        You must be 18 or older to create an account. Mentors additionally attest to their
-        residency status and work-eligibility before offering paid sessions; where that
-        attestation cannot confirm authorisation to work, mentoring is offered in volunteer
-        (free) mode only.
+        You must be 18 or older to create an account. Mentors additionally attest to their residency
+        status and work-eligibility before offering paid sessions; where that attestation cannot
+        confirm authorisation to work, mentoring is offered in volunteer (free) mode only.
       </p>
 
       <h2>3. Accounts</h2>
@@ -70,8 +68,8 @@ export default function TermsPage() {
       <h2>6. Content and intellectual property</h2>
       <p>
         You retain ownership of content you post (profile content, messages, guide contributions).
-        You grant us a licence to host and display it as needed to operate the service. We own the
-        {" "}{brand.name} name, mark and platform software.
+        You grant us a licence to host and display it as needed to operate the service. We own the{" "}
+        {brand.name} name, mark and platform software.
       </p>
 
       <h2>7. Disclaimers and liability</h2>
@@ -93,17 +91,20 @@ export default function TermsPage() {
       </p>
 
       <h2>9. Governing law</h2>
-      <p>These Terms are governed by the laws of India, without regard to conflict-of-laws rules.</p>
+      <p>
+        These Terms are governed by the laws of India, without regard to conflict-of-laws rules.
+      </p>
 
       <h2>10. Changes</h2>
       <p>
-        We may update these Terms as the platform develops. Material changes will be notified
-        in-app before they take effect.
+        We may update these Terms as the platform develops. Material changes will be notified in-app
+        before they take effect.
       </p>
 
       <h2>Contact</h2>
       <p>
-        Questions about these Terms: <a href={`mailto:${brand.supportEmail}`}>{brand.supportEmail}</a>.
+        Questions about these Terms:{" "}
+        <a href={`mailto:${brand.supportEmail}`}>{brand.supportEmail}</a>.
       </p>
     </LegalDocument>
   );

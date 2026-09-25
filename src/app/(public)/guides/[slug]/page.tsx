@@ -40,7 +40,8 @@ export async function generateMetadata({
   const { slug } = await params;
   const resolved = await loadResolved(slug);
   if (!resolved) return { title: "Guide not found", robots: { index: false, follow: false } };
-  if ("redirectTo" in resolved) return { title: "Guide moved", robots: { index: false, follow: false } };
+  if ("redirectTo" in resolved)
+    return { title: "Guide moved", robots: { index: false, follow: false } };
   const { article } = resolved;
   const description = article.dek ?? article.bodyMd.replace(/\s+/g, " ").slice(0, 155);
   return {
@@ -121,7 +122,9 @@ export default async function GuidePage({ params }: { params: Promise<PageParams
         </div>
       ) : null}
 
-      <div className="mt-8 max-w-[70ch] font-serif whitespace-pre-line text-ink">{article.bodyMd}</div>
+      <div className="mt-8 max-w-[70ch] font-serif whitespace-pre-line text-ink">
+        {article.bodyMd}
+      </div>
 
       {article.sources.length > 0 ? (
         <section aria-labelledby="sources-heading" className="mt-10 border-t border-line pt-6">

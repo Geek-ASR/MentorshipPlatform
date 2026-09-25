@@ -20,8 +20,12 @@ export default function CommunityGuidelinesPage() {
       <h2>1. What we expect</h2>
       <ul>
         <li>Be honest about who you are, your credentials and your experience.</li>
-        <li>Show up for what you book, or cancel with enough notice for the other person to adjust.</li>
-        <li>Keep booking and payment on the platform — it&apos;s what keeps both sides protected.</li>
+        <li>
+          Show up for what you book, or cancel with enough notice for the other person to adjust.
+        </li>
+        <li>
+          Keep booking and payment on the platform — it&apos;s what keeps both sides protected.
+        </li>
         <li>
           If a topic touches admissions, visas, law, finance or medicine, share it as personal
           experience, and point to official sources rather than presenting it as official advice.
@@ -37,22 +41,25 @@ export default function CommunityGuidelinesPage() {
         <li>Misrepresenting credentials, affiliations, or eligibility to work.</li>
         <li>Sexually explicit content or solicitation.</li>
         <li>Spam, scams, or content unrelated to mentorship.</li>
-        <li>Presenting personal experience as official university, immigration, legal, financial or medical advice.</li>
+        <li>
+          Presenting personal experience as official university, immigration, legal, financial or
+          medical advice.
+        </li>
       </ul>
 
       <h2>3. Reporting a problem</h2>
       <p>
         Use the &ldquo;Report&rdquo; action on a profile, message, session or review. Tell us what
-        happened; a staff reviewer looks at every report. We&apos;ll let you know once it&apos;s been
-        reviewed.
+        happened; a staff reviewer looks at every report. We&apos;ll let you know once it&apos;s
+        been reviewed.
       </p>
 
       <h2>4. How enforcement works</h2>
       <p>
         Depending on severity and history, an outcome can range from a warning, a time-boxed
         restriction on a specific capability (for example, messaging or listing visibility), a
-        suspension, to a ban for the most serious or repeated violations. We tell you what
-        happened, why, how long it lasts, and how to appeal.
+        suspension, to a ban for the most serious or repeated violations. We tell you what happened,
+        why, how long it lasts, and how to appeal.
       </p>
 
       <h2>5. Appeals</h2>

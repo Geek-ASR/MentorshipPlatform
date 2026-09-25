@@ -22,8 +22,8 @@ export default function GrievancePage() {
 
       <h2>1. Grievance officer</h2>
       <p>
-        {brand.grievanceOfficerName}. Until a named officer is designated, grievances are handled
-        by our support team at the contact below.
+        {brand.grievanceOfficerName}. Until a named officer is designated, grievances are handled by
+        our support team at the contact below.
       </p>
 
       <h2>2. How to raise a grievance</h2>
@@ -39,9 +39,9 @@ export default function GrievancePage() {
         <li>Resolution, or a clear next-step update, within 1 month.</li>
       </ul>
       <p>
-        These targets follow the Consumer Protection (E-Commerce) Rules 2020 and the IT
-        Intermediary Guidelines&apos; grievance-redressal timelines, pending final confirmation with
-        counsel on the exact figures that apply to us.
+        These targets follow the Consumer Protection (E-Commerce) Rules 2020 and the IT Intermediary
+        Guidelines&apos; grievance-redressal timelines, pending final confirmation with counsel on
+        the exact figures that apply to us.
       </p>
 
       <h2>4. Escalation</h2>

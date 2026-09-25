@@ -3,11 +3,7 @@ import { AppError } from "@/server/platform/errors";
 import { writeAudit } from "@/server/platform/audit";
 import { slugify } from "../domain/slug";
 import { DEFAULT_REVIEW_INTERVAL_DAYS } from "../domain/types";
-import type {
-  ArticleDisclaimerKind,
-  ArticleSource,
-  ArticleSourceType,
-} from "../domain/types";
+import type { ArticleDisclaimerKind, ArticleSource, ArticleSourceType } from "../domain/types";
 import {
   type ArticleAdminFilters,
   type ArticleEditableFields,
@@ -32,7 +28,11 @@ import {
   updateArticleFields,
 } from "../infra/article-repo";
 
-async function uniqueArticleSlug(executor: Executor, title: string, excludeId?: string): Promise<string> {
+async function uniqueArticleSlug(
+  executor: Executor,
+  title: string,
+  excludeId?: string,
+): Promise<string> {
   const root = slugify(title) || "guide";
   let candidate = root;
   let suffix = 2;
@@ -123,7 +123,11 @@ export async function publishArticle(
   if (existing.sources.length === 0) {
     throw new AppError("VALIDATION_FAILED", {
       errors: [
-        { path: "sources", code: "required", message: "Add at least one source before publishing." },
+        {
+          path: "sources",
+          code: "required",
+          message: "Add at least one source before publishing.",
+        },
       ],
     });
   }
@@ -135,7 +139,11 @@ export async function publishArticle(
     existing.nextReviewDueAt ??
     new Date(lastVerifiedAt.getTime() + DEFAULT_REVIEW_INTERVAL_DAYS * 86_400_000);
 
-  await recordVerification(executor, id, { verifiedByUserId: actorUserId, lastVerifiedAt, nextReviewDueAt });
+  await recordVerification(executor, id, {
+    verifiedByUserId: actorUserId,
+    lastVerifiedAt,
+    nextReviewDueAt,
+  });
   const row = await setArticleStatus(executor, id, "published", {
     publishedAt: existing.publishedAt ?? now,
   });

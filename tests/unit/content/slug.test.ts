@@ -3,7 +3,9 @@ import { slugify } from "@/server/modules/content/domain/slug";
 
 describe("slugify", () => {
   it("lowercases and hyphenates", () => {
-    expect(slugify("Studying in Munich: A Complete Guide")).toBe("studying-in-munich-a-complete-guide");
+    expect(slugify("Studying in Munich: A Complete Guide")).toBe(
+      "studying-in-munich-a-complete-guide",
+    );
   });
 
   it("strips diacritics", () => {

@@ -43,7 +43,11 @@ async function staticEntries(): Promise<MetadataRoute.Sitemap> {
     "/legal/community-guidelines",
     "/legal/grievance",
   ];
-  return paths.map((path) => ({ url: url(path), changeFrequency: "weekly", priority: path === "/" ? 1 : 0.6 }));
+  return paths.map((path) => ({
+    url: url(path),
+    changeFrequency: "weekly",
+    priority: path === "/" ? 1 : 0.6,
+  }));
 }
 
 async function careerEntries(): Promise<MetadataRoute.Sitemap> {
@@ -72,7 +76,11 @@ async function careerEntries(): Promise<MetadataRoute.Sitemap> {
       countPublishedArticles(db, { categoryTermId: category.id }),
     ]);
     if (total > 0 || guideCount > 0) {
-      entries.push({ url: url(`/career/${category.slug}`), changeFrequency: "weekly", priority: 0.5 });
+      entries.push({
+        url: url(`/career/${category.slug}`),
+        changeFrequency: "weekly",
+        priority: 0.5,
+      });
     }
   }
   return entries;
@@ -91,7 +99,11 @@ async function studyAbroadEntries(): Promise<MetadataRoute.Sitemap> {
       countPublishedArticles(db, { countryIso2: country.iso2 }),
     ]);
     if (total > 0 || guideCount > 0) {
-      entries.push({ url: url(`/study-abroad/${country.slug}`), changeFrequency: "weekly", priority: 0.6 });
+      entries.push({
+        url: url(`/study-abroad/${country.slug}`),
+        changeFrequency: "weekly",
+        priority: 0.6,
+      });
     }
 
     const cityRows = await db
@@ -105,7 +117,11 @@ async function studyAbroadEntries(): Promise<MetadataRoute.Sitemap> {
         .where(eq(universities.cityId, city.id));
       let cityHasMentor = false;
       for (const u of universityRows) {
-        const { total: uTotal } = await searchMentors(db, { universityId: u.id, limit: 1, offset: 0 });
+        const { total: uTotal } = await searchMentors(db, {
+          universityId: u.id,
+          limit: 1,
+          offset: 0,
+        });
         if (uTotal > 0) {
           cityHasMentor = true;
           break;
@@ -128,7 +144,9 @@ async function universityEntries(): Promise<MetadataRoute.Sitemap> {
   const rows = await db
     .select({ id: universities.id, slug: universities.slug, countryIso2: universities.countryIso2 })
     .from(universities);
-  const countryRows = await db.select({ iso2: countries.iso2, slug: countries.slug }).from(countries);
+  const countryRows = await db
+    .select({ iso2: countries.iso2, slug: countries.slug })
+    .from(countries);
   const countrySlugByIso2 = new Map(countryRows.map((c) => [c.iso2, c.slug]));
 
   const entries: MetadataRoute.Sitemap = [];
@@ -140,7 +158,11 @@ async function universityEntries(): Promise<MetadataRoute.Sitemap> {
       countPublishedArticles(db, { universityId: u.id }),
     ]);
     if (total > 0 || guideCount > 0) {
-      entries.push({ url: url(`/universities/${countrySlug}/${u.slug}`), changeFrequency: "weekly", priority: 0.6 });
+      entries.push({
+        url: url(`/universities/${countrySlug}/${u.slug}`),
+        changeFrequency: "weekly",
+        priority: 0.6,
+      });
     }
   }
   return entries;
@@ -163,7 +185,11 @@ async function mentorEntries(): Promise<MetadataRoute.Sitemap> {
 async function eventEntries(): Promise<MetadataRoute.Sitemap> {
   const db = await getDb();
   const events = await listPublicEvents(db, new Date());
-  return events.map((e) => ({ url: url(`/events/${e.slug}`), changeFrequency: "daily", priority: 0.5 }));
+  return events.map((e) => ({
+    url: url(`/events/${e.slug}`),
+    changeFrequency: "daily",
+    priority: 0.5,
+  }));
 }
 
 async function guideEntries(): Promise<MetadataRoute.Sitemap> {
@@ -177,7 +203,11 @@ async function guideEntries(): Promise<MetadataRoute.Sitemap> {
   }));
 }
 
-export default async function sitemap({ id }: { id: Promise<string> }): Promise<MetadataRoute.Sitemap> {
+export default async function sitemap({
+  id,
+}: {
+  id: Promise<string>;
+}): Promise<MetadataRoute.Sitemap> {
   const kind = KINDS[Number(await id)];
   switch (kind) {
     case "static":

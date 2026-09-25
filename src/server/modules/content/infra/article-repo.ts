@@ -11,11 +11,19 @@ import type {
 
 export type ArticleRow = typeof articles.$inferSelect;
 
-export async function slugTaken(executor: Executor, slug: string, excludeId?: string): Promise<boolean> {
+export async function slugTaken(
+  executor: Executor,
+  slug: string,
+  excludeId?: string,
+): Promise<boolean> {
   const [row] = await executor
     .select({ id: articles.id })
     .from(articles)
-    .where(excludeId ? and(eq(articles.slug, slug), sql`${articles.id} <> ${excludeId}`) : eq(articles.slug, slug))
+    .where(
+      excludeId
+        ? and(eq(articles.slug, slug), sql`${articles.id} <> ${excludeId}`)
+        : eq(articles.slug, slug),
+    )
     .limit(1);
   return row !== undefined;
 }
@@ -35,7 +43,10 @@ export type InsertArticleInput = {
   authorUserId: string;
 };
 
-export async function insertArticle(executor: Executor, input: InsertArticleInput): Promise<ArticleRow> {
+export async function insertArticle(
+  executor: Executor,
+  input: InsertArticleInput,
+): Promise<ArticleRow> {
   const [row] = await executor
     .insert(articles)
     .values({ id: newId(), status: "draft", ...input })
@@ -95,7 +106,10 @@ export async function renameArticleSlug(
   return row;
 }
 
-export async function findRedirectTarget(executor: Executor, oldSlug: string): Promise<string | undefined> {
+export async function findRedirectTarget(
+  executor: Executor,
+  oldSlug: string,
+): Promise<string | undefined> {
   const [row] = await executor
     .select({ slug: articles.slug })
     .from(articleSlugRedirects)
@@ -132,12 +146,18 @@ export async function recordVerification(
   return row;
 }
 
-export async function findArticleById(executor: Executor, id: string): Promise<ArticleRow | undefined> {
+export async function findArticleById(
+  executor: Executor,
+  id: string,
+): Promise<ArticleRow | undefined> {
   const [row] = await executor.select().from(articles).where(eq(articles.id, id)).limit(1);
   return row;
 }
 
-export async function findArticleBySlug(executor: Executor, slug: string): Promise<ArticleRow | undefined> {
+export async function findArticleBySlug(
+  executor: Executor,
+  slug: string,
+): Promise<ArticleRow | undefined> {
   const [row] = await executor.select().from(articles).where(eq(articles.slug, slug)).limit(1);
   return row;
 }
@@ -167,7 +187,11 @@ export async function listArticlesForAdmin(
   if (filters.status) conditions.push(eq(articles.status, filters.status));
   if (filters.dueForReview) {
     conditions.push(
-      and(eq(articles.status, "published"), isNotNull(articles.nextReviewDueAt), lte(articles.nextReviewDueAt, sql`now()`))!,
+      and(
+        eq(articles.status, "published"),
+        isNotNull(articles.nextReviewDueAt),
+        lte(articles.nextReviewDueAt, sql`now()`),
+      )!,
     );
   }
   return executor
