@@ -29,32 +29,58 @@ export function verifyFakeWebhookSignature(rawBody: string, signature: string): 
   return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
 
+/**
+ * Chaos-injection knobs for Phase 13's provider-timeout/outage tests (docs/13 §1 "chaos-style
+ * tests"). `delayMs` simulates a slow provider on every call; `failOnce` simulates a provider
+ * outage/timeout on exactly the next call to that method (auto-resets after firing once, so a test
+ * can assert a single failed attempt followed by a normal retry).
+ */
+export type FakeGatewayChaos = {
+  delayMs?: number;
+  failOnce?: Partial<Record<keyof Omit<PaymentGateway, "provider">, boolean>>;
+};
+
 /** Implements `PaymentGateway` against our own `fake_psp` schema — a stand-in "outside world"
  * independent of our domain rows, so the payment sweeper genuinely has something to re-fetch from
  * rather than trusting only what already happened via webhook (docs/08 §14). */
-export function createFakeGateway(executor: Executor): PaymentGateway {
+export function createFakeGateway(
+  executor: Executor,
+  chaos: FakeGatewayChaos = {},
+): PaymentGateway {
+  async function chaosGate(method: keyof NonNullable<FakeGatewayChaos["failOnce"]>): Promise<void> {
+    if (chaos.delayMs) await new Promise((resolve) => setTimeout(resolve, chaos.delayMs));
+    if (chaos.failOnce?.[method]) {
+      chaos.failOnce[method] = false;
+      throw new Error(`fake gateway: injected chaos failure for ${method}`);
+    }
+  }
+
   return {
     provider: "fake",
 
     async createOrder({ amountMinor, currency }) {
+      await chaosGate("createOrder");
       const providerOrderId = `fake_order_${newId()}`;
       await insertFakePaymentAttempt(executor, { providerOrderId, amountMinor, currency });
       return { providerOrderId };
     },
 
     async createRefund({ providerPaymentId, amountMinor }) {
+      await chaosGate("createRefund");
       const providerRefundId = `fake_refund_${newId()}`;
       await insertFakeRefundAttempt(executor, { providerRefundId, providerPaymentId, amountMinor });
       return { providerRefundId };
     },
 
     async createLinkedAccount() {
+      await chaosGate("createLinkedAccount");
       // Fake onboarding auto-approves (docs/19 Phase 8 scope: "payout accounts (fake onboarding)").
       const account = await insertFakeLinkedAccount(executor, "active");
       return { providerAccountId: account.id };
     },
 
     async createTransfer({ providerAccountId, amountMinor }) {
+      await chaosGate("createTransfer");
       const providerTransferId = `fake_transfer_${newId()}`;
       await insertFakeTransfer(executor, {
         providerTransferId,
@@ -65,14 +91,17 @@ export function createFakeGateway(executor: Executor): PaymentGateway {
     },
 
     async releaseTransfer(providerTransferId) {
+      await chaosGate("releaseTransfer");
       await setFakeTransferStatus(executor, providerTransferId, "released", new Date());
     },
 
     async reverseTransfer(providerTransferId) {
+      await chaosGate("reverseTransfer");
       await setFakeTransferStatus(executor, providerTransferId, "reversed", new Date());
     },
 
     async fetchPaymentStatus(providerOrderId) {
+      await chaosGate("fetchPaymentStatus");
       const attempt = await findFakePaymentAttempt(executor, providerOrderId);
       if (!attempt) return { status: "failed", providerPaymentId: null, amountMinor: null };
       return {

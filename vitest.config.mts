@@ -38,6 +38,7 @@ export default defineConfig({
             "src/**/*.test.ts",
             "tests/unit/**/*.test.ts",
             "tests/architecture/**/*.test.ts",
+            "tests/authz/**/*.test.ts",
           ],
         },
       },

@@ -14,6 +14,12 @@ export const sweepPaymentIntents = defineJob({
     if (result.captured > 0 || result.expired > 0) {
       logger.info({ event: "payments.sweep_intents", ...result }, "payment intent sweep");
     }
+    if (result.failed > 0) {
+      logger.warn(
+        { event: "payments.sweep_intents.partial_failure", ...result },
+        "payment intent sweep: some intents failed and will retry next tick",
+      );
+    }
   },
 });
 

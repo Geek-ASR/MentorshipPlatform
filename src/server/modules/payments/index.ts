@@ -9,6 +9,7 @@ export {
   verifyFakeWebhookSignature,
   signFakeWebhookPayload,
   simulateFakeCheckout,
+  type FakeGatewayChaos,
 } from "./infra/fake-gateway";
 export {
   createCheckout,

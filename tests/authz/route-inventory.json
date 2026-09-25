@@ -1,0 +1,1242 @@
+[
+  {
+    "method": "DELETE",
+    "path": "/api/*",
+    "file": "src/app/api/[...path]/route.ts",
+    "name": "API not found",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/*",
+    "file": "src/app/api/[...path]/route.ts",
+    "name": "API not found",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/*",
+    "file": "src/app/api/[...path]/route.ts",
+    "name": "API not found",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/*",
+    "file": "src/app/api/[...path]/route.ts",
+    "name": "API not found",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "PUT",
+    "path": "/api/*",
+    "file": "src/app/api/[...path]/route.ts",
+    "name": "API not found",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/health",
+    "file": "src/app/api/health/route.ts",
+    "name": "GET /api/health",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/health/ready",
+    "file": "src/app/api/health/ready/route.ts",
+    "name": "GET /api/health/ready",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/internal/jobs/tick",
+    "file": "src/app/api/internal/jobs/tick/route.ts",
+    "name": "POST /api/internal/jobs/tick",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/appeals",
+    "file": "src/app/api/v1/admin/appeals/route.ts",
+    "name": "GET /api/v1/admin/appeals",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/appeals/:id/decision",
+    "file": "src/app/api/v1/admin/appeals/[id]/decision/route.ts",
+    "name": "POST /api/v1/admin/appeals/:id/decision",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/articles",
+    "file": "src/app/api/v1/admin/articles/route.ts",
+    "name": "GET /api/v1/admin/articles",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/articles",
+    "file": "src/app/api/v1/admin/articles/route.ts",
+    "name": "POST /api/v1/admin/articles",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/articles/:id",
+    "file": "src/app/api/v1/admin/articles/[id]/route.ts",
+    "name": "GET /api/v1/admin/articles/:id",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/admin/articles/:id",
+    "file": "src/app/api/v1/admin/articles/[id]/route.ts",
+    "name": "PUT /api/v1/admin/articles/:id",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/articles/:id/archive",
+    "file": "src/app/api/v1/admin/articles/[id]/archive/route.ts",
+    "name": "POST /api/v1/admin/articles/:id/archive",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/articles/:id/publish",
+    "file": "src/app/api/v1/admin/articles/[id]/publish/route.ts",
+    "name": "POST /api/v1/admin/articles/:id/publish",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/articles/:id/verify",
+    "file": "src/app/api/v1/admin/articles/[id]/verify/route.ts",
+    "name": "POST /api/v1/admin/articles/:id/verify",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/audit-log",
+    "file": "src/app/api/v1/admin/audit-log/route.ts",
+    "name": "GET /api/v1/admin/audit-log",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/bookings",
+    "file": "src/app/api/v1/admin/bookings/route.ts",
+    "name": "GET /api/v1/admin/bookings",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/cases",
+    "file": "src/app/api/v1/admin/cases/route.ts",
+    "name": "GET /api/v1/admin/cases",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/cases/:id",
+    "file": "src/app/api/v1/admin/cases/[id]/route.ts",
+    "name": "GET /api/v1/admin/cases/:id",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/cases/:id/actions",
+    "file": "src/app/api/v1/admin/cases/[id]/actions/route.ts",
+    "name": "POST /api/v1/admin/cases/:id/actions",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/cases/:id/assign",
+    "file": "src/app/api/v1/admin/cases/[id]/assign/route.ts",
+    "name": "POST /api/v1/admin/cases/:id/assign",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/commission-rules",
+    "file": "src/app/api/v1/admin/commission-rules/route.ts",
+    "name": "GET /api/v1/admin/commission-rules",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/commission-rules",
+    "file": "src/app/api/v1/admin/commission-rules/route.ts",
+    "name": "POST /api/v1/admin/commission-rules",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/admin/commission-rules/:id",
+    "file": "src/app/api/v1/admin/commission-rules/[id]/route.ts",
+    "name": "DELETE /api/v1/admin/commission-rules/:id",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/disputes",
+    "file": "src/app/api/v1/admin/disputes/route.ts",
+    "name": "GET /api/v1/admin/disputes",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/disputes/:id/resolution",
+    "file": "src/app/api/v1/admin/disputes/[id]/resolution/route.ts",
+    "name": "POST /api/v1/admin/disputes/:id/resolution",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/feature-flags",
+    "file": "src/app/api/v1/admin/feature-flags/route.ts",
+    "name": "GET /api/v1/admin/feature-flags",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/admin/feature-flags/:key",
+    "file": "src/app/api/v1/admin/feature-flags/[key]/route.ts",
+    "name": "PUT /api/v1/admin/feature-flags/:key",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/mentor-applications",
+    "file": "src/app/api/v1/admin/mentor-applications/route.ts",
+    "name": "GET /api/v1/admin/mentor-applications",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/mentor-applications/:userId/review",
+    "file": "src/app/api/v1/admin/mentor-applications/[userId]/review/route.ts",
+    "name": "POST /api/v1/admin/mentor-applications/:userId/review",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/moderation-actions/:id/revoke",
+    "file": "src/app/api/v1/admin/moderation-actions/[id]/revoke/route.ts",
+    "name": "POST /api/v1/admin/moderation-actions/:id/revoke",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/outbox",
+    "file": "src/app/api/v1/admin/outbox/route.ts",
+    "name": "GET /api/v1/admin/outbox",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/outbox/:id/retry",
+    "file": "src/app/api/v1/admin/outbox/[id]/retry/route.ts",
+    "name": "POST /api/v1/admin/outbox/:id/retry",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/payments",
+    "file": "src/app/api/v1/admin/payments/route.ts",
+    "name": "GET /api/v1/admin/payments",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/payments/:id/refund",
+    "file": "src/app/api/v1/admin/payments/[id]/refund/route.ts",
+    "name": "POST /api/v1/admin/payments/:id/refund",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/policy-rules",
+    "file": "src/app/api/v1/admin/policy-rules/route.ts",
+    "name": "GET /api/v1/admin/policy-rules",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/admin/policy-rules/:id",
+    "file": "src/app/api/v1/admin/policy-rules/[id]/route.ts",
+    "name": "PUT /api/v1/admin/policy-rules/:id",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/reports",
+    "file": "src/app/api/v1/admin/reports/route.ts",
+    "name": "GET /api/v1/admin/reports",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/settings",
+    "file": "src/app/api/v1/admin/settings/route.ts",
+    "name": "GET /api/v1/admin/settings",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/admin/settings/:key",
+    "file": "src/app/api/v1/admin/settings/[key]/route.ts",
+    "name": "PUT /api/v1/admin/settings/:key",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/transfers",
+    "file": "src/app/api/v1/admin/transfers/route.ts",
+    "name": "GET /api/v1/admin/transfers",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/transfers/:id/hold",
+    "file": "src/app/api/v1/admin/transfers/[id]/hold/route.ts",
+    "name": "POST /api/v1/admin/transfers/:id/hold",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/transfers/:id/release",
+    "file": "src/app/api/v1/admin/transfers/[id]/release/route.ts",
+    "name": "POST /api/v1/admin/transfers/:id/release",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/trust-events/:id/excuse",
+    "file": "src/app/api/v1/admin/trust-events/[id]/excuse/route.ts",
+    "name": "POST /api/v1/admin/trust-events/:id/excuse",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/users",
+    "file": "src/app/api/v1/admin/users/route.ts",
+    "name": "GET /api/v1/admin/users",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/users/:id",
+    "file": "src/app/api/v1/admin/users/[id]/route.ts",
+    "name": "GET /api/v1/admin/users/:id",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/users/:id/roles",
+    "file": "src/app/api/v1/admin/users/[id]/roles/route.ts",
+    "name": "POST /api/v1/admin/users/:id/roles",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/verification-requests",
+    "file": "src/app/api/v1/admin/verification-requests/route.ts",
+    "name": "GET /api/v1/admin/verification-requests",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/verification/credentials/:id/revoke",
+    "file": "src/app/api/v1/admin/verification/credentials/[id]/revoke/route.ts",
+    "name": "POST /api/v1/admin/verification/credentials/:id/revoke",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/webhook-events",
+    "file": "src/app/api/v1/admin/webhook-events/route.ts",
+    "name": "GET /api/v1/admin/webhook-events",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/webhook-events/:id/replay",
+    "file": "src/app/api/v1/admin/webhook-events/[id]/replay/route.ts",
+    "name": "POST /api/v1/admin/webhook-events/:id/replay",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/email/change/confirm",
+    "file": "src/app/api/v1/auth/email/change/confirm/route.ts",
+    "name": "POST /api/v1/auth/email/change/confirm",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/email/change/request",
+    "file": "src/app/api/v1/auth/email/change/request/route.ts",
+    "name": "POST /api/v1/auth/email/change/request",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/email/change/revert",
+    "file": "src/app/api/v1/auth/email/change/revert/route.ts",
+    "name": "POST /api/v1/auth/email/change/revert",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/auth/google/callback",
+    "file": "src/app/api/v1/auth/google/callback/route.ts",
+    "name": "GET /api/v1/auth/google/callback",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/auth/google/start",
+    "file": "src/app/api/v1/auth/google/start/route.ts",
+    "name": "GET /api/v1/auth/google/start",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/auth/me",
+    "file": "src/app/api/v1/auth/me/route.ts",
+    "name": "GET /api/v1/auth/me",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/mfa/disable",
+    "file": "src/app/api/v1/auth/mfa/disable/route.ts",
+    "name": "POST /api/v1/auth/mfa/disable",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/mfa/enroll/confirm",
+    "file": "src/app/api/v1/auth/mfa/enroll/confirm/route.ts",
+    "name": "POST /api/v1/auth/mfa/enroll/confirm",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/mfa/enroll/start",
+    "file": "src/app/api/v1/auth/mfa/enroll/start/route.ts",
+    "name": "POST /api/v1/auth/mfa/enroll/start",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/auth/mfa/status",
+    "file": "src/app/api/v1/auth/mfa/status/route.ts",
+    "name": "GET /api/v1/auth/mfa/status",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/mfa/step-up",
+    "file": "src/app/api/v1/auth/mfa/step-up/route.ts",
+    "name": "POST /api/v1/auth/mfa/step-up",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/password/change",
+    "file": "src/app/api/v1/auth/password/change/route.ts",
+    "name": "POST /api/v1/auth/password/change",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/password/reset/confirm",
+    "file": "src/app/api/v1/auth/password/reset/confirm/route.ts",
+    "name": "POST /api/v1/auth/password/reset/confirm",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/password/reset/request",
+    "file": "src/app/api/v1/auth/password/reset/request/route.ts",
+    "name": "POST /api/v1/auth/password/reset/request",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/auth/sessions",
+    "file": "src/app/api/v1/auth/sessions/route.ts",
+    "name": "GET /api/v1/auth/sessions",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/sessions/revoke-all",
+    "file": "src/app/api/v1/auth/sessions/revoke-all/route.ts",
+    "name": "POST /api/v1/auth/sessions/revoke-all",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/sign-in",
+    "file": "src/app/api/v1/auth/sign-in/route.ts",
+    "name": "POST /api/v1/auth/sign-in",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/sign-in/mfa",
+    "file": "src/app/api/v1/auth/sign-in/mfa/route.ts",
+    "name": "POST /api/v1/auth/sign-in/mfa",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/sign-out",
+    "file": "src/app/api/v1/auth/sign-out/route.ts",
+    "name": "POST /api/v1/auth/sign-out",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/sign-up",
+    "file": "src/app/api/v1/auth/sign-up/route.ts",
+    "name": "POST /api/v1/auth/sign-up",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/verify-email",
+    "file": "src/app/api/v1/auth/verify-email/route.ts",
+    "name": "POST /api/v1/auth/verify-email",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/bookings",
+    "file": "src/app/api/v1/bookings/route.ts",
+    "name": "POST /api/v1/bookings",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/bookings/:id",
+    "file": "src/app/api/v1/bookings/[id]/route.ts",
+    "name": "GET /api/v1/bookings/:id",
+    "actorMode": null,
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/bookings/:id/attendance-claims",
+    "file": "src/app/api/v1/bookings/[id]/attendance-claims/route.ts",
+    "name": "POST /api/v1/bookings/:id/attendance-claims",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/bookings/:id/calendar.ics",
+    "file": "src/app/api/v1/bookings/[id]/calendar.ics/route.ts",
+    "name": "GET /api/v1/bookings/:id/calendar.ics",
+    "actorMode": null,
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/bookings/:id/cancel",
+    "file": "src/app/api/v1/bookings/[id]/cancel/route.ts",
+    "name": "POST /api/v1/bookings/:id/cancel",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/bookings/:id/cancellation-quote",
+    "file": "src/app/api/v1/bookings/[id]/cancellation-quote/route.ts",
+    "name": "GET /api/v1/bookings/:id/cancellation-quote",
+    "actorMode": null,
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/bookings/:id/disputes",
+    "file": "src/app/api/v1/bookings/[id]/disputes/route.ts",
+    "name": "POST /api/v1/bookings/:id/disputes",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/bookings/:id/reschedule",
+    "file": "src/app/api/v1/bookings/[id]/reschedule/route.ts",
+    "name": "POST /api/v1/bookings/:id/reschedule",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/bookings/:id/reschedule/decision",
+    "file": "src/app/api/v1/bookings/[id]/reschedule/decision/route.ts",
+    "name": "POST /api/v1/bookings/:id/reschedule/decision",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/bookings/:id/review",
+    "file": "src/app/api/v1/bookings/[id]/review/route.ts",
+    "name": "POST /api/v1/bookings/:id/review",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dev/fake-checkout",
+    "file": "src/app/api/v1/dev/fake-checkout/route.ts",
+    "name": "POST /api/v1/dev/fake-checkout",
+    "actorMode": null,
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/disputes/:id",
+    "file": "src/app/api/v1/disputes/[id]/route.ts",
+    "name": "GET /api/v1/disputes/:id",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/disputes/:id/evidence",
+    "file": "src/app/api/v1/disputes/[id]/evidence/route.ts",
+    "name": "POST /api/v1/disputes/:id/evidence",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/events",
+    "file": "src/app/api/v1/events/route.ts",
+    "name": "GET /api/v1/events",
+    "actorMode": null,
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/events/:slug",
+    "file": "src/app/api/v1/events/[slug]/route.ts",
+    "name": "GET /api/v1/events/:slug",
+    "actorMode": null,
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/bookings",
+    "file": "src/app/api/v1/me/bookings/route.ts",
+    "name": "GET /api/v1/me/bookings",
+    "actorMode": null,
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/enforcement",
+    "file": "src/app/api/v1/me/enforcement/route.ts",
+    "name": "GET /api/v1/me/enforcement",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/events",
+    "file": "src/app/api/v1/me/events/route.ts",
+    "name": "POST /api/v1/me/events",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/events/:id/cancel",
+    "file": "src/app/api/v1/me/events/[id]/cancel/route.ts",
+    "name": "POST /api/v1/me/events/:id/cancel",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/events/:id/invites",
+    "file": "src/app/api/v1/me/events/[id]/invites/route.ts",
+    "name": "GET /api/v1/me/events/:id/invites",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/events/:id/invites",
+    "file": "src/app/api/v1/me/events/[id]/invites/route.ts",
+    "name": "POST /api/v1/me/events/:id/invites",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/me/events/:id/recording",
+    "file": "src/app/api/v1/me/events/[id]/recording/route.ts",
+    "name": "PUT /api/v1/me/events/:id/recording",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/mentor-application",
+    "file": "src/app/api/v1/me/mentor-application/route.ts",
+    "name": "GET /api/v1/me/mentor-application",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/mentor-application",
+    "file": "src/app/api/v1/me/mentor-application/route.ts",
+    "name": "POST /api/v1/me/mentor-application",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/mentor-application/affiliations",
+    "file": "src/app/api/v1/me/mentor-application/affiliations/route.ts",
+    "name": "POST /api/v1/me/mentor-application/affiliations",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/me/mentor-application/affiliations/:id",
+    "file": "src/app/api/v1/me/mentor-application/affiliations/[id]/route.ts",
+    "name": "DELETE /api/v1/me/mentor-application/affiliations/:id",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/mentor-application/eligibility",
+    "file": "src/app/api/v1/me/mentor-application/eligibility/route.ts",
+    "name": "POST /api/v1/me/mentor-application/eligibility",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/me/mentor-application/expertise",
+    "file": "src/app/api/v1/me/mentor-application/expertise/route.ts",
+    "name": "PUT /api/v1/me/mentor-application/expertise",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/me/mentor-application/languages",
+    "file": "src/app/api/v1/me/mentor-application/languages/route.ts",
+    "name": "PUT /api/v1/me/mentor-application/languages",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/mentor-application/links",
+    "file": "src/app/api/v1/me/mentor-application/links/route.ts",
+    "name": "POST /api/v1/me/mentor-application/links",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/me/mentor-application/links/:id",
+    "file": "src/app/api/v1/me/mentor-application/links/[id]/route.ts",
+    "name": "DELETE /api/v1/me/mentor-application/links/:id",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/me/mentor-application/profile",
+    "file": "src/app/api/v1/me/mentor-application/profile/route.ts",
+    "name": "PATCH /api/v1/me/mentor-application/profile",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/mentor-application/submit",
+    "file": "src/app/api/v1/me/mentor-application/submit/route.ts",
+    "name": "POST /api/v1/me/mentor-application/submit",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/mentor/availability-exceptions",
+    "file": "src/app/api/v1/me/mentor/availability-exceptions/route.ts",
+    "name": "GET /api/v1/me/mentor/availability-exceptions",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/mentor/availability-exceptions",
+    "file": "src/app/api/v1/me/mentor/availability-exceptions/route.ts",
+    "name": "POST /api/v1/me/mentor/availability-exceptions",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/me/mentor/availability-exceptions/:id",
+    "file": "src/app/api/v1/me/mentor/availability-exceptions/[id]/route.ts",
+    "name": "DELETE /api/v1/me/mentor/availability-exceptions/:id",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/mentor/availability-rules",
+    "file": "src/app/api/v1/me/mentor/availability-rules/route.ts",
+    "name": "GET /api/v1/me/mentor/availability-rules",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/mentor/availability-rules",
+    "file": "src/app/api/v1/me/mentor/availability-rules/route.ts",
+    "name": "POST /api/v1/me/mentor/availability-rules",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/me/mentor/availability-rules/:id",
+    "file": "src/app/api/v1/me/mentor/availability-rules/[id]/route.ts",
+    "name": "DELETE /api/v1/me/mentor/availability-rules/:id",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/mentor/group-sessions",
+    "file": "src/app/api/v1/me/mentor/group-sessions/route.ts",
+    "name": "POST /api/v1/me/mentor/group-sessions",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/mentor/group-sessions/:id",
+    "file": "src/app/api/v1/me/mentor/group-sessions/[id]/route.ts",
+    "name": "GET /api/v1/me/mentor/group-sessions/:id",
+    "actorMode": null,
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/mentor/group-sessions/:id/cancel",
+    "file": "src/app/api/v1/me/mentor/group-sessions/[id]/cancel/route.ts",
+    "name": "POST /api/v1/me/mentor/group-sessions/:id/cancel",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/me/mentor/group-sessions/:id/capacity",
+    "file": "src/app/api/v1/me/mentor/group-sessions/[id]/capacity/route.ts",
+    "name": "PATCH /api/v1/me/mentor/group-sessions/:id/capacity",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/mentor/group-sessions/preview-pricing",
+    "file": "src/app/api/v1/me/mentor/group-sessions/preview-pricing/route.ts",
+    "name": "POST /api/v1/me/mentor/group-sessions/preview-pricing",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/mentor/payout-account",
+    "file": "src/app/api/v1/me/mentor/payout-account/route.ts",
+    "name": "GET /api/v1/me/mentor/payout-account",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/mentor/payout-account",
+    "file": "src/app/api/v1/me/mentor/payout-account/route.ts",
+    "name": "POST /api/v1/me/mentor/payout-account",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/mentor/scheduling",
+    "file": "src/app/api/v1/me/mentor/scheduling/route.ts",
+    "name": "GET /api/v1/me/mentor/scheduling",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/me/mentor/scheduling",
+    "file": "src/app/api/v1/me/mentor/scheduling/route.ts",
+    "name": "PATCH /api/v1/me/mentor/scheduling",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/mentor/services",
+    "file": "src/app/api/v1/me/mentor/services/route.ts",
+    "name": "GET /api/v1/me/mentor/services",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/mentor/services",
+    "file": "src/app/api/v1/me/mentor/services/route.ts",
+    "name": "POST /api/v1/me/mentor/services",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/me/mentor/services/:id",
+    "file": "src/app/api/v1/me/mentor/services/[id]/route.ts",
+    "name": "PATCH /api/v1/me/mentor/services/:id",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/mentor/transfers",
+    "file": "src/app/api/v1/me/mentor/transfers/route.ts",
+    "name": "GET /api/v1/me/mentor/transfers",
+    "actorMode": null,
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/payments",
+    "file": "src/app/api/v1/me/payments/route.ts",
+    "name": "GET /api/v1/me/payments",
+    "actorMode": null,
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/refunds",
+    "file": "src/app/api/v1/me/refunds/route.ts",
+    "name": "GET /api/v1/me/refunds",
+    "actorMode": null,
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/saved-mentors",
+    "file": "src/app/api/v1/me/saved-mentors/route.ts",
+    "name": "GET /api/v1/me/saved-mentors",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/me/saved-mentors/:mentorUserId",
+    "file": "src/app/api/v1/me/saved-mentors/[mentorUserId]/route.ts",
+    "name": "DELETE /api/v1/me/saved-mentors/:mentorUserId",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/saved-mentors/:mentorUserId",
+    "file": "src/app/api/v1/me/saved-mentors/[mentorUserId]/route.ts",
+    "name": "POST /api/v1/me/saved-mentors/:mentorUserId",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/student-profile",
+    "file": "src/app/api/v1/me/student-profile/route.ts",
+    "name": "GET /api/v1/me/student-profile",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/student-profile",
+    "file": "src/app/api/v1/me/student-profile/route.ts",
+    "name": "POST /api/v1/me/student-profile",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/verification/credentials",
+    "file": "src/app/api/v1/me/verification/credentials/route.ts",
+    "name": "GET /api/v1/me/verification/credentials",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/verification/email-challenge",
+    "file": "src/app/api/v1/me/verification/email-challenge/route.ts",
+    "name": "POST /api/v1/me/verification/email-challenge",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/waitlist",
+    "file": "src/app/api/v1/me/waitlist/route.ts",
+    "name": "GET /api/v1/me/waitlist",
+    "actorMode": null,
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/mentors",
+    "file": "src/app/api/v1/mentors/route.ts",
+    "name": "GET /api/v1/mentors",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/mentors/:slug",
+    "file": "src/app/api/v1/mentors/[slug]/route.ts",
+    "name": "GET /api/v1/mentors/:slug",
+    "actorMode": null,
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/mentors/:slug/reviews",
+    "file": "src/app/api/v1/mentors/[slug]/reviews/route.ts",
+    "name": "GET /api/v1/mentors/:slug/reviews",
+    "actorMode": null,
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/mentors/:slug/slots",
+    "file": "src/app/api/v1/mentors/[slug]/slots/route.ts",
+    "name": "GET /api/v1/mentors/:slug/slots",
+    "actorMode": null,
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/moderation-actions/:id/appeals",
+    "file": "src/app/api/v1/moderation-actions/[id]/appeals/route.ts",
+    "name": "POST /api/v1/moderation-actions/:id/appeals",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/payment-intents/:id",
+    "file": "src/app/api/v1/payment-intents/[id]/route.ts",
+    "name": "GET /api/v1/payment-intents/:id",
+    "actorMode": null,
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/reports",
+    "file": "src/app/api/v1/reports/route.ts",
+    "name": "POST /api/v1/reports",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/reviews/:id",
+    "file": "src/app/api/v1/reviews/[id]/route.ts",
+    "name": "PATCH /api/v1/reviews/:id",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/reviews/:id/response",
+    "file": "src/app/api/v1/reviews/[id]/response/route.ts",
+    "name": "POST /api/v1/reviews/:id/response",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/sessions/:id/bookings",
+    "file": "src/app/api/v1/sessions/[id]/bookings/route.ts",
+    "name": "POST /api/v1/sessions/:id/bookings",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/sessions/:id/check-in",
+    "file": "src/app/api/v1/sessions/[id]/check-in/route.ts",
+    "name": "POST /api/v1/sessions/:id/check-in",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/sessions/:id/join",
+    "file": "src/app/api/v1/sessions/[id]/join/route.ts",
+    "name": "GET /api/v1/sessions/:id/join",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/sessions/:id/waitlist",
+    "file": "src/app/api/v1/sessions/[id]/waitlist/route.ts",
+    "name": "DELETE /api/v1/sessions/:id/waitlist",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/sessions/:id/waitlist",
+    "file": "src/app/api/v1/sessions/[id]/waitlist/route.ts",
+    "name": "POST /api/v1/sessions/:id/waitlist",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/users/:id/block",
+    "file": "src/app/api/v1/users/[id]/block/route.ts",
+    "name": "DELETE /api/v1/users/:id/block",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/users/:id/block",
+    "file": "src/app/api/v1/users/[id]/block/route.ts",
+    "name": "POST /api/v1/users/:id/block",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/verification/email-challenge/confirm",
+    "file": "src/app/api/v1/verification/email-challenge/confirm/route.ts",
+    "name": "POST /api/v1/verification/email-challenge/confirm",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/waitlist-offers/:id/claim",
+    "file": "src/app/api/v1/waitlist-offers/[id]/claim/route.ts",
+    "name": "POST /api/v1/waitlist-offers/:id/claim",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/webhooks/fake",
+    "file": "src/app/api/webhooks/fake/route.ts",
+    "name": "POST /api/webhooks/fake",
+    "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  }
+]
