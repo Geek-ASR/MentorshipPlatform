@@ -3,3 +3,9 @@
 # docs/06-api-design.md: example Idempotency-Key UUID in API documentation, replaced by a placeholder.
 a14b470b369bbf9eb1f1694dbed5a2f9f98a1408:vitest.config.mts:generic-api-key:14
 a519658fa41aeda6b483a8d29b2832bffdeeed44:docs/06-api-design.md:generic-api-key:246
+# seed-policy-rules.ts: plain snake_case policy-rule identifiers (e.g. "mentor_reliability_suspension_v1")
+# assigned to a `ruleKey` field — gitleaks' generic-api-key rule fires on the "key" substring in the
+# field name plus the string's entropy, not on any actual secret.
+e1dc9b2be262e573408794fc6d7d4d0f9e4b0929:src/server/modules/trust/application/seed-policy-rules.ts:generic-api-key:68
+e1dc9b2be262e573408794fc6d7d4d0f9e4b0929:src/server/modules/trust/application/seed-policy-rules.ts:generic-api-key:86
+e1dc9b2be262e573408794fc6d7d4d0f9e4b0929:src/server/modules/trust/application/seed-policy-rules.ts:generic-api-key:191
