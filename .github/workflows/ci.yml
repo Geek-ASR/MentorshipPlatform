@@ -123,5 +123,7 @@ jobs:
       - run: npm audit --audit-level=high
       # docs/13 §10: OSV-Scanner on every PR (in addition to npm audit); a deeper weekly scan runs
       # in weekly.yml.
-      - run: go install github.com/google/osv-scanner/v2/cmd/osv-scanner@latest
+      - run: |
+          go install github.com/google/osv-scanner/v2/cmd/osv-scanner@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
       - run: osv-scanner scan source -r .

@@ -46,9 +46,10 @@ test.describe("E11: admin commission rule change requires step-up", () => {
     await expect(page.getByRole("heading", { name: "New rule" })).toBeVisible();
 
     const rowsBefore = await page.locator("table tbody tr").count();
-    // A priority unlikely to collide with any other rule already in this database, including one
-    // left behind by an earlier local run against a persistent (non-CI-fresh) dev database. The
-    // form's own `<input type="number" min={0} max={100}>` caps the usable range.
+    // The form's own `<input type="number" min={0} max={100}>` caps the usable range, so this can't
+    // be made collision-proof against a leftover row from an earlier run on a persistent (non-CI-
+    // fresh) dev database — the row-count assertion below is what actually proves creation; `.first()`
+    // here only proves *a* matching row is visible, which holds even if it isn't the only one.
     const priority = String(10 + (Date.now() % 90));
     await page.getByLabel("Priority").fill(priority);
     await page.getByLabel("Reason").fill("step-up check, attempt 2 (should succeed)");
@@ -57,6 +58,6 @@ test.describe("E11: admin commission rule change requires step-up", () => {
     // `router.refresh()` re-renders the server-fetched table with the new row once the second,
     // now-freshly-authenticated attempt actually succeeds.
     await expect(page.locator("table tbody tr")).toHaveCount(rowsBefore + 1);
-    await expect(page.locator("table tbody tr", { hasText: priority })).toBeVisible();
+    await expect(page.locator("table tbody tr", { hasText: priority }).first()).toBeVisible();
   });
 });

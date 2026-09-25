@@ -20,7 +20,7 @@
     "test:all": "vitest run",
     "test:watch": "vitest --project unit",
     "test:concurrency": "vitest run --project integration tests/integration/booking/concurrency.test.ts tests/integration/booking/group-events.test.ts tests/integration/payments/paid-booking-lifecycle.test.ts tests/integration/payments/chaos.test.ts tests/integration/platform/outbox.test.ts",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --project=desktop-chromium --project=mobile-chromium",
     "test:e2e:nightly": "playwright test --project=desktop-chromium --project=mobile-chromium --project=desktop-webkit --project=desktop-firefox --project=mobile-safari",
     "perf:lighthouse": "tsx scripts/perf/lighthouse-budgets.ts",
     "authz:generate-inventory": "tsx scripts/authz/generate-route-inventory.ts",

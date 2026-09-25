@@ -30,7 +30,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - run: go install github.com/google/osv-scanner/v2/cmd/osv-scanner@latest
+      - run: |
+          go install github.com/google/osv-scanner/v2/cmd/osv-scanner@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
       - run: osv-scanner scan source -r .
 
   # docs/13 §10: ZAP baseline DAST, weekly, against the real production build (no staging
