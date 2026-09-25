@@ -2,6 +2,7 @@ import postgres from "postgres";
 import { runMigrations } from "@/server/platform/db/migrate";
 import { closeDatabase, createDatabase } from "@/server/platform/db/client";
 import { seedReferenceData } from "@/server/platform/db/seed/seed";
+import { seedPolicyRules } from "@/server/modules/trust";
 import { adminUrl, TEMPLATE_DATABASE, urlForDatabase } from "./database";
 
 async function dropStaleTestDatabases(admin: postgres.Sql) {
@@ -28,6 +29,7 @@ export default async function setup() {
   const db = createDatabase({ url: templateUrl, maxConnections: 1 });
   try {
     await db.transaction((tx) => seedReferenceData(tx));
+    await db.transaction((tx) => seedPolicyRules(tx));
   } finally {
     await closeDatabase(db);
   }

@@ -6,7 +6,7 @@ import { writeAudit } from "@/server/platform/audit";
 import { getSetting } from "@/server/platform/settings/settings";
 import type { UserActor } from "@/server/platform/authz/actor";
 import { activeRestriction } from "@/server/platform/authz/actor";
-import { findUserById } from "@/server/modules/auth";
+import { findUserById, hasActiveRestriction, isBlocked } from "@/server/modules/auth";
 import { findMentorProfile } from "@/server/modules/profiles";
 import {
   createCheckout,
@@ -166,6 +166,12 @@ export async function bookSeat(
     }
     if (activeRestriction(actor, "booking.create", now) !== undefined) {
       throw new AppError("BOOKING_NOT_ELIGIBLE", { extensions: { reason: "ACCOUNT_RESTRICTED" } });
+    }
+    if (await hasActiveRestriction(tx, session.hostUserId, "booking.accept", now)) {
+      throw new AppError("BOOKING_NOT_ELIGIBLE", { extensions: { reason: "MENTOR_UNAVAILABLE" } });
+    }
+    if (await isBlocked(tx, actor.userId, session.hostUserId)) {
+      throw new AppError("BOOKING_NOT_ELIGIBLE", { extensions: { reason: "NOT_AVAILABLE" } });
     }
     if (session.registrationClosesAt && now >= session.registrationClosesAt) {
       throw new AppError("BOOKING_NOT_ELIGIBLE", {

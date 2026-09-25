@@ -7,7 +7,7 @@ import { writeAudit } from "@/server/platform/audit";
 import { getSetting } from "@/server/platform/settings/settings";
 import type { UserActor } from "@/server/platform/authz/actor";
 import { activeRestriction } from "@/server/platform/authz/actor";
-import { findUserById } from "@/server/modules/auth";
+import { findUserById, hasActiveRestriction, isBlocked } from "@/server/modules/auth";
 import { findMentorProfile, latestAttestation } from "@/server/modules/profiles";
 import {
   createCheckout,
@@ -124,6 +124,8 @@ export async function createBooking(
       sessionCounts,
       payoutAccountActive,
       attestation,
+      mentorAcceptRestricted,
+      blockedBetweenUsers,
     ] = await Promise.all([
       findMentorProfile(tx, input.mentorUserId),
       findService(tx, input.serviceId),
@@ -135,6 +137,8 @@ export async function createBooking(
       countSessionsByLocalDate(tx, input.mentorUserId, settings.timezone, dayStart, dayEnd),
       hasActivePayoutAccount(tx, input.mentorUserId),
       latestAttestation(tx, input.mentorUserId),
+      hasActiveRestriction(tx, input.mentorUserId, "booking.accept", now),
+      isBlocked(tx, actor.userId, input.mentorUserId),
     ]);
 
     if (!mentor || !service || service.mentorUserId !== input.mentorUserId || !user) {
@@ -202,11 +206,9 @@ export async function createBooking(
       studentAdultAttestation: user.adultAttestedAt !== null,
       studentRestrictedFromBookingCreate:
         activeRestriction(actor, "booking.create", now) !== undefined,
-      // Phase 10 owns user_restrictions; until then no mentor can be restricted (docs/19 Phase 7).
-      mentorRestrictedFromBookingAccept: false,
+      mentorRestrictedFromBookingAccept: mentorAcceptRestricted,
       isSelfBooking: actor.userId === input.mentorUserId,
-      // Phase 10 owns user_blocks; until then no pair of users can be blocked.
-      isBlockedBetweenUsers: false,
+      isBlockedBetweenUsers: blockedBetweenUsers,
       mentorApproved: mentor.applicationStatus === "approved",
       mentorListed: mentor.isListed,
       serviceActive: service.isActive,

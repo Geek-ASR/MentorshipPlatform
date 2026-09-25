@@ -77,11 +77,23 @@ export function cancellationQuote(input: CancellationQuoteInput): CancellationQu
   };
 }
 
-/** Reliability points scaled by notice given (docs/17 §5) — used for an audit-trail signal only;
- * the full trust-event ledger and reliability recompute are Phase 10 (docs/19). */
+/** Reliability points scaled by notice given (docs/17 §5) — the audit-trail signal `trust`'s
+ * ingestion poller reads uses `mentorCancellationTrustEventSignal` below for the actual typed event;
+ * this stays for anywhere only the point value itself is needed. */
 export function mentorCancellationNoticePoints(hoursNotice: number): number {
   if (hoursNotice >= 72) return 0;
   if (hoursNotice >= 24) return 1;
   if (hoursNotice >= 2) return 2;
   return 3;
+}
+
+/** Which typed trust event (docs/10 §4.2's three-tier cancel ladder) a mentor cancellation produces,
+ * or `null` for >=72h notice — the catalog has no event at all for that band (0 points). */
+export function mentorCancellationTrustEventSignal(
+  hoursNotice: number,
+): "mentor_cancel_24_72h" | "mentor_late_cancel_24h" | "mentor_late_cancel_2h" | null {
+  if (hoursNotice >= 72) return null;
+  if (hoursNotice >= 24) return "mentor_cancel_24_72h";
+  if (hoursNotice >= 2) return "mentor_late_cancel_24h";
+  return "mentor_late_cancel_2h";
 }

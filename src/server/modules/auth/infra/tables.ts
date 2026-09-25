@@ -11,9 +11,10 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { ROLES, USER_STATUSES } from "@/server/platform/authz/actor";
+import { CAPABILITIES, ROLES, USER_STATUSES } from "@/server/platform/authz/actor";
 import { appSchema } from "@/server/platform/db/tables/platform";
 import { checkIn, citext } from "@/server/platform/db/sql-helpers";
 
@@ -200,5 +201,68 @@ export const userConsents = appSchema.table(
   (t) => [
     check("user_consents_kind_valid", checkIn("kind", CONSENT_KINDS)),
     index("user_consents_user_idx").on(t.userId, t.kind),
+  ],
+);
+
+/**
+ * One-directional blocks (docs/05 §4.6, docs/10 Phase 10). Either party may block unilaterally, no
+ * counterparty consent needed (matches every consumer platform's block model); `isBlocked` checks
+ * both directions since a block from *either* side makes the pair unavailable to each other
+ * (docs/09 §5: "no block between the two users," not "the student hasn't blocked the mentor"). Owned
+ * by `auth` rather than the new `trust` module specifically so `booking` (which already depends on
+ * `auth`) can call the read-side directly without creating a `booking -> trust -> booking` cycle —
+ * `trust` still owns the moderator-facing side of blocking (e.g. a forced block after a harassment
+ * report), calling into this same table via `auth`'s public index.
+ */
+export const userBlocks = appSchema.table(
+  "user_blocks",
+  {
+    id: uuid("id").primaryKey(),
+    blockerId: uuid("blocker_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    blockedId: uuid("blocked_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    reasonCode: text("reason_code"),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    check("user_blocks_not_self", sql`${t.blockerId} <> ${t.blockedId}`),
+    uniqueIndex("user_blocks_pair_unique").on(t.blockerId, t.blockedId),
+    index("user_blocks_blocked_idx").on(t.blockedId),
+  ],
+);
+
+/**
+ * Materialised, currently-active capability restrictions (docs/10 §7.3) — the table
+ * `activeRestriction()` (src/server/platform/authz/actor.ts) is checking once `resolveSessionActor`
+ * hydrates `UserActor.restrictions` from this table. Owned by `auth` for the same cycle-avoiding
+ * reason as `user_blocks` above: `trust` (which decides *when* to restrict someone) writes here
+ * through `auth`'s public index; nothing in `auth` ever needs to know about `trust`.
+ */
+export const userRestrictions = appSchema.table(
+  "user_restrictions",
+  {
+    id: uuid("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    capability: text("capability").notNull(),
+    /** null = until lifted by staff (docs/10 §7.3 `reinstate`) — matches the `Restriction.until` shape. */
+    until: timestamp("until", { withTimezone: true }),
+    reasonCode: text("reason_code").notNull(),
+    /** The `moderation_actions.id` (owned by `trust`) that created this row — a plain uuid, not an FK,
+     * for the same reason `payments.order_items.booking_id` isn't an FK to `bookings` (ADR-029): the
+     * owning row lives in a module `auth` must never import. */
+    sourceActionId: uuid("source_action_id"),
+    createdAt: createdAt(),
+    liftedAt: timestamp("lifted_at", { withTimezone: true }),
+  },
+  (t) => [
+    check("user_restrictions_capability_valid", checkIn("capability", CAPABILITIES)),
+    index("user_restrictions_active_idx")
+      .on(t.userId, t.capability)
+      .where(sql`lifted_at IS NULL`),
   ],
 );

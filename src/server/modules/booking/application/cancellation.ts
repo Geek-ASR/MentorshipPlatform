@@ -6,7 +6,7 @@ import { writeAudit } from "@/server/platform/audit";
 import { auditLogs } from "@/server/platform/db/tables/platform";
 import {
   cancellationQuote,
-  mentorCancellationNoticePoints,
+  mentorCancellationTrustEventSignal,
   type CancellationActor,
   type CancellationPolicySnapshot,
   type CancellationQuote,
@@ -172,16 +172,20 @@ export async function cancelBooking(
     });
 
     if (role === "mentor") {
-      // Phase 10 owns the real trust-event ledger and reliability recompute; this audit entry is
-      // the signal until then (docs/19 Phase 7 deviations).
-      await writeAudit(tx, {
-        actorType: "user",
-        actorUserId: actor.userId,
-        action: "booking.mentor_cancel_reliability_signal",
-        targetType: "booking",
-        targetId: bookingId,
-        metadata: { points: mentorCancellationNoticePoints(hoursNotice) },
-      });
+      // trust's ingestion poller converts this into the matching typed trust_events row (docs/10
+      // §4.2's three-tier cancel ladder) — booking only ever writes the fact, never imports `trust`
+      // (ADR-035, mirroring ADR-029's one-directional-DAG discipline for payments).
+      const signal = mentorCancellationTrustEventSignal(hoursNotice);
+      if (signal) {
+        await writeAudit(tx, {
+          actorType: "user",
+          actorUserId: actor.userId,
+          action: `booking.${signal}_signal`,
+          targetType: "booking",
+          targetId: bookingId,
+          metadata: { mentorUserId, hoursNotice },
+        });
+      }
     }
 
     const [student, mentor] = await Promise.all([
