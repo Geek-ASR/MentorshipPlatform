@@ -238,6 +238,13 @@ export type ResolveDisputeInput = {
  * simply doesn't duplicate that work for the no-show case, and doesn't invent a new catalog event
  * type for a non-no-show ("review_dispute_opened") money dispute, since docs/10 §4.2 defines no such
  * type (documented scope boundary, docs/19 Phase 10 retrospective).
+ *
+ * One consequence worth naming explicitly: a mentor no-show already auto-refunds the student in
+ * full the moment attendance finalises (docs/10 §5 Level 0, wired into `booking`'s attendance
+ * finaliser this same phase). If a mentor later disputes that finding and wins (`refundMinor === 0`
+ * here), this function does *not* claw back that earlier refund — it only excuses the trust event.
+ * Recovering money from a student after the fact is the same "never reverse a processed refund"
+ * scope boundary `decideDisputeAppeal` documents below, applied one step earlier.
  */
 export async function resolveDispute(
   db: Database,
