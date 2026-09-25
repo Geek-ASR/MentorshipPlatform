@@ -1,16 +1,12 @@
-name: CI
+name: Nightly
 
 on:
-  pull_request:
-  push:
-    branches: [main]
+  schedule:
+    - cron: "0 2 * * *" # 02:00 UTC daily
+  workflow_dispatch: {}
 
 permissions:
   contents: read
-
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
 
 # CI-only placeholder values (not secrets): they exist solely so config validation passes in CI.
 env:
@@ -26,28 +22,13 @@ env:
   NEXT_TELEMETRY_DISABLED: "1"
 
 jobs:
-  quality:
-    name: Lint, types, unit & architecture tests
+  # docs/13 §6: the 9 named concurrency tests repeat 25x nightly to catch timing-dependent
+  # flakiness — each iteration reinvokes vitest fresh, so every repeat gets its own isolated
+  # `createTestDatabase()` clone (tests/helpers/database.ts) rather than sharing state across runs.
+  concurrency-repeat:
+    name: Concurrency tests (25x repeat)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - run: npm run format:check
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm test
-
-  integration:
-    name: Integration tests (PostgreSQL)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     services:
       postgres:
         image: postgres:16
@@ -68,12 +49,57 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm run test:integration
+      - name: Run concurrency suite 25 times
+        run: |
+          for i in $(seq 1 25); do
+            echo "::group::Repeat $i/25"
+            npm run test:concurrency
+            echo "::endgroup::"
+          done
 
-  build-e2e:
-    name: Build & end-to-end tests
+  # docs/13 §7/§1: full E2E across Chromium, WebKit and Firefox (desktop + mobile), nightly only —
+  # PR smoke (ci.yml) stays Chromium-only for speed.
+  e2e-nightly:
+    name: Full E2E (5 browser/device combinations)
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run db:setup
+      - run: npm run build
+      - run: npx playwright install --with-deps
+      - run: npm run test:e2e:nightly
+      - if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-report-nightly
+          path: playwright-report/
+          retention-days: 14
+
+  # docs/13 §9: Lighthouse budgets against the real production build (no staging environment exists
+  # yet — docs/19 Phase 15 — so this is the closest honest substitute available today).
+  lighthouse:
+    name: Lighthouse budgets
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     services:
       postgres:
         image: postgres:16
@@ -97,33 +123,15 @@ jobs:
       - run: npm run db:setup
       - run: npm run build
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
-      - if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 7
-
-  security:
-    name: Secret & dependency scanning
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version-file: .nvmrc
-      - run: npm audit --audit-level=high
-      # docs/13 §10: OSV-Scanner on every PR (in addition to npm audit); a deeper weekly scan runs
-      # in weekly.yml.
-      - run: |
-          go install github.com/google/osv-scanner/v2/cmd/osv-scanner@latest
-          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
-      - run: osv-scanner scan source -r .
+      - name: Start production server
+        run: |
+          npx next start -p 3200 > next-start.log 2>&1 &
+          echo $! > next-start.pid
+          for _ in $(seq 1 30); do
+            curl -sf http://localhost:3200/api/health && exit 0
+            sleep 1
+          done
+          echo "server did not become healthy in time"; cat next-start.log; exit 1
+      - run: npm run perf:lighthouse
+      - if: always()
+        run: kill "$(cat next-start.pid)" 2>/dev/null || true

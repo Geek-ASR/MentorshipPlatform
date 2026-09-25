@@ -30,14 +30,55 @@ test.describe("public foundation", () => {
     ).toEqual([]);
   });
 
-  test("skip link moves keyboard focus to main content", async ({ page, isMobile }) => {
+  test("skip link moves keyboard focus to main content", async ({ page, isMobile }, testInfo) => {
     test.skip(isMobile, "keyboard navigation is a desktop concern");
+    // Real desktop Safari, by default, only Tabs through text fields and lists — not links or
+    // buttons — until the user turns on "Full Keyboard Access" system-wide; Playwright's WebKit
+    // faithfully reproduces that default. Verified locally (both this test and the E13 test below
+    // fail identically on `desktop-webkit` even though the skip link and the search button are
+    // correctly focusable via `.focus()`), so this isn't an app defect — it's the same limitation
+    // most production sites share on Safari, and not something a page can opt out of.
+    test.skip(testInfo.project.name === "desktop-webkit", "WebKit doesn't Tab to links by default");
     await page.goto("/");
     await page.keyboard.press("Tab");
     const skip = page.getByRole("link", { name: "Skip to content" });
     await expect(skip).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/#main$/);
+  });
+
+  test("E13: keyboard-only mentor search — filter, submit and read results with no mouse", async ({
+    page,
+    isMobile,
+  }, testInfo) => {
+    test.skip(isMobile, "keyboard-only traversal is a desktop concern (docs/13 §7 E13)");
+    // See the skip-link test above: WebKit doesn't Tab to the submit button by default either.
+    test.skip(
+      testInfo.project.name === "desktop-webkit",
+      "WebKit doesn't Tab to buttons by default",
+    );
+    await page.goto("/mentors");
+
+    const keyword = page.getByLabel("Keyword");
+    await keyword.focus();
+    await expect(keyword).toBeFocused();
+    await page.keyboard.type("system design");
+
+    // Tab past the three filter <select>s to the submit button without ever touching the mouse.
+    for (let i = 0; i < 4; i++) await page.keyboard.press("Tab");
+    await expect(page.getByRole("button", { name: "Search" })).toBeFocused();
+    await page.keyboard.press("Enter");
+
+    await page.waitForURL(/[?&]q=system\+design/);
+    await expect(page.getByLabel("Keyword")).toHaveValue("system design");
+    // No serious/critical accessibility regression on the results state either (empty or populated).
+    const results = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+      .analyze();
+    const serious = results.violations.filter((v) =>
+      ["serious", "critical"].includes(v.impact ?? ""),
+    );
+    expect(serious).toEqual([]);
   });
 
   test("sends security headers and never indexes non-production environments", async ({

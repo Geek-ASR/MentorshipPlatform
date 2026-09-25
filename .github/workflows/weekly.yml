@@ -1,0 +1,88 @@
+name: Weekly
+
+on:
+  schedule:
+    - cron: "0 3 * * 0" # 03:00 UTC every Sunday
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+env:
+  APP_ENV: test
+  APP_BASE_URL: http://localhost:3200
+  LOG_LEVEL: warn
+  DATABASE_URL: postgres://postgres:postgres@localhost:5432/aheadly_ci
+  DATABASE_MIGRATOR_URL: postgres://postgres:postgres@localhost:5432/aheadly_ci
+  TEST_DATABASE_ADMIN_URL: postgres://postgres:postgres@localhost:5432/postgres
+  JOB_TICK_SECRET: ci-placeholder-job-tick-value-not-a-real-secret
+  OPS_SECRET: ci-placeholder-ops-value-not-a-real-secret-000
+  MFA_ENCRYPTION_KEY: ci-placeholder-mfa-key-value-not-a-real-secret-0
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  # docs/13 §10: OSV-Scanner, weekly deep scan (in addition to `npm audit` on every PR, ci.yml).
+  osv-scanner:
+    name: OSV-Scanner dependency scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: |
+          go install github.com/google/osv-scanner/v2/cmd/osv-scanner@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+      - run: osv-scanner scan source -r .
+
+  # docs/13 §10: ZAP baseline DAST, weekly, against the real production build (no staging
+  # environment exists yet — docs/19 Phase 15). `fail_action: false` deliberately: this is the
+  # first time ZAP has ever run against this app, so there's no `.zap/rules.tsv` triage file yet to
+  # separate real findings from baseline-scan noise — Phase 14 ("Security review") is explicitly
+  # where findings get triaged and this gate gets tightened, per docs/19's own phase boundaries.
+  zap-baseline:
+    name: ZAP baseline scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      issues: write
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run db:setup
+      - run: npm run build
+      - name: Start production server
+        run: |
+          npx next start -p 3200 > next-start.log 2>&1 &
+          echo $! > next-start.pid
+          for _ in $(seq 1 30); do
+            curl -sf http://localhost:3200/api/health && exit 0
+            sleep 1
+          done
+          echo "server did not become healthy in time"; cat next-start.log; exit 1
+      - uses: zaproxy/action-baseline@2b5fc7f98d837319798ab7f128ea50b7d40563b6 # v0.15.0
+        with:
+          target: "http://localhost:3200"
+          fail_action: false
+          allow_issue_writing: true
+          issue_title: "Weekly ZAP baseline scan"
+      - if: always()
+        run: kill "$(cat next-start.pid)" 2>/dev/null || true

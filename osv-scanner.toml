@@ -1,0 +1,11 @@
+# OSV-Scanner config (docs/13 §10). Accepted-risk exceptions only — never a real secret or a
+# vulnerability that's actually been fixed. See docs/21 ADR for the full reasoning behind each entry.
+
+[[IgnoredVulns]]
+id = "GHSA-67mh-4wv8-2f99"
+reason = """
+esbuild <=0.24.2 dev-server CORS issue, pulled in transitively by drizzle-kit's bundled
+@esbuild-kit/esm-loader (a CLI migration tool, never a network-exposed dev server in how this repo
+uses it). The only available fix is a pre-1.0 release-candidate drizzle-kit downgrade, a bigger risk
+than the alert itself. Dev-only dependency; never ships to production.
+"""

@@ -6,6 +6,10 @@ const baseURL = `http://localhost:${PORT}`;
 /**
  * E2E runs against a production build (`next build` must run first; CI does this explicitly).
  * The server gets its configuration from the environment / .env.local.
+ *
+ * docs/13 §1/§7: PR smoke stays Chromium-only (desktop + mobile) for speed; the nightly workflow
+ * additionally selects the WebKit/Firefox/mobile-Safari projects below via `--project`, so every
+ * project always exists but only nightly pays for the extra browsers.
  */
 export default defineConfig({
   testDir: "tests/e2e",
@@ -17,6 +21,9 @@ export default defineConfig({
   projects: [
     { name: "desktop-chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "mobile-chromium", use: { ...devices["Pixel 7"] } },
+    { name: "desktop-webkit", use: { ...devices["Desktop Safari"] } },
+    { name: "desktop-firefox", use: { ...devices["Desktop Firefox"] } },
+    { name: "mobile-safari", use: { ...devices["iPhone 14"] } },
   ],
   webServer: {
     command: `npx next start -p ${PORT}`,
