@@ -165,7 +165,7 @@ Stack decisions (full comparison in [04](04-system-architecture.md) and ADRs in 
 | Jobs | Transactional outbox table + tick endpoint; `FOR UPDATE SKIP LOCKED` | No extra infra; correctness never depends on tick timing | Queue service (SQS / Cloud Tasks / QStash) |
 | Email | Console (dev) → Resend free (needs a domain) | Simple API, 3k/month free | Any SMTP/API provider |
 | UI | Tailwind CSS + Radix-based components (shadcn/ui pattern), lucide icons | Accessible primitives, owned code | — |
-| Hosting | Portable build. Dev previews on Vercel Hobby (non-commercial). Public beta host chosen at Phase 15 | Vercel Hobby forbids commercial use; Cloudflare free 3 MiB limit is too small for Next.js | Vercel Pro / Cloudflare Workers Paid / Netlify / container |
+| Hosting | Portable build. Dev previews on Vercel Hobby (non-commercial). Public beta host chosen at Phase 16 | Vercel Hobby forbids commercial use; Cloudflare free 3 MiB limit is too small for Next.js | Vercel Pro / Cloudflare Workers Paid / Netlify / container |
 
 ## 12. Database
 

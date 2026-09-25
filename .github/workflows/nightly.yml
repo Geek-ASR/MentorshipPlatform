@@ -95,7 +95,7 @@ jobs:
           retention-days: 14
 
   # docs/13 §9: Lighthouse budgets against the real production build (no staging environment exists
-  # yet — docs/19 Phase 15 — so this is the closest honest substitute available today).
+  # yet — docs/19 Phase 16 — so this is the closest honest substitute available today).
   lighthouse:
     name: Lighthouse budgets
     runs-on: ubuntu-latest

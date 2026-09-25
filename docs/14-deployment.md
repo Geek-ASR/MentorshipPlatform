@@ -9,12 +9,12 @@ Status: Draft v0.1 · 2026-09-17
 | `local` | Development | `next dev` on laptop | Homebrew Postgres 16 (already running on this machine) | FakeGateway | Console + in-app preview page | Seed data |
 | `test` (CI) | Automated tests | GitHub Actions runner | `postgres:16` service container | FakeGateway | In-memory | Factories |
 | `preview` | Per-PR review | Vercel Hobby preview deployments (**non-commercial dev use**) | Shared staging DB **read-mostly** or ephemeral seed schema | FakeGateway | Console | Seed data only |
-| `staging` | Pre-release, sandbox beta | Chosen at Phase 15 (see §3) | Supabase Free project `aheadly-staging` (region **Mumbai `ap-south-1`**) | Razorpay **test mode** | Resend free (once a domain exists) | Synthetic + invited beta testers |
+| `staging` | Pre-release, sandbox beta | Chosen at Phase 16 (see §3) | Supabase Free project `aheadly-staging` (region **Mumbai `ap-south-1`**) | Razorpay **test mode** | Resend free (once a domain exists) | Synthetic + invited beta testers |
 | `production` | Real users & money | Paid commercial-use host | Supabase Pro (or equivalent) with PITR, Mumbai | Razorpay **live** (gated) | Resend (domain, DMARC) | Real |
 
 **Production does not exist until the Production-critical gate is met** ([08 §13](08-payment-architecture.md#13-production-critical-gate-for-live-payments), §8 below).
 
-**Implementation note (added during Phase 6):** GitHub Pages (`https://geek-asr.github.io/MentorshipPlatform/`, via `.github/workflows/pages.yml` and `progress-site/generate.mjs`) hosts a static, `noindex` build-progress dashboard generated from [docs/19-mvp-roadmap.md](19-mvp-roadmap.md) on every push to `main`. It is not one of the environments above — Pages is static-only and this app needs a server and a live database, so the actual product still deploys per §3 once Phase 15 is reached. The dashboard exists solely so progress is externally visible before then.
+**Implementation note (added during Phase 6):** GitHub Pages (`https://geek-asr.github.io/MentorshipPlatform/`, via `.github/workflows/pages.yml` and `progress-site/generate.mjs`) hosts a static, `noindex` build-progress dashboard generated from [docs/19-mvp-roadmap.md](19-mvp-roadmap.md) on every push to `main`. It is not one of the environments above — Pages is static-only and this app needs a server and a live database, so the actual product still deploys per §3 once Phase 16 is reached. The dashboard exists solely so progress is externally visible before then.
 
 ## 2. MVP deployment topology
 
@@ -35,9 +35,9 @@ flowchart LR
   UPT[Uptime monitor free] --> HOST
 ```
 
-## 3. Hosting decision procedure (Phase 15)
+## 3. Hosting decision procedure (Phase 16)
 
-Hosting stays portable. At Phase 15, measure: server bundle size (compressed), p95 server CPU per SSR request, monthly requests and bandwidth estimates. Then:
+Hosting stays portable. At Phase 16, measure: server bundle size (compressed), p95 server CPU per SSR request, monthly requests and bandwidth estimates. Then:
 
 | If… | Choose |
 |-----|--------|

@@ -3,7 +3,7 @@ import lighthouse from "lighthouse";
 
 /**
  * docs/13 §9 performance budgets, run against a real `next build`/`next start` production server
- * (no staging/preview deployment exists yet — docs/19 Phase 15 — so this is the closest honest
+ * (no staging/preview deployment exists yet — docs/19 Phase 16 — so this is the closest honest
  * substitute: the same build artifact E2E already tests against, in the same CI job).
  *
  * Runs Lighthouse against Playwright's own Chromium over the CDP port it exposes, rather than
@@ -28,7 +28,7 @@ type Budget = { accessibility: number; bestPractices: number };
 //    indexed) — confirmed locally this alone drags Lighthouse's SEO category from what would be a
 //    high-90s score down to the mid-60s, via its heavily-weighted "is-crawlable" audit. That's the
 //    safety net working correctly, not a real defect, so gating on it here would just be gating on
-//    noise. A meaningful SEO budget needs either a staging environment (docs/19 Phase 15) or a
+//    noise. A meaningful SEO budget needs either a staging environment (docs/19 Phase 16) or a
 //    CI-only header override to simulate production — both follow-ups, not done here.
 const PAGES: Record<string, Budget> = {
   "/": { accessibility: 95, bestPractices: 95 },

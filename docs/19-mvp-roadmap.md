@@ -20,9 +20,12 @@ flowchart LR
   P11 --> P13[13 Testing hardening · M]
   P12 --> P13
   P13 --> P14[14 Security review · M]
-  P14 --> P15[15 Deploy sandbox beta · S]
-  P15 --> P16[16 Production hardening plan · S]
+  P14 --> P15[15 Student/mentor application UI · L]
+  P15 --> P16[16 Deploy sandbox beta · S]
+  P16 --> P17[17 Production hardening plan · S]
 ```
+
+**Inserted 2026-09-26, after Phase 14:** Phase 13's own retrospective flagged that 8 of docs/13 §7's 13 E2E journeys are blocked not by missing tests but by missing product UI — no sign-in page, no student/mentor dashboard, no booking/checkout flow exists anywhere, only the backend API. The founder reviewed that finding and chose to insert a dedicated phase to build it before beta, rather than fold it into Phase 16 (deploy) or defer it further. Phase 16/17 below were Phase 15/16 before this insertion; every cross-reference to "Phase 15" elsewhere in `docs/` that meant the hosting/deploy decision has been updated to "Phase 16" to match.
 
 ## Phase 4 — Foundation (M) ✅ complete (2026-09-17)
 
@@ -261,20 +264,30 @@ flowchart LR
 - **Uploads (docs/13 §... file-handling requirements) are entirely N/A** — no upload feature exists anywhere in the app yet (Phase 6's own deviation, never built since); the whole ASVS V5 chapter is marked "re-verify when built," not assumed compliant from the design doc.
 - **The full per-actor BOLA assertion matrix was not built** — Phase 13 already scoped this out explicitly (ADR-047) as a dedicated follow-up; this phase's manual BOLA probes are real evidence the *pattern* holds, not a substitute for the exhaustive matrix.
 - **No external penetration test** — explicitly out of ₹0 scope until live money is involved (docs/11 §12), unchanged from the original plan.
-- **`Cross-Origin-Embedder-Policy` was not added**, despite ZAP flagging its absence, because adding it carelessly risks silently breaking the Google OAuth popup flow, and this environment has no way to test that against real OAuth credentials. Recorded as register R14 with a concrete, lower-risk-first recommendation (CORP alone, then COEP only after real OAuth testing in Phase 15) rather than guessed at.
+- **`Cross-Origin-Embedder-Policy` was not added**, despite ZAP flagging its absence, because adding it carelessly risks silently breaking the Google OAuth popup flow, and this environment has no way to test that against real OAuth credentials. Recorded as register R14 with a concrete, lower-risk-first recommendation (CORP alone, then COEP only after real OAuth testing in Phase 16, once staging exists) rather than guessed at.
 - **Log shipping, a dedicated security-event log stream, SBOM generation, key rotation (`kid`-versioning), and a nonce-based CSP** are all real, tracked gaps (register R5, R6, R8, R9, R11) — each has a clear reason it wasn't done in this pass (needs infrastructure that doesn't exist yet, or is real engineering work disproportionate to bundle into an already-large review phase) and a clear trigger for when to revisit, not a vague "later."
 
 **Tested:** 305 unit (+8: 4 TOTP-encryption, 4 logger-redaction) / 124 integration (unchanged — this phase's work was almost entirely review, fixes and documentation, not new features) / 27 E2E passing on the PR-smoke Chromium projects (+2: a new regression test for the `/mentors` crash, on both desktop and mobile). `npm audit --audit-level=high` clean (no new findings). The manually-triggered weekly workflow (OSV-Scanner + ZAP baseline) ran successfully end to end for the first time ever in this repo's history, not just in theory.
 
 **Exit criteria:** zero open critical/high findings — met, and verified rather than assumed (253-requirement walkthrough plus a real ZAP scan, not a self-declaration). Accepted-risk register signed off by the founder — **not met**; the register exists, is complete, and is ready for review, but sign-off is a real action only the founder can take (`docs/security/accepted-risk-register.md`'s Sign-off table is intentionally left blank, not fabricated).
 
-## Phase 15 — Deploy sandbox beta (S)
+## Phase 15 — Student/mentor application UI (L)
 
-**Scope:** host decision per [14 §3](14-deployment.md#3-hosting-decision-procedure-phase-15); Supabase staging (Mumbai) setup checklist; Razorpay test-mode webhooks; `pg_cron` tick; backups + restore drill; uptime + alerts; Sentry; invite-only beta (feature flag); beta feedback loop.
+**Inserted 2026-09-26**, between Security review and Deploy sandbox beta, per the founder's decision on Phase 13's own finding: every backend bounded context through Phase 13 (auth, profiles, booking, payments, group sessions/events, trust & safety) is real, tested, and API-complete — but no browser UI exists for a student or mentor to actually use any of it. Phases 5–10 each explicitly and honestly deferred this ("no sign-in page yet," "no mentor scheduling/service self-management UI," "no self-serve mentor application wizard UI") as the right call at the time, prioritizing correctness of the harder, more failure-prone backend first. This phase is where those deferrals get paid off, before real people are invited to a beta they'd have no way to use.
+
+**Scope:** sign-in, sign-up, password-reset (request + confirm) and email-verification pages; a student/mentor account area; the mentor application wizard (docs/22 §3 J2, deferred since Phase 6); mentor self-service availability/services management (deferred since Phase 7); an interactive slot-picker and booking flow on the mentor profile page, replacing the current static "here are some open slots, sign in elsewhere" rendering; a checkout UI against the existing fake payment gateway; booking confirmation, a "my bookings" page (view/cancel/reschedule/ICS download), and the session-join flow; free-event registration and waitlist UI; post-session review submission; user-facing report and appeal submission forms (the admin side of both already exists from Phase 10/11). No new backend work is expected — every one of these has a working, tested API already; this phase is the missing browser surface only. Booking-scoped messaging stays out of scope (its backend was never built either, a separate Phase 7 deferral — docs/05 §2's own bounded-context split treats it as its own pass).
+
+**Exit criteria:** a real student can, entirely through the browser with no API calls by hand, sign up, verify their email, find and book a paid session with a listed mentor (fake-gateway checkout), receive a confirmation and download the ICS, and see the booking in "my bookings." A real mentor can, entirely through the browser, apply, get verified, configure availability and services, and see their upcoming bookings. docs/13 §7's E2–E10 journeys — blocked since Phase 7, explicitly named as a carry in every retrospective since — become buildable, and should be built as this phase's own E2E coverage, not deferred again.
+
+**Sizing note:** labeled (L) to match this doc's existing scale, but its real scope (UI across five previously-backend-only bounded contexts) is larger than any other single (L) phase in this roadmap so far. If it proves too large to execute as one continuous pass, splitting it (e.g. "auth + booking + checkout" first, "mentor self-service + events + reviews" second) is a reasonable mid-phase call, not a plan failure — noted here so that split isn't a surprise deviation later.
+
+## Phase 16 — Deploy sandbox beta (S)
+
+**Scope:** host decision per [14 §3](14-deployment.md#3-hosting-decision-procedure-phase-16); Supabase staging (Mumbai) setup checklist; Razorpay test-mode webhooks; `pg_cron` tick; backups + restore drill; uptime + alerts; Sentry; invite-only beta (feature flag); beta feedback loop.
 
 **Exit criteria:** staging runs 14 days with no P0/P1 alerts unresolved; restore drill passed; reconciliation shows zero unexplained items.
 
-## Phase 16 — Production hardening plan (S)
+## Phase 17 — Production hardening plan (S)
 
 **Scope:** consolidated gap list from [08 §13](08-payment-architecture.md#13-production-critical-gate-for-live-payments), [12 §16](12-privacy-compliance.md#16-compliance-checklist) and [14 §8](14-deployment.md#8-production-critical-launch-checklist-infrastructure); cost plan; legal/CA engagement checklist; go/no-go criteria for live payments.
 
@@ -288,15 +301,16 @@ flowchart LR
 | Phase 5 (optional) | Create Google OAuth client (basic scopes need no verification) |
 | Before Phase 8 | Create a Razorpay account and generate **test** API keys (no KYC needed for test mode) |
 | Before Phase 11 | Choose second admin/moderator (for 4-eyes); otherwise document single-staff mode |
-| Before Phase 15 | Supabase account (staging project, Mumbai); Cloudflare account (Turnstile); Sentry account; offsite backup storage account; host account |
+| Before Phase 16 | Supabase account (staging project, Mumbai); Cloudflare account (Turnstile); Sentry account; offsite backup storage account; host account |
 | Before public beta | Domain purchase (~₹1,000/yr); Resend domain verification; grievance officer designation; recruit 15–30 founding mentors |
 | Before live money | Legal entity; Razorpay KYC + Route activation; lawyer + CA review; paid infrastructure |
 
-## Readiness classification at end of Phase 15
+## Readiness classification at end of Phase 16
 
 | Capability | Classification |
 |-----------|---------------|
-| Auth, profiles, discovery, availability, booking, holds, double-booking prevention | **Beta** (functionally complete; free-tier infra) |
+| Auth, profiles, discovery, availability, booking, holds, double-booking prevention (backend) | **Beta** (functionally complete; free-tier infra) |
+| Student/mentor application UI (Phase 15) | **Beta** — the browser surface for all of the above, built specifically so this classification is honest by the time real beta users arrive, not aspirational |
 | Payments (fake + Razorpay test) | **MVP / sandbox**, *architecturally correct*, **not production-ready** until the live gate |
 | Refund/payout/ledger/reconciliation | **MVP / sandbox**, needs provider live verification |
 | Trust & safety tooling | **Beta** (needs staffing + counsel-reviewed policies) |

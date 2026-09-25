@@ -91,7 +91,7 @@ flowchart LR
 | Render Free | Yes | Yes | Node server | Spins down on idle, slow cold starts | Poor UX for booking |
 | VPS/container (later) | No | Yes | Node standalone | None | Most control; ops burden |
 
-**Decision:** keep the app portable (standard Next.js Node output, no vendor APIs). Use Vercel Hobby for **private development previews**. Choose the public beta host at Phase 15 from measured bundle size and traffic: Netlify Free if within credits, otherwise Cloudflare Workers Paid or Vercel Pro. **Real-money production requires a paid, commercial-use plan.** (ADR-010)
+**Decision:** keep the app portable (standard Next.js Node output, no vendor APIs). Use Vercel Hobby for **private development previews**. Choose the public beta host at Phase 16 from measured bundle size and traffic: Netlify Free if within credits, otherwise Cloudflare Workers Paid or Vercel Pro. **Real-money production requires a paid, commercial-use plan.** (ADR-010)
 
 ### 4.3 Database
 
