@@ -101,7 +101,7 @@ export async function getBookingIcsContent(
     status: CANCELLED_STATUSES.has(booking.status) ? "CANCELLED" : "CONFIRMED",
     summary: `${brand.name} mentorship session`,
     joinUrl: `${appBaseUrl}/sessions/${booking.sessionId}/join`,
-    policyUrl: `${appBaseUrl}/policies/cancellation`,
+    policyUrl: `${appBaseUrl}/legal/refund-cancellation`,
     generatedAt: now,
   });
 }

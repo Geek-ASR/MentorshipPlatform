@@ -1,6 +1,6 @@
 # OWASP ASVS 5.0 — Level 2 Verification Checklist
 
-Status: Phase 14 review · 2026-09-26 · Reviewer: engineering (self-review; no external pentest yet — docs/11 §12, out of ₹0 scope until live money).
+Status: Phase 14 review · 2026-09-26 · Reviewer: engineering (self-review; no external pentest yet — docs/11 §12, out of ₹0 scope until live money). **Updated 2026-09-26 (Phase 15a):** 6.3.3, 7.4.3, 7.4.4 and 7.5.2 re-verified after the signed-in account UI shipped — see those rows, including a correction to what the original 7.4.4 and 7.5.2 rows claimed.
 
 Scope: every ASVS 5.0 requirement at **Level 1 or Level 2** (253 total across 17 chapters). Level 3 items are out of scope for MVP. Source: [OWASP/ASVS](https://github.com/OWASP/ASVS) `5.0/en/`, fetched directly for this review rather than relied on from memory, since docs/11 names ASVS 5.0 explicitly as the verification target and the exact wording matters.
 
@@ -120,7 +120,7 @@ Caught while walking the checklist against real code (and, for #4, a real ZAP sc
 | 6.2.10 | No forced periodic rotation | ✅ | No rotation requirement exists anywhere in the codebase |
 | 6.2.12 | Breach-checked at registration and change | ✅ | `createHibpChecker` called from both `sign-up.ts` and `change-password.ts` (and `password-reset.ts`) |
 | 6.3.1–6.3.2 | Brute-force controls; no default accounts | ✅ | Rate limits (verified table below); no seeded admin/root account exists (confirmed Phase 13: `db:seed` creates zero user accounts) |
-| 6.3.3 | MFA (or equivalent) required to access the application | ⚠️ | MFA is **mandatory for staff** (`requireStaffWithMfa`, enforced in every admin route and page) but **not offered to students/mentors at all** — no TOTP enrollment UI exists for regular users. This is a defensible scope choice for an MVP marketplace (the highest-value target — staff/admin — is the one that's protected) but is a literal gap against 6.3.3's "must be used to access the application" if read as applying to every account, not just privileged ones |
+| 6.3.3 | MFA (or equivalent) required to access the application | ⚠️ | MFA is **mandatory for staff** (`requireStaffWithMfa`, enforced in every admin route and page). **Since Phase 15a it is also offered, opt-in, to every student and mentor** (Settings → Security: authenticator-app setup, one-time recovery codes, turn off behind a password re-check) — the enrolment APIs always accepted any user; only the UI was missing. Still a literal gap against 6.3.3's "must be used to access the application" read as applying to every account: for non-staff it is optional, not required (register R2) |
 | 6.4.1 | System-generated initial secrets expire, aren't reusable as long-term passwords | ✅ | Password-reset and email-verification tokens are single-use, hashed, short-lived (docs/07); there's no "initial password" flow at all (users always set their own password at sign-up) |
 | 6.4.2 | No security questions | ✅ | Never built, never planned |
 | 6.4.3 | Password reset doesn't bypass MFA | ✅ | Password reset issues a new session the same way sign-in does — `mfa_verified` starts `false` on the new session, so a staff account still hits the same MFA gate on its next privileged action; confirmed by re-reading `password-reset.ts`'s session issuance this review |
@@ -149,14 +149,14 @@ Caught while walking the checklist against real code (and, for #4, a real ZAP sc
 | 7.3.1–7.3.2 | Inactivity + absolute timeout enforced | ✅ | `isSessionExpired` checks both `expiresAt` (absolute) and `lastSeenAt`+idle window |
 | 7.4.1 | Terminated sessions immediately unusable | ✅ | `revokedAt` checked in `isSessionExpired`; revocation is a DB write, not a client-side-only action |
 | 7.4.2 | All sessions terminated on account disable/delete | ✅ | Confirmed in the account-deletion/ban flow (`trust`/`auth` modules, Phase 10) — revokes all sessions for the target user |
-| 7.4.3 | Option to terminate other sessions after credential change | ⚠️ | Password change/reset revokes sessions **automatically** in some flows (stronger than "gives the option") but there's no user-facing "sign out everywhere" self-service control independent of a credential change — see 7.5.2 |
-| 7.4.4 | Visible logout on every authenticated page | ✅ | Site chrome and admin shell both have a persistent sign-out control (verified across every phase's UI work) |
+| 7.4.3 | Option to terminate other sessions after credential change | ✅ | Password change/reset revokes every other session **automatically** (stronger than "gives the option"), and since Phase 15a a self-service "Sign out everywhere" control also exists independently of any credential change (Settings → Security, behind a password re-check) |
+| 7.4.4 | Visible logout on every authenticated page | ✅ | Admin shell: persistent sign-out button. Public site and dashboard: the account menu (avatar, top right) always offers Sign out, on phones too. **Correction:** the original Phase 14 row credited "site chrome" with a sign-out control before any signed-in public page existed — it only became true with Phase 15a |
 | 7.4.5 | Admins can terminate sessions for any user | ✅ | The user-ban/restriction flow (Phase 10 trust module) revokes sessions as part of enforcement; no separate "just kill this session" admin tool exists beyond that, which is a narrower surface than the requirement literally wants |
 | 7.5.1 | Full re-auth before changing sensitive account attributes | ✅ | `requireRecentUserAuth`/step-up (docs/07 §5) gates exactly this category — extensively tested throughout the session (e.g. Phase 13's E11 journey against commission rules, the same mechanism protects account-attribute changes) |
-| 7.5.2 | Users can view/terminate their own active sessions | ❌ | **No "your active sessions" self-service page or API exists for regular users.** This is a real, literal gap — not just narrower-than-ideal, genuinely not built. Low severity in practice (sessions are short-lived and credential changes already revoke), but it's a named ASVS control this app doesn't meet |
+| 7.5.2 | Users can view/terminate their own active sessions | ✅ | Settings → Security (Phase 15a) lists every active session (signed-in date, last active, network prefix, "This device"); each other device has its own **Sign out** (`POST /auth/sessions/:id/revoke`, own sessions only — any other id is a 404) and "Sign out everywhere" covers all, both behind a password re-check. Integration-tested (`tests/integration/auth/account.test.ts`). **Correction:** the Phase 14 row said no page *or API* existed — `GET /auth/sessions` and `POST /auth/sessions/revoke-all` already existed then; the page and per-session revoke were what was missing |
 | 7.6.1–7.6.2 | IdP/session consent and explicit-action requirements | ✅ | Google's own consent screen + the explicit "Sign in with Google" click satisfy both |
 
-**Section result:** 12 Met, 3 Partial, 1 Not Met (7.5.2), 2 N/A.
+**Section result:** 14 Met, 2 Partial, 0 Not Met, 2 N/A *(Phase 14: 12 Met, 3 Partial, 1 Not Met — 7.4.3 and 7.5.2 became Met in Phase 15a)*.
 
 ## V8 — Authorization (7 items)
 
@@ -325,7 +325,7 @@ The app is an OIDC **relying party** (client) using Google Sign-In only — it i
 | V4 API & Web Service | 2 | 0 | 0 | 8 |
 | V5 File Handling | 0 | 0 | 0 | 9 |
 | V6 Authentication | 24 | 5 | 0 | 3 |
-| V7 Session Management | 12 | 3 | 1 | 2 |
+| V7 Session Management | 14 | 2 | 0 | 2 |
 | V8 Authorization | 6 | 0 | 0 | 1 |
 | V9 Self-contained Tokens | — | — | — | N/A (app), Met (Google id_token path) |
 | V10 OAuth & OIDC | 7 | 0 | 0 | 22 |
@@ -336,8 +336,8 @@ The app is an OIDC **relying party** (client) using Google Sign-In only — it i
 | V15 Secure Coding & Architecture | 9 | 2 | 0 | 2 |
 | V16 Logging & Error Handling | 11 | 3 | 0 | 2 |
 | V17 WebRTC | 0 | 0 | 0 | 7 |
-| **Total** | **~136** | **~20** | **1** | **~89** |
+| **Total** | **~138** | **~19** | **0** | **~89** |
 
-**Not Met (real, literal gap):** V7.5.2 — no user-facing "view/terminate my active sessions" page. Low severity (sessions are short-lived, credential changes already revoke) but a named, concrete requirement this app doesn't satisfy today.
+**Not Met:** none since Phase 15a. The one Phase 14 item, V7.5.2, is now Met — the signed-in devices page with per-device and all-device sign-out (register R7, closed).
 
 **Zero critical/high findings that constitute an exploitable vulnerability in shipped code.** Every Partial is either a deliberate MVP scope deferral (uploads, CAPTCHA, log shipping, SBOM), a hosting-decision dependency not yet made (TLS, DB encryption in transit), or a real hardening item with a clear, low-urgency fix path (CSP nonces, key rotation, dedicated security-event logging). All are tracked in `docs/security/accepted-risk-register.md`, not just written down here and forgotten.

@@ -291,6 +291,7 @@ export async function createBooking(
       sessionId: sessionRow.id,
       studentId: actor.userId,
       status: isFree ? "confirmed" : "held",
+      confirmedAt: isFree ? now : null,
       holdExpiresAt: isFree
         ? null
         : (checkoutResult!.paymentIntent.holdExpiresAt ?? addMinutes(now, holdTtlMin)),

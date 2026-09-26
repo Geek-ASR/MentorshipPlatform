@@ -14,6 +14,9 @@ const PAGES = [
   { path: "/study-abroad", label: "study-abroad hub" },
   { path: "/events", label: "events list" },
   { path: "/admin/login", label: "admin login" },
+  { path: "/sign-in", label: "sign in" },
+  { path: "/sign-up", label: "sign up" },
+  { path: "/forgot-password", label: "forgot password" },
 ];
 
 test.describe("accessibility: key public pages", () => {

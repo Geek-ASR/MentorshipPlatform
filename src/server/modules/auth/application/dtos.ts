@@ -8,6 +8,8 @@ export type MeDto = {
   email: string;
   emailVerified: boolean;
   displayName: string;
+  /** IANA zone every time in the UI is shown in (docs/22 §1 "time clarity"). */
+  timezone: string;
   status: string;
   roles: Role[];
   mfaEnabled: boolean;
@@ -19,6 +21,7 @@ export function toMeDto(user: UserRow, actor: UserActor, mfaEnabled: boolean): M
     email: user.email,
     emailVerified: user.emailVerified,
     displayName: user.displayName,
+    timezone: user.timezone,
     status: user.status,
     roles: [...actor.roles],
     mfaEnabled,

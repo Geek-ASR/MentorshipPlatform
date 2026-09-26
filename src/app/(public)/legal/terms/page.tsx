@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { brand } from "@/config/brand";
+import { LEGAL_VERSIONS, legalVersionLabel } from "@/config/legal";
 import { LegalDocument } from "@/ui/legal-shell";
 
 export const metadata: Metadata = {
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <LegalDocument title="Terms of Service" lastUpdated="25 September 2026">
+    <LegalDocument title="Terms of Service" lastUpdated={legalVersionLabel(LEGAL_VERSIONS.terms)}>
       <p>
         These Terms govern use of {brand.name} (operated by {brand.legalEntityName},
         &ldquo;we&rdquo;, &ldquo;us&rdquo;), a marketplace connecting students with independent

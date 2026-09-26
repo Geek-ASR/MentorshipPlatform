@@ -4,6 +4,7 @@ import type { UserActor } from "@/server/platform/authz/actor";
 import { AppError } from "@/server/platform/errors";
 import { writeAudit } from "@/server/platform/audit";
 import { auditLogs } from "@/server/platform/db/tables/platform";
+import { getSetting } from "@/server/platform/settings/settings";
 import {
   cancellationQuote,
   mentorCancellationTrustEventSignal,
@@ -27,11 +28,20 @@ import type { SessionKind } from "../domain/types";
 
 const COURTESY_WINDOW_DAYS = 90;
 
+/** A student's rolling goodwill allowance (docs/17 §cancellation) — read live at cancel time rather
+ * than from the booking's policy snapshot, since it's a per-student budget, not a term of one
+ * booking. */
 async function hasCourtesyAvailable(
   executor: Executor,
   studentId: string,
   now: Date,
 ): Promise<boolean> {
+  const allowance = await getSetting(
+    executor,
+    "cancellation.student.courtesy_late_cancels_per_90d",
+    now,
+  );
+  if (allowance <= 0) return false;
   const cutoff = new Date(now.getTime() - COURTESY_WINDOW_DAYS * 86_400_000);
   const rows = await executor
     .select({ metadata: auditLogs.metadata })
@@ -43,7 +53,8 @@ async function hasCourtesyAvailable(
         gte(auditLogs.occurredAt, cutoff),
       ),
     );
-  return !rows.some((row) => row.metadata.usedCourtesy === true);
+  const used = rows.filter((row) => row.metadata.usedCourtesy === true).length;
+  return used < allowance;
 }
 
 function hoursUntil(target: Date, now: Date): number {

@@ -59,18 +59,33 @@ test.describe("public foundation", () => {
     );
     await page.goto("/mentors");
 
-    const keyword = page.getByLabel("Keyword");
+    const keyword = page.getByRole("searchbox", { name: "Search mentors" });
     await keyword.focus();
     await expect(keyword).toBeFocused();
     await page.keyboard.type("system design");
 
-    // Tab past the three filter <select>s to the submit button without ever touching the mouse.
-    for (let i = 0; i < 4; i++) await page.keyboard.press("Tab");
-    await expect(page.getByRole("button", { name: "Search" })).toBeFocused();
+    // Tab to the submit button without ever touching the mouse.
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("button", { name: "Search", exact: true })).toBeFocused();
     await page.keyboard.press("Enter");
 
     await page.waitForURL(/[?&]q=system\+design/);
-    await expect(page.getByLabel("Keyword")).toHaveValue("system design");
+    await expect(page.getByRole("searchbox", { name: "Search mentors" })).toHaveValue(
+      "system design",
+    );
+
+    // Then narrow by a filter from the keyboard: typeahead picks an option in the closed select on
+    // every platform (arrow keys open the native picker on macOS), Tab reaches "Show results",
+    // and the keyword survives the filter submit.
+    const language = page.getByLabel("Language");
+    await language.focus();
+    await page.keyboard.type("English");
+    await expect(language).not.toHaveValue("");
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("button", { name: "Show results" })).toBeFocused();
+    await page.keyboard.press("Enter");
+    await page.waitForURL(/[?&]language=/);
+    await expect(page).toHaveURL(/[?&]q=system\+design/);
     // No serious/critical accessibility regression on the results state either (empty or populated).
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])

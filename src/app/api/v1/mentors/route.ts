@@ -37,7 +37,8 @@ export const GET = defineRoute(
     });
     return {
       body: {
-        mentors: results.mentors,
+        // Internal user ids stay server-side, matching the profile DTO (slugs are the public key).
+        mentors: results.mentors.map(({ userId: _userId, ...card }) => card),
         total: results.total,
         page: query.page,
         pageSize: PAGE_SIZE,

@@ -17,11 +17,12 @@ Severity follows a plain scale: **Critical** (exploitable now, causes major harm
 - **Recommendation:** Build Turnstile integration once the account exists (Phase 16), gated behind a feature flag so it can ship disabled and be turned on after verifying the integration works.
 - **Owner / next review:** Phase 16.
 
-## R2 — MFA is staff-only; regular students/mentors have no MFA option
+## R2 — MFA is required only for staff; optional for students/mentors
 
 - **Severity:** Low
 - **ASVS:** 6.3.3
-- **What:** TOTP enrollment exists only for staff roles. A compromised student/mentor password has no second factor to fall back on.
+- **Status (Phase 15a, 2026-09-26):** partially addressed — every account can now turn on authenticator-app 2-step verification with one-time recovery codes (Settings → Security). It stays optional for non-staff, which is the remaining literal gap.
+- **What:** At Phase 14, TOTP enrollment was reachable only through the staff console (the enrolment APIs themselves never checked for a staff role — the gap was the missing UI). A compromised student/mentor password had no second factor to fall back on unless the person opts in.
 - **Why accepted:** A deliberate MVP scope choice, not an oversight — the highest-value target (staff, who can refund money and change commission rules) is the one that's protected. Extending MFA to all users is real UI/UX work (enrollment flow, recovery flow) disproportionate to the risk at current scale.
 - **Recommendation:** Revisit once the platform has real transaction volume — optional MFA for mentors handling payouts is the natural next increment, not "MFA for everyone" on day one.
 - **Owner / next review:** Post-beta, revenue-driven.
@@ -62,10 +63,11 @@ Severity follows a plain scale: **Critical** (exploitable now, causes major harm
 - **Recommendation:** Before real staff TOTP enrollment happens at scale, add a `kid` prefix to `EncryptedSecret` and a small in-memory key registry (`Map<kid, key>`) so a rotation is a config change + a background re-encryption job, not a breaking migration.
 - **Owner / next review:** Before Phase 16 (real staff onboarding).
 
-## R7 — No user-facing "view/terminate my active sessions" page
+## R7 — ~~No user-facing "view/terminate my active sessions" page~~ — closed in Phase 15a
 
-- **Severity:** Low
-- **ASVS:** 7.5.2 (the one literal **Not Met** item in the checklist)
+- **Severity:** Low (closed)
+- **ASVS:** 7.5.2 (was the checklist's one **Not Met** item; **Met** since Phase 15a)
+- **Status (Phase 15a, 2026-09-26):** closed. Settings → Security lists every active session, with a per-device **Sign out** (`POST /auth/sessions/:id/revoke`, own sessions only) and **Sign out everywhere**, both behind a password re-check. Kept below as the original record.
 - **What:** Users cannot see or selectively revoke their own active sessions. Sessions are short-lived (7-day idle / 30-day absolute for regular users, 1h/12h for staff) and credential changes already revoke sessions automatically, which meaningfully narrows the practical impact — but the ASVS requirement is genuinely unmet, not just narrower than ideal.
 - **Why accepted for now:** Never built in any phase; no user-facing account-settings dashboard exists at all yet for regular users (the same underlying gap Phase 13's retrospective flagged: no student/mentor dashboard UI exists).
 - **Recommendation:** Build alongside whatever phase finally adds a student/mentor account-settings area — not worth a one-off page in isolation.

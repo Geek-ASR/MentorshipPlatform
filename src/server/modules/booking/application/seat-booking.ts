@@ -91,6 +91,7 @@ export async function insertSeatForStudent(
     sessionId: session.id,
     studentId,
     status: isFree ? "confirmed" : "held",
+    confirmedAt: isFree ? now : null,
     holdExpiresAt: isFree
       ? null
       : (checkoutResult!.paymentIntent.holdExpiresAt ??

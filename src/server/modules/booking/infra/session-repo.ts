@@ -1,8 +1,8 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import type { Executor } from "@/server/platform/db/client";
 import { newId } from "@/server/platform/ids";
 import { parseTstzRange, toTstzRange } from "@/server/platform/db/sql-helpers";
-import { calendarBlocks, sessions } from "./tables";
+import { calendarBlocks, eventDetails, mentorServices, sessions } from "./tables";
 
 export type SessionRow = typeof sessions.$inferSelect;
 
@@ -13,6 +13,34 @@ export async function findSession(executor: Executor, id: string): Promise<Sessi
 
 export function sessionWindow(session: SessionRow): { start: Date; end: Date } {
   return parseTstzRange(session.during);
+}
+
+export type SessionTitle = { title: string; eventSlug: string | null };
+
+/** Display titles for a batch of sessions — an event's own title, otherwise its service's title
+ * (1:1 services and the per-session service row a group session creates). */
+export async function findSessionTitles(
+  executor: Executor,
+  sessionIds: string[],
+): Promise<Map<string, SessionTitle>> {
+  if (sessionIds.length === 0) return new Map();
+  const rows = await executor
+    .select({
+      id: sessions.id,
+      serviceTitle: mentorServices.title,
+      eventTitle: eventDetails.title,
+      eventSlug: eventDetails.slug,
+    })
+    .from(sessions)
+    .leftJoin(mentorServices, eq(mentorServices.id, sessions.serviceId))
+    .leftJoin(eventDetails, eq(eventDetails.sessionId, sessions.id))
+    .where(inArray(sessions.id, sessionIds));
+  return new Map(
+    rows.map((row) => [
+      row.id,
+      { title: row.eventTitle ?? row.serviceTitle ?? "Session", eventSlug: row.eventSlug },
+    ]),
+  );
 }
 
 export async function insertOneOnOneSession(

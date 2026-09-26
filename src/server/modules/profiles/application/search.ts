@@ -4,6 +4,7 @@ import { findMentorProfile, type MentorProfileRow } from "../infra/mentor-repo";
 import { searchMentors as searchMentorsRepo, type SearchFilters } from "../infra/search-repo";
 
 export type MentorCard = {
+  userId: string;
   slug: string;
   displayName: string;
   headline: string | null;
@@ -33,6 +34,7 @@ export async function searchMentors(db: Database, filters: SearchFilters): Promi
       const profile = profileById.get(id);
       if (!user || !profile) return null;
       return {
+        userId: id,
         slug: profile.slug,
         displayName: user.displayName,
         headline: profile.headline,

@@ -10,7 +10,7 @@ describe("generateBookingIcs", () => {
     status: "CONFIRMED" as const,
     summary: "Mentorship session",
     joinUrl: "https://app.aheadly.invalid/sessions/abc/join",
-    policyUrl: "https://app.aheadly.invalid/policies/cancellation",
+    policyUrl: "https://app.aheadly.invalid/legal/refund-cancellation",
     generatedAt: new Date("2026-09-17T10:40:00.000Z"),
   };
 

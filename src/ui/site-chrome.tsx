@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { brand } from "@/config/brand";
-import { Badge } from "./badge";
 import { Container } from "./container";
+import { HeaderActions, PrimaryNav } from "./header-actions";
 import { Logo } from "./logo";
 
 export function SkipLink() {
@@ -25,73 +25,95 @@ const NAV = [
 
 export function SiteHeader() {
   return (
-    <header className="border-b border-line bg-canvas/90 backdrop-blur supports-[backdrop-filter]:bg-canvas/75">
-      <Container className="flex h-16 items-center justify-between gap-4">
-        <Link
-          href="/"
-          aria-label={`${brand.name} home`}
-          className="rounded-[var(--radius-control)]"
-        >
-          <Logo />
-        </Link>
-        <nav aria-label="Primary" className="hidden md:block">
-          <ul className="flex items-center gap-1">
-            {NAV.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className="rounded-[var(--radius-control)] px-3 py-2 text-sm text-ink-muted hover:text-ink"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <Badge tone="accent">Early access · in development</Badge>
+    <header className="sticky top-0 z-30 border-b border-line bg-canvas/85 backdrop-blur-md supports-[backdrop-filter]:bg-canvas/70">
+      <Container className="flex h-16 items-center gap-6">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            aria-label={`${brand.name} home`}
+            className="rounded-[var(--radius-control)]"
+          >
+            <Logo />
+          </Link>
+          <span className="hidden rounded-full border border-accent/40 bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-ink sm:inline">
+            Early access
+          </span>
+        </div>
+        <PrimaryNav items={NAV} />
+        <div className="ml-auto flex items-center gap-2">
+          <HeaderActions nav={NAV} />
+        </div>
       </Container>
     </header>
   );
 }
 
-const FOOTER_LINKS = [
-  { href: "/#how-it-works", label: "How it works" },
-  { href: "/#trust", label: "Trust & safety" },
-  { href: "/legal/terms", label: "Terms" },
-  { href: "/legal/privacy", label: "Privacy" },
-  { href: "/legal/refund-cancellation", label: "Refunds" },
-  { href: "/legal/community-guidelines", label: "Community guidelines" },
-  { href: "/legal/grievance", label: "Grievance" },
+const FOOTER_COLUMNS = [
+  {
+    title: "Explore",
+    links: [
+      { href: "/mentors", label: "Find a mentor" },
+      { href: "/events", label: "Free events" },
+      { href: "/guides", label: "Guides" },
+      { href: "/career", label: "Career & academic" },
+      { href: "/study-abroad", label: "Study abroad" },
+    ],
+  },
+  {
+    title: "Mentors",
+    links: [
+      { href: "/sign-up?intent=mentor", label: "Become a mentor" },
+      { href: "/#how-it-works", label: "How it works" },
+      { href: "/legal/community-guidelines", label: "Community guidelines" },
+    ],
+  },
+  {
+    title: "Trust & legal",
+    links: [
+      { href: "/#trust", label: "Trust & safety" },
+      { href: "/legal/refund-cancellation", label: "Refunds & cancellations" },
+      { href: "/legal/terms", label: "Terms" },
+      { href: "/legal/privacy", label: "Privacy" },
+      { href: "/legal/grievance", label: "Grievances" },
+    ],
+  },
 ];
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 border-t border-line">
-      <Container className="grid gap-8 py-10 md:grid-cols-[2fr_3fr]">
+    <footer className="mt-24 border-t border-line bg-surface">
+      <Container className="grid gap-10 py-14 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div>
           <Logo />
-          <p className="mt-3 max-w-sm text-sm text-ink-muted">{brand.tagline}</p>
-        </div>
-        <div className="space-y-4 text-sm text-ink-muted md:text-right">
-          <nav
-            aria-label="Legal and trust"
-            className="flex flex-wrap gap-x-4 gap-y-1.5 md:justify-end"
-          >
-            {FOOTER_LINKS.map((link) => (
-              <Link key={link.href} href={link.href} className="hover:text-ink">
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-          <p>
+          <p className="mt-4 max-w-xs text-sm text-ink-muted">{brand.tagline}</p>
+          <p className="mt-4 max-w-xs text-xs leading-relaxed text-ink-muted">
             Mentors share personal experience. It is not official university, immigration, legal or
             financial advice — always confirm with official sources.
           </p>
+        </div>
+        {FOOTER_COLUMNS.map((column) => (
+          <nav key={column.title} aria-label={column.title}>
+            <p className="text-sm font-semibold text-ink">{column.title}</p>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              {column.links.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="text-ink-muted hover:text-ink">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))}
+      </Container>
+      <div className="border-t border-line">
+        <Container className="flex flex-col gap-2 py-6 text-xs text-ink-muted sm:flex-row sm:items-center sm:justify-between">
           <p className="tabular">
             © {new Date().getUTCFullYear()} {brand.name}. All rights reserved.
           </p>
-        </div>
-      </Container>
+          <p>Early access: {brand.name} is still being built, and payments run in test mode.</p>
+        </Container>
+      </div>
     </footer>
   );
 }

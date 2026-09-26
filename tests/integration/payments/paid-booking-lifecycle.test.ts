@@ -8,6 +8,7 @@ import { taxonomyTerms } from "@/server/platform/db/tables/reference";
 import { universities } from "@/server/platform/db/tables/geo";
 import { createJobRegistry, processDueJobs } from "@/server/platform/outbox/outbox";
 import { paymentsJobs, simulateFakeCheckout } from "@/server/modules/payments";
+import { updateSetting } from "@/server/platform/settings/settings";
 import { syncPaidBookingsOnce } from "@/server/modules/booking";
 
 import { POST as signUp } from "@/app/api/v1/auth/sign-up/route";
@@ -811,6 +812,119 @@ describe("paid booking lifecycle (docs/19 Phase 8 exit criteria)", () => {
     expect(paymentRows[0]!.refunded_minor).toBe(PRICE_MINOR);
     expect(paymentRows[0]!.refunded_minor).toBeLessThanOrEqual(paymentRows[0]!.amount_minor);
 
+    await assertLedgerBalanced();
+  });
+
+  // Found while seeding demo data (docs/19 Phase 15): the paid-booking sync treated *any*
+  // `cancelled_by_student` booking with a succeeded payment as "the capture arrived after the student
+  // cancelled a hold", including bookings that were confirmed first and then cancelled normally.
+  it("a confirmed booking the student cancels in time is never re-processed as a late capture", async () => {
+    const { mentor, slug, serviceId } = await setupPaidListedMentor(
+      "mentor.cancelthensync@example.com",
+      "Cancel Then Sync Mentor",
+      "cancelthensync",
+    );
+    const student = await signUpAndVerify("student.cancelthensync@example.com", "Cancel Student");
+    const created = await createPaidBooking(mentor.userId, slug, serviceId, student.cookie, 26);
+    await succeedCheckoutAndProcessWebhook(created.checkout!.providerOrderId, student.cookie);
+    expect((await syncPaidBookingsOnce(t.db, new Date(), "http://localhost:3000")).confirmed).toBe(
+      1,
+    );
+
+    const cancelRes = await cancelBookingRoute(
+      jsonRequest(`/api/v1/bookings/${created.booking.id}/cancel`, {
+        body: { reasonCode: "schedule_conflict" },
+        headers: idemHeaders(student.cookie),
+      }),
+      routeContext({ id: created.booking.id }),
+    );
+    expect(cancelRes.status).toBe(200);
+
+    const afterCancel = await syncPaidBookingsOnce(t.db, new Date(), "http://localhost:3000");
+    expect(afterCancel).toEqual({ confirmed: 0, orphaned: 0 });
+    const [booking] = await t.db.execute<{ status: string }>(
+      sql`select status from app.bookings where id = ${created.booking.id}`,
+    );
+    expect(booking!.status).toBe("cancelled_by_student");
+    const [refunds] = await t.db.execute<{ n: number; total: number }>(
+      sql`select count(*)::int as n, coalesce(sum(r.amount_minor), 0)::int as total from app.refunds r join app.payments p on p.id = r.payment_id join app.payment_intents i on i.id = p.payment_intent_id where i.provider_order_id = ${created.checkout!.providerOrderId}`,
+    );
+    expect(refunds).toMatchObject({ n: 1, total: PRICE_MINOR });
+    await assertLedgerBalanced();
+  });
+
+  it("a late cancellation with no refund due is never refunded by the late-capture path", async () => {
+    await updateSetting(t.db, "cancellation.student.courtesy_late_cancels_per_90d", 0, {
+      userId: randomUUID(),
+      actorType: "staff",
+      reason: "exercise the no-refund late-cancel window",
+    });
+    const { mentor, slug, serviceId } = await setupPaidListedMentor(
+      "mentor.latecancelsync@example.com",
+      "Late Cancel Mentor",
+      "latecancelsync",
+    );
+    const student = await signUpAndVerify("student.latecancelsync@example.com", "Late Student");
+    const created = await createPaidBooking(mentor.userId, slug, serviceId, student.cookie, 2);
+    await succeedCheckoutAndProcessWebhook(created.checkout!.providerOrderId, student.cookie);
+    expect((await syncPaidBookingsOnce(t.db, new Date(), "http://localhost:3000")).confirmed).toBe(
+      1,
+    );
+
+    const cancelRes = await cancelBookingRoute(
+      jsonRequest(`/api/v1/bookings/${created.booking.id}/cancel`, {
+        body: { reasonCode: "schedule_conflict" },
+        headers: idemHeaders(student.cookie),
+      }),
+      routeContext({ id: created.booking.id }),
+    );
+    expect(cancelRes.status).toBe(200);
+    const cancelBody = (await cancelRes.json()) as { quote: { refundMinor: number } };
+    expect(cancelBody.quote.refundMinor).toBe(0); // < 6h notice, no courtesy allowance => 0%.
+
+    const afterCancel = await syncPaidBookingsOnce(t.db, new Date(), "http://localhost:3000");
+    expect(afterCancel).toEqual({ confirmed: 0, orphaned: 0 });
+    const [payment] = await t.db.execute<{ refunded_minor: number }>(
+      sql`select p.refunded_minor::int as refunded_minor from app.payments p join app.payment_intents i on i.id = p.payment_intent_id where i.provider_order_id = ${created.checkout!.providerOrderId}`,
+    );
+    expect(payment!.refunded_minor).toBe(0);
+    await assertLedgerBalanced();
+  });
+
+  // Also found while seeding: the courtesy allowance was hardcoded to one per 90 days and ignored
+  // `cancellation.student.courtesy_late_cancels_per_90d`.
+  it("the late-cancellation courtesy allowance follows its setting", async () => {
+    await updateSetting(t.db, "cancellation.student.courtesy_late_cancels_per_90d", 2, {
+      userId: randomUUID(),
+      actorType: "staff",
+      reason: "exercise a courtesy allowance above one",
+    });
+    const { mentor, slug, serviceId } = await setupPaidListedMentor(
+      "mentor.courtesy@example.com",
+      "Courtesy Mentor",
+      "courtesyallowance",
+    );
+    const student = await signUpAndVerify("student.courtesy@example.com", "Courtesy Student");
+
+    const refunds: number[] = [];
+    for (let i = 0; i < 3; i++) {
+      const created = await createPaidBooking(mentor.userId, slug, serviceId, student.cookie, 2);
+      await succeedCheckoutAndProcessWebhook(created.checkout!.providerOrderId, student.cookie);
+      await syncPaidBookingsOnce(t.db, new Date(), "http://localhost:3000");
+      const cancelRes = await cancelBookingRoute(
+        jsonRequest(`/api/v1/bookings/${created.booking.id}/cancel`, {
+          body: { reasonCode: "schedule_conflict" },
+          headers: idemHeaders(student.cookie),
+        }),
+        routeContext({ id: created.booking.id }),
+      );
+      expect(cancelRes.status).toBe(200);
+      refunds.push(
+        ((await cancelRes.json()) as { quote: { refundMinor: number } }).quote.refundMinor,
+      );
+    }
+    // Two late cancellations at the partial rate (50%), then the allowance is spent.
+    expect(refunds).toEqual([PRICE_MINOR / 2, PRICE_MINOR / 2, 0]);
     await assertLedgerBalanced();
   });
 });
