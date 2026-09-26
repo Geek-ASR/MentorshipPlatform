@@ -17,7 +17,13 @@ export const POST = defineRoute(
   async ({ actor, params, body, getDb, clock }) => {
     authorize(actor, requireUser, undefined, { now: clock.now() });
     if (actor.kind !== "user") throw new AppError("UNAUTHENTICATED");
-    const appeal = await openAppeal(await getDb(), actor.userId, params.id, body.statement);
+    const appeal = await openAppeal(
+      await getDb(),
+      actor.userId,
+      params.id,
+      body.statement,
+      clock.now(),
+    );
     return { status: 201, body: appeal };
   },
 );

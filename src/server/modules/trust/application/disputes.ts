@@ -35,7 +35,7 @@ import { findReviewByBooking, setReviewStatus as setReviewStatusRow } from "../i
 
 const DISPUTE_HOLD_REASON = "dispute_open";
 
-const DISPUTE_WINDOW_HOURS = 72; // docs/10 §8: "participant disputes (≤ 72 h after end)".
+export const DISPUTE_WINDOW_HOURS = 72; // docs/10 §8: "participant disputes (≤ 72 h after end)".
 const EVIDENCE_WINDOW_HOURS = 48; // docs/10 §8: "both parties asked for evidence (48 h)".
 const APPEAL_WINDOW_DAYS = 7; // docs/10 §8: "party appeals (≤ 7 days, once)".
 

@@ -4,6 +4,8 @@ import { AppError } from "@/server/platform/errors";
 import { writeAudit } from "@/server/platform/audit";
 import { defineJob, enqueueJob } from "@/server/platform/outbox/outbox";
 import { getSetting } from "@/server/platform/settings/settings";
+import { blockHostTime } from "./host-calendar";
+import { validatedMeetingUrl } from "./meeting-links";
 import { findUserById } from "@/server/modules/auth";
 import { findMentorProfile, latestAttestation } from "@/server/modules/profiles";
 import {
@@ -24,7 +26,6 @@ import {
   findSessionForUpdate,
   insertGroupOrEventSession,
   releaseCalendarBlockForSession,
-  insertCalendarBlock,
   listSessionsPendingMinCheck,
   setSessionCapacity,
   setSessionStatus,
@@ -43,6 +44,8 @@ export type CreateGroupSessionInput = {
   minParticipants?: number;
   targetTotalMinor: number;
   currency: string;
+  /** docs/09 §12 — the session's own meeting link. */
+  meetingUrl?: string | null;
 };
 
 export type SeatPricingPreview = {
@@ -182,6 +185,7 @@ export async function createGroupSession(
     });
   }
 
+  const meetingUrl = await validatedMeetingUrl(db, input.meetingUrl, now);
   return db.transaction(async (tx) => {
     const service = await insertGroupServiceRow(tx, {
       mentorUserId,
@@ -201,13 +205,12 @@ export async function createGroupSession(
       registrationClosesAt,
       minParticipantsCheckAt,
       meetingProvider: null,
-      meetingUrl: null,
+      meetingUrl: meetingUrl ?? null,
     });
     // One calendar block for the whole session (docs/09 §6.2) — never per-seat, unlike 1:1.
-    await insertCalendarBlock(tx, {
-      mentorId: mentorUserId,
-      sourceType: "session",
-      sourceId: session.id,
+    await blockHostTime(tx, {
+      hostUserId: mentorUserId,
+      sessionId: session.id,
       start: input.start,
       end: input.end,
     });

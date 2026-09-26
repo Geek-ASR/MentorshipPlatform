@@ -1,7 +1,9 @@
+import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import postgres from "postgres";
 import type { BrowserContext } from "@playwright/test";
 import { getEnv, type Env } from "@/config/env";
+import { DEMO_ACCOUNT_PASSWORD, DEMO_EMAIL_DOMAIN } from "../../../scripts/db/demo/data";
 
 function loadedEnv(): Env {
   if (!process.env.DATABASE_URL && existsSync(".env.local")) process.loadEnvFile(".env.local");
@@ -115,6 +117,49 @@ export async function providerOrderIdForBooking(bookingId: string): Promise<stri
     `;
     if (!rows[0]) throw new Error(`no payment intent for booking ${bookingId}`);
     return rows[0].provider_order_id;
+  } finally {
+    await sql.end();
+  }
+}
+
+/**
+ * Signs `context` in as one of the seeded demo accounts (`npm run db:seed:demo`, run by CI before
+ * the suite) — for journeys that need an approved mentor who may host events, which a fresh
+ * fixture can't become without the whole E6 onboarding.
+ */
+export async function signInDemoAccount(
+  context: BrowserContext,
+  baseURL: string,
+  key: string,
+): Promise<void> {
+  await resetAuthRateLimits();
+  const email = `${key}@${DEMO_EMAIL_DOMAIN}`;
+  // Demo accounts are shared across tests and runs, so their per-account sign-in throttle (real,
+  // and covered by integration tests) is cleared too.
+  const sql = postgres(loadedEnv().DATABASE_URL, { max: 1, onnotice: () => {} });
+  try {
+    await sql`
+      delete from app.rate_limit_buckets
+      where key = ${`auth.sign_in:account:${createHash("sha256").update(email).digest("hex")}`}
+    `;
+  } finally {
+    await sql.end();
+  }
+  const res = await context.request.post(`${baseURL}/api/v1/auth/sign-in`, {
+    data: { email, password: DEMO_ACCOUNT_PASSWORD },
+    headers: AUTH_HEADERS(baseURL),
+  });
+  if (!res.ok()) throw new Error(`demo sign-in failed: ${res.status()} ${await res.text()}`);
+}
+
+/** A fixture's user id, for building report targets the way the product's own pages do. */
+export async function userIdForEmail(email: string): Promise<string> {
+  const env = loadedEnv();
+  const sql = postgres(env.DATABASE_URL, { max: 1, onnotice: () => {} });
+  try {
+    const rows = await sql<{ id: string }[]>`select id from app.users where email = ${email}`;
+    if (!rows[0]) throw new Error(`no user ${email}`);
+    return rows[0].id;
   } finally {
     await sql.end();
   }

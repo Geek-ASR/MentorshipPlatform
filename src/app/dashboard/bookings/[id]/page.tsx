@@ -29,7 +29,9 @@ import {
   zoneLabel,
 } from "@/ui/format";
 import { BookingStatusBadge } from "@/ui/status-badge";
+import { SafetyMenu } from "@/ui/safety-menu";
 import { BookingActions } from "./booking-actions";
+import { OutcomePanel } from "./outcome-panel";
 import { PaymentRefresher } from "./payment-refresher";
 
 export const metadata: Metadata = { title: "Booking" };
@@ -47,9 +49,9 @@ export default async function BookingPage({
   const { booked } = await searchParams;
   const { user } = await requireViewer(`/dashboard/bookings/${id}`);
   const db = await getDb();
-  const booking = await loadBookingDetail(db, user.id, id);
-  if (!booking) notFound();
   const now = new Date();
+  const booking = await loadBookingDetail(db, user.id, id, now);
+  if (!booking) notFound();
   const [joinWindowMin, scheduling] = await Promise.all([
     getSetting(db, "join.window_before_min", now),
     findSchedulingSettings(db, booking.mentor.userId),
@@ -61,6 +63,19 @@ export default async function BookingPage({
   const otherFirstName = other.name.split(" ")[0]!;
   const upcoming =
     session.end > now && (booking.status === "confirmed" || booking.status === "held");
+  const ended = session.end <= now;
+  const actionable = booking.status === "held" || (booking.status === "confirmed" && !ended);
+  // Until the attendance job runs, an ended session is still "confirmed" in the data.
+  const displayStatus =
+    booking.status === "confirmed" && ended ? "awaiting_outcome" : booking.status;
+  const { outcome } = booking;
+  const hasOutcome =
+    outcome.claim !== null ||
+    outcome.myClaim !== null ||
+    outcome.review !== null ||
+    outcome.reviewClosesAt !== null ||
+    outcome.dispute !== null ||
+    outcome.disputeClosesAt !== null;
 
   return (
     <div className="space-y-8">
@@ -99,7 +114,7 @@ export default async function BookingPage({
         <div className="min-w-0 space-y-6">
           <section className="rounded-[var(--radius-sheet)] border border-line bg-surface p-6 sm:p-7">
             <div className="flex flex-wrap items-center gap-3">
-              <BookingStatusBadge status={booking.status} />
+              <BookingStatusBadge status={displayStatus} />
               <span className="text-sm text-ink-muted">{KIND_LABEL[session.kind]}</span>
               {upcoming ? (
                 <span className="text-sm text-ink-muted">
@@ -139,42 +154,78 @@ export default async function BookingPage({
                 </div>
               </div>
             </div>
-            <div className="mt-7 border-t border-line pt-6">
-              <BookingActions
-                bookingId={booking.id}
-                sessionId={session.id}
-                role={booking.role}
-                status={booking.status}
-                start={session.start.toISOString()}
-                end={session.end.toISOString()}
-                priceMinor={booking.priceMinor}
-                currency={booking.currency}
-                timeZone={timeZone}
-                joinWindowMin={joinWindowMin}
-                otherFirstName={otherFirstName}
-                reschedule={
-                  session.kind === "one_on_one"
-                    ? {
-                        mentorSlug: booking.mentor.slug,
-                        serviceId: session.serviceId,
-                        durationMin: session.durationMin,
-                        mentorTimeZone: scheduling?.timezone ?? booking.mentor.timezone,
-                        maxAdvanceDays: scheduling?.maxAdvanceDays ?? 30,
-                      }
-                    : null
-                }
-                pendingRequest={
-                  booking.pendingReschedule
-                    ? {
-                        id: booking.pendingReschedule.id,
-                        requestedBy: booking.pendingReschedule.requestedBy,
-                        start: booking.pendingReschedule.start.toISOString(),
-                      }
-                    : null
-                }
-              />
-            </div>
+            {actionable ? (
+              <div className="mt-7 border-t border-line pt-6">
+                <BookingActions
+                  bookingId={booking.id}
+                  sessionId={session.id}
+                  role={booking.role}
+                  status={booking.status}
+                  start={session.start.toISOString()}
+                  end={session.end.toISOString()}
+                  priceMinor={booking.priceMinor}
+                  currency={booking.currency}
+                  timeZone={timeZone}
+                  joinWindowMin={joinWindowMin}
+                  otherFirstName={otherFirstName}
+                  reschedule={
+                    session.kind === "one_on_one"
+                      ? {
+                          mentorSlug: booking.mentor.slug,
+                          serviceId: session.serviceId,
+                          durationMin: session.durationMin,
+                          mentorTimeZone: scheduling?.timezone ?? booking.mentor.timezone,
+                          maxAdvanceDays: scheduling?.maxAdvanceDays ?? 30,
+                        }
+                      : null
+                  }
+                  pendingRequest={
+                    booking.pendingReschedule
+                      ? {
+                          id: booking.pendingReschedule.id,
+                          requestedBy: booking.pendingReschedule.requestedBy,
+                          start: booking.pendingReschedule.start.toISOString(),
+                        }
+                      : null
+                  }
+                />
+              </div>
+            ) : null}
           </section>
+
+          {hasOutcome ? (
+            <OutcomePanel
+              bookingId={booking.id}
+              role={booking.role}
+              status={booking.status}
+              otherFirstName={otherFirstName}
+              timeZone={timeZone}
+              claim={
+                outcome.claim
+                  ? {
+                      opensAt: outcome.claim.opensAt.toISOString(),
+                      absenceOpensAt: outcome.claim.absenceOpensAt.toISOString(),
+                    }
+                  : null
+              }
+              myClaim={outcome.myClaim}
+              review={outcome.review}
+              reviewClosesAt={outcome.reviewClosesAt?.toISOString() ?? null}
+              dispute={
+                outcome.dispute
+                  ? {
+                      ...outcome.dispute,
+                      evidenceDeadlineAt: outcome.dispute.evidenceDeadlineAt?.toISOString() ?? null,
+                      myEvidence: outcome.dispute.myEvidence.map((e) => ({
+                        content: e.content,
+                        createdAt: e.createdAt.toISOString(),
+                      })),
+                    }
+                  : null
+              }
+              disputeClosesAt={outcome.disputeClosesAt?.toISOString() ?? null}
+            />
+          ) : null}
 
           {booking.intakeAnswers.length > 0 ? (
             <section className="rounded-[var(--radius-card)] border border-line bg-surface p-6">
@@ -195,9 +246,17 @@ export default async function BookingPage({
 
         <aside className="space-y-6">
           <section className="rounded-[var(--radius-card)] border border-line bg-surface p-5">
-            <h2 className="text-sm font-medium tracking-wide text-ink-muted uppercase">
-              {booking.role === "student" ? "Your mentor" : "Booked by"}
-            </h2>
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-medium tracking-wide text-ink-muted uppercase">
+                {booking.role === "student" ? "Your mentor" : "Booked by"}
+              </h2>
+              <div className="-my-2 -mr-2">
+                <SafetyMenu
+                  report={{ type: "user", id: other.userId, label: otherFirstName }}
+                  block={{ userId: other.userId, name: other.name, blocked: booking.otherBlocked }}
+                />
+              </div>
+            </div>
             <div className="mt-3 flex items-center gap-3">
               {session.kind === "one_on_one" || booking.role === "student" ? (
                 <Avatar name={other.name} seed={other.userId} size="md" />

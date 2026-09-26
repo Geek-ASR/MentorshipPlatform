@@ -11,6 +11,7 @@ const bodySchema = z.object({
   end: z.iso.datetime(),
   capacity: z.number().int().min(1).max(1000),
   visibility: z.enum(EVENT_VISIBILITIES).default("public"),
+  meetingUrl: z.string().max(500).nullable().optional(),
 });
 
 export const POST = defineRoute(

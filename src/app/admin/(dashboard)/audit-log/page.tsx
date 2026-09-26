@@ -44,7 +44,7 @@ export default async function AdminAuditLogPage() {
                 </Td>
                 <Td className="text-xs">
                   {e.actorType}
-                  {e.actorUserId ? ` · ${e.actorUserId.slice(0, 8)}…` : ""}
+                  {e.actorUserId ? ` · …${e.actorUserId.slice(-8)}` : ""}
                 </Td>
                 <Td className="font-mono text-xs">{e.action}</Td>
                 <Td className="text-xs text-ink-muted">

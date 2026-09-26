@@ -13,8 +13,10 @@ import { getSetting } from "@/server/platform/settings/settings";
 import { findMentorStats, getSavedMentorIds } from "@/server/modules/profiles";
 import { loadEventTeasers } from "@/server/views/home";
 import { loadMentorCards, MIN_REVIEWS_FOR_RATING } from "@/server/views/mentor-cards";
+import { loadSafety, needsAttention } from "@/server/views/safety";
 import { loadHostedSessions, loadStudentSessions } from "@/server/views/sessions";
 import { requireViewer } from "@/server/views/viewer";
+import { Alert } from "@/ui/alert";
 import { Button } from "@/ui/button";
 import {
   formatDate,
@@ -67,13 +69,14 @@ export default async function DashboardPage() {
   const timeZone = user.timezone;
   const isMentor = actor.roles.has("mentor");
 
-  const [mine, hosted, mentorStats, savedIds, events, joinWindowMin] = await Promise.all([
+  const [mine, hosted, mentorStats, savedIds, events, joinWindowMin, safety] = await Promise.all([
     loadStudentSessions(db, user.id, now),
     isMentor ? loadHostedSessions(db, user.id, now) : Promise.resolve(null),
     isMentor ? findMentorStats(db, user.id) : Promise.resolve(undefined),
     getSavedMentorIds(db, user.id),
     loadEventTeasers(db, now, 3),
     getSetting(db, "join.window_before_min", now),
+    loadSafety(db, user.id, now),
   ]);
   const saved = await loadMentorCards(db, savedIds.slice(0, 4));
 
@@ -140,6 +143,20 @@ export default async function DashboardPage() {
       />
 
       {!user.emailVerified ? <VerifyEmailBanner email={user.email} /> : null}
+      {needsAttention(safety, now) ? (
+        <Alert
+          tone="warning"
+          title="There's a notice on your account"
+          action={
+            <Button asChild size="sm" variant="secondary">
+              <Link href="/dashboard/settings/safety">See details</Link>
+            </Button>
+          }
+        >
+          Our team made a decision about your account. See what it means, how long it lasts, and how
+          to appeal if you think it&apos;s wrong.
+        </Alert>
+      ) : null}
 
       {isMentor ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

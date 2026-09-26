@@ -1,15 +1,28 @@
 import type { Database } from "@/server/platform/db/client";
 import { isAppError } from "@/server/platform/errors";
 import { parseTstzRange } from "@/server/platform/db/sql-helpers";
-import { findUsersByIds } from "@/server/modules/auth";
+import { findUsersByIds, listMyBlocks } from "@/server/modules/auth";
 import { findMentorProfile } from "@/server/modules/profiles";
 import {
+  attendanceClaimWindow,
   findPendingReschedule,
   findSession,
   findSessionTitles,
   getBookingForUser,
+  listClaimsForBooking,
+  type AttendanceClaimOutcome,
 } from "@/server/modules/booking";
 import { getCheckoutState, listPaymentHistoryForStudent } from "@/server/modules/payments";
+import {
+  DISPUTE_WINDOW_HOURS,
+  REVIEW_WINDOW_DAYS,
+  findDisputeByBooking,
+  findReviewByBooking,
+  listDisputeEvidence,
+  type DisputeEvidenceKind,
+  type DisputeStatus,
+  type ReviewStatus,
+} from "@/server/modules/trust";
 import type { BookingStatusName } from "./sessions";
 
 export type CancellationPolicyView = {
@@ -62,7 +75,36 @@ export type BookingDetailView = {
     end: Date;
     expiresAt: Date | null;
   } | null;
+  /** After the session: how it went, the review, and any dispute (docs/09 §11, docs/10 §8, §10). */
+  outcome: {
+    /** Set while this person can still tell us how it went; absence claims open after a grace. */
+    claim: { opensAt: Date; absenceOpensAt: Date } | null;
+    myClaim: { outcome: AttendanceClaimOutcome; note: string | null } | null;
+    /** Student only. */
+    review: {
+      rating: number;
+      body: string;
+      status: ReviewStatus;
+      publishedAt: Date | null;
+    } | null;
+    reviewClosesAt: Date | null;
+    dispute: {
+      id: string;
+      status: DisputeStatus;
+      openedByMe: boolean;
+      evidenceDeadlineAt: Date | null;
+      resolution: string | null;
+      refundPct: number | null;
+      myEvidence: { kind: DisputeEvidenceKind; content: string | null; createdAt: Date }[];
+    } | null;
+    disputeClosesAt: Date | null;
+  };
+  /** Whether the viewer has blocked the other participant. */
+  otherBlocked: boolean;
 };
+
+const CLAIMABLE_STATUSES = new Set(["confirmed", "awaiting_outcome"]);
+const DISPUTABLE_STATUSES = new Set(["completed", "no_show_mentor", "no_show_student"]);
 
 async function person(
   db: Database,
@@ -88,6 +130,7 @@ export async function loadBookingDetail(
   db: Database,
   viewerId: string,
   bookingId: string,
+  now: Date = new Date(),
 ): Promise<BookingDetailView | null> {
   let booking: Awaited<ReturnType<typeof getBookingForUser>>;
   try {
@@ -97,13 +140,27 @@ export async function loadBookingDetail(
     throw error;
   }
   const role = booking.studentId === viewerId ? "student" : "mentor";
-  const [session, titles, users, pending] = await Promise.all([
+  const [session, titles, users, pending, claims, review, dispute, blocks] = await Promise.all([
     findSession(db, booking.sessionId),
     findSessionTitles(db, [booking.sessionId]),
     findUsersByIds(db, [booking.studentId, booking.mentorUserId]),
     findPendingReschedule(db, booking.id),
+    listClaimsForBooking(db, booking.id),
+    findReviewByBooking(db, booking.id),
+    findDisputeByBooking(db, booking.id),
+    listMyBlocks(db, viewerId),
   ]);
   if (!session) return null;
+  const otherUserId = role === "student" ? booking.mentorUserId : booking.studentId;
+
+  const claimWindow =
+    CLAIMABLE_STATUSES.has(booking.status) && now >= booking.start
+      ? await attendanceClaimWindow(db, session, now)
+      : null;
+  const myClaim = claims.find((c) => c.claimantUserId === viewerId);
+  const reviewClosesAt = new Date(booking.end.getTime() + REVIEW_WINDOW_DAYS * 86_400_000);
+  const disputeClosesAt = new Date(booking.end.getTime() + DISPUTE_WINDOW_HOURS * 3_600_000);
+  const evidence = dispute ? await listDisputeEvidence(db, dispute.id) : [];
   const people = new Map(users.map((u) => [u.id, u]));
   const [mentor, student] = await Promise.all([
     person(db, booking.mentorUserId, people),
@@ -173,5 +230,41 @@ export async function loadBookingDetail(
             expiresAt: pending.expiresAt,
           }
         : null,
+    outcome: {
+      claim: claimWindow,
+      myClaim: myClaim ? { outcome: myClaim.outcome, note: myClaim.note } : null,
+      review:
+        role === "student" && review
+          ? {
+              rating: review.rating,
+              body: review.body,
+              status: review.status,
+              publishedAt: review.publishedAt,
+            }
+          : null,
+      reviewClosesAt:
+        role === "student" && !review && booking.status === "completed" && now < reviewClosesAt
+          ? reviewClosesAt
+          : null,
+      dispute: dispute
+        ? {
+            id: dispute.id,
+            status: dispute.status,
+            openedByMe: dispute.openedByUserId === viewerId,
+            evidenceDeadlineAt: dispute.evidenceDeadlineAt,
+            resolution: dispute.resolution,
+            refundPct: dispute.refundPct,
+            // Each side sees only what it sent — the other party's evidence goes to staff alone.
+            myEvidence: evidence
+              .filter((e) => e.submittedByUserId === viewerId)
+              .map((e) => ({ kind: e.kind, content: e.content, createdAt: e.createdAt })),
+          }
+        : null,
+      disputeClosesAt:
+        !dispute && DISPUTABLE_STATUSES.has(booking.status) && now < disputeClosesAt
+          ? disputeClosesAt
+          : null,
+    },
+    otherBlocked: blocks.some((b) => b.blockedId === otherUserId),
   };
 }

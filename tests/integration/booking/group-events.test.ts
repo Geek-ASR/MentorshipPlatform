@@ -45,6 +45,7 @@ import { POST as cancelBookingRoute } from "@/app/api/v1/bookings/[id]/cancel/ro
 import { POST as createEvent } from "@/app/api/v1/me/events/route";
 import { GET as listEvents } from "@/app/api/v1/events/route";
 import { GET as getEventBySlugRoute } from "@/app/api/v1/events/[slug]/route";
+import { GET as seatCountRoute } from "@/app/api/v1/sessions/[id]/seats/route";
 import { POST as createInvite } from "@/app/api/v1/me/events/[id]/invites/route";
 import { PUT as setRecording } from "@/app/api/v1/me/events/[id]/recording/route";
 
@@ -415,6 +416,14 @@ describe("group sessions & free events (docs/19 Phase 9 exit criteria)", () => {
     const bookingB = (await regB.json()) as { booking: { id: string; status: string } };
     expect(bookingB.booking.status).toBe("confirmed");
 
+    // The public count the (cached) event page reads on load is live, and anonymous.
+    const seats = await seatCountRoute(
+      new Request(`http://localhost:3000/api/v1/sessions/${event.session.id}/seats`),
+      routeContext({ id: event.session.id }),
+    );
+    expect(seats.status).toBe(200);
+    expect(await seats.json()).toEqual({ capacity: 2, liveSeats: 2, status: "scheduled" });
+
     // Event is now full — a third registration attempt is rejected with a waitlist hint.
     const regCFull = await bookSeatFor(studentC.cookie, event.session.id);
     expect(regCFull.status).toBe(409);
@@ -574,6 +583,12 @@ describe("group sessions & free events (docs/19 Phase 9 exit criteria)", () => {
     // No token -> invisible, matching the BOLA-safe 404 pattern.
     const noToken = await bookSeatFor(stranger.cookie, event.session.id);
     expect(noToken.status).toBe(404);
+    // Its seat count isn't public either.
+    const seats = await seatCountRoute(
+      new Request(`http://localhost:3000/api/v1/sessions/${event.session.id}/seats`),
+      routeContext({ id: event.session.id }),
+    );
+    expect(seats.status).toBe(404);
 
     const inviteRes = await createInvite(
       jsonRequest(`/api/v1/me/events/${event.session.id}/invites`, {
@@ -714,6 +729,60 @@ describe("group sessions & free events (docs/19 Phase 9 exit criteria)", () => {
       routeContext({ id: event.session.id }),
     );
     expect(accepted.status).toBe(200);
+
+    // A second event over the same time is a field error on the start, not a server error.
+    const overlapping = await createEvent(
+      jsonRequest("/api/v1/me/events", {
+        body: {
+          title: "Clashing session",
+          start: new Date(start.getTime() + 30 * 60_000).toISOString(),
+          end: new Date(end.getTime() + 30 * 60_000).toISOString(),
+          capacity: 10,
+          visibility: "public",
+        },
+        headers: idemHeaders(mentor.cookie),
+      }),
+      routeContext(),
+    );
+    expect(overlapping.status).toBe(422);
+    const problem = (await overlapping.json()) as { errors: { path: string; code: string }[] };
+    expect(problem.errors).toEqual([
+      expect.objectContaining({ path: "start", code: "time_clash" }),
+    ]);
+  });
+
+  it("concurrency: two events created at once with the same title both succeed with distinct slugs", async () => {
+    const { mentor } = await setupPayableMentor(
+      "mentor.slugrace@example.com",
+      "Slug Race Mentor",
+      "slugrace",
+    );
+    await makeSuperAdmin(mentor.cookie);
+    const windows = [farFutureWindow(200, 30), farFutureWindow(210, 30)];
+    // Before this fix, the loser of the check-then-insert race got a 500.
+    const responses = await Promise.all(
+      windows.map(({ start, end }) =>
+        createEvent(
+          jsonRequest("/api/v1/me/events", {
+            body: {
+              title: "Weekly office hours",
+              start: start.toISOString(),
+              end: end.toISOString(),
+              capacity: 5,
+              visibility: "public",
+            },
+            headers: idemHeaders(mentor.cookie),
+          }),
+          routeContext(),
+        ),
+      ),
+    );
+    expect(responses.map((r) => r.status)).toEqual([201, 201]);
+    const slugs = await Promise.all(
+      responses.map(async (r) => ((await r.json()) as { details: { slug: string } }).details.slug),
+    );
+    expect(new Set(slugs).size).toBe(2);
+    expect(slugs.every((slug) => slug.startsWith("weekly-office-hours"))).toBe(true);
   });
 
   it("admin grants the event_host role via the documented route", async () => {

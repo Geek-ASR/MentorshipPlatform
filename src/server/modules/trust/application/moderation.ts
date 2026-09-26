@@ -3,7 +3,10 @@ import { AppError } from "@/server/platform/errors";
 import { writeAudit } from "@/server/platform/audit";
 import type { Capability } from "@/server/platform/authz/actor";
 import { listRestrictionRowsForUser, toActiveRestrictions } from "@/server/modules/auth";
+import { findSession } from "@/server/modules/booking";
+import { findMentorProfile } from "@/server/modules/profiles";
 import type { ModerationActionType, ModerationCaseStatus, ReportTargetType } from "../domain/types";
+import { isWithinAppealWindow } from "../domain/appeal-window";
 import {
   addCaseEvent,
   assignCase,
@@ -17,7 +20,7 @@ import {
   type ModerationCaseEventRow,
   type ModerationCaseRow,
 } from "../infra/moderation-repo";
-import { findAppealForAction } from "../infra/appeals-repo";
+import { findAppealForAction, type AppealRow } from "../infra/appeals-repo";
 import { listReportsForCase, type ReportRow } from "../infra/reports-repo";
 import { findReview, findReviewResponseById } from "../infra/reviews-repo";
 import { excuseTrustEvent, findTrustEvent, type TrustEventRow } from "../infra/trust-events-repo";
@@ -43,6 +46,18 @@ async function resolveSubjectUserId(
     const response = await findReviewResponseById(executor, targetId);
     if (!response) throw new AppError("NOT_FOUND");
     return response.mentorUserId;
+  }
+  if (targetType === "mentor_profile") {
+    // A mentor profile is keyed by its owner's user id — the id the profile page reports with.
+    const profile = await findMentorProfile(executor, targetId);
+    if (!profile) throw new AppError("NOT_FOUND");
+    return profile.userId;
+  }
+  if (targetType === "event") {
+    // An event is reported by its session id; its host answers for it.
+    const session = await findSession(executor, targetId);
+    if (!session || session.kind !== "event") throw new AppError("NOT_FOUND");
+    return session.hostUserId;
   }
   throw new AppError("VALIDATION_FAILED", {
     detail: `Deciding a case for target type "${targetType}" isn't supported yet.`,
@@ -258,6 +273,8 @@ export type MyEnforcementStatus = {
   restrictions: ReturnType<typeof toActiveRestrictions>;
   actions: ModerationActionRow[];
   appealableActionIds: string[];
+  /** The appeal already made against each action, if any (one per action, docs/10 §7.4). */
+  appeals: Pick<AppealRow, "id" | "moderationActionId" | "status" | "createdAt" | "decidedAt">[];
 };
 
 /** docs/06 §7.8 `GET /me/enforcement` — a user's own active restrictions, action history and which
@@ -267,24 +284,32 @@ export async function getMyEnforcementStatus(
   userId: string,
   now: Date,
 ): Promise<MyEnforcementStatus> {
-  const APPEAL_WINDOW_DAYS = 30;
   const [restrictionRows, actions] = await Promise.all([
     listRestrictionRowsForUser(db, userId),
     listActionsForSubject(db, userId),
   ]);
 
   const appealableActionIds: string[] = [];
+  const appeals: MyEnforcementStatus["appeals"] = [];
   for (const action of actions) {
-    const withinWindow =
-      now.getTime() - action.createdAt.getTime() <= APPEAL_WINDOW_DAYS * 86_400_000;
-    if (!withinWindow) continue;
     const existing = await findAppealForAction(db, action.id);
-    if (!existing) appealableActionIds.push(action.id);
+    if (existing) {
+      appeals.push({
+        id: existing.id,
+        moderationActionId: existing.moderationActionId,
+        status: existing.status,
+        createdAt: existing.createdAt,
+        decidedAt: existing.decidedAt,
+      });
+    } else if (action.action !== "reinstate" && isWithinAppealWindow(action.createdAt, now)) {
+      appealableActionIds.push(action.id);
+    }
   }
 
   return {
     restrictions: toActiveRestrictions(restrictionRows, now),
     actions,
     appealableActionIds,
+    appeals,
   };
 }

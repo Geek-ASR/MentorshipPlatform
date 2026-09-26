@@ -16,6 +16,7 @@ import Link from "next/link";
 import { brand } from "@/config/brand";
 import { getDb } from "@/server/platform/db/client";
 import { getMentorProfileDetailBySlug } from "@/server/modules/profiles";
+import { loadGroupSessionsForHost } from "@/server/views/events";
 import { loadMentorProfile } from "@/server/views/mentor-profile";
 import { Avatar } from "@/ui/avatar";
 import { Container } from "@/ui/container";
@@ -29,7 +30,10 @@ import {
   pluralize,
   zoneLabel,
 } from "@/ui/format";
+import { LocalTime } from "@/ui/local-time";
 import { RatingSummary } from "@/ui/mentor-card";
+import { SafetyMenu } from "@/ui/safety-menu";
+import { SeatRegistration } from "@/ui/seat-registration";
 import { BookingArea } from "./booking-area";
 import { SaveMentorButton } from "./save-button";
 
@@ -99,10 +103,17 @@ function Section({
 export default async function MentorProfilePage({ params }: { params: Promise<PageParams> }) {
   const { slug } = await params;
   const now = new Date();
-  const view = await loadMentorProfile(await getDb(), slug, now);
+  const db = await getDb();
+  const view = await loadMentorProfile(db, slug, now);
   if (!view) notFound();
   const { detail } = view;
   const firstName = detail.displayName.split(" ")[0]!;
+  const groupSessions = await loadGroupSessionsForHost(
+    db,
+    detail.profile.userId,
+    detail.displayName,
+    now,
+  );
   const credentialByAffiliation = new Map(view.credentials.map((c) => [c.affiliationId, c]));
   const cheapest = view.services
     .flatMap((s) => s.prices)
@@ -243,11 +254,19 @@ export default async function MentorProfilePage({ params }: { params: Promise<Pa
                 </li>
               </ul>
             </div>
-            <div className="shrink-0">
+            <div className="flex shrink-0 items-center gap-1">
               <SaveMentorButton
                 mentorUserId={detail.profile.userId}
                 slug={slug}
                 firstName={firstName}
+              />
+              <SafetyMenu
+                report={{
+                  type: "mentor_profile",
+                  id: detail.profile.userId,
+                  label: `${firstName}'s profile`,
+                }}
+                block={{ userId: detail.profile.userId, name: detail.displayName, blocked: false }}
               />
             </div>
           </div>
@@ -338,6 +357,49 @@ export default async function MentorProfilePage({ params }: { params: Promise<Pa
                         </li>
                       ))}
                     </ul>
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          ) : null}
+
+          {groupSessions.length > 0 ? (
+            <Section id="group-sessions" title="Small-group sessions">
+              <p className="-mt-2 mb-4 text-sm text-ink-muted">
+                Share a session with a few other students for a fraction of the 1:1 price.
+              </p>
+              <ul className="space-y-4">
+                {groupSessions.map((group) => (
+                  <li
+                    key={group.seat.sessionId}
+                    className="grid grid-cols-1 gap-5 rounded-[var(--radius-card)] border border-line bg-surface p-5 md:grid-cols-[minmax(0,1fr)_260px]"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-lg font-semibold text-ink">{group.title}</p>
+                      <p className="mt-1 text-sm text-ink">
+                        <LocalTime iso={group.start.toISOString()} format="date" /> ·{" "}
+                        <LocalTime
+                          iso={group.start.toISOString()}
+                          endIso={group.end.toISOString()}
+                          format="range"
+                        />
+                      </p>
+                      {group.description ? (
+                        <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-ink-muted">
+                          {group.description}
+                        </p>
+                      ) : null}
+                      <p className="mt-3 flex items-start gap-1.5 text-xs text-ink-muted">
+                        <ShieldCheck className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+                        Goes ahead with at least {group.minParticipants} people. If it doesn&apos;t
+                        fill, it&apos;s cancelled and everyone is refunded in full.
+                      </p>
+                    </div>
+                    <SeatRegistration
+                      session={group.seat}
+                      returnPath={`/mentors/${slug}#group-sessions`}
+                      className="border-transparent bg-canvas p-5 shadow-none"
+                    />
                   </li>
                 ))}
               </ul>

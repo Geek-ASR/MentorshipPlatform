@@ -85,9 +85,11 @@ export function BookingActions(props: BookingActionsProps) {
   const [now] = useState(() => Date.now());
   const start = new Date(props.start);
   const end = new Date(props.end);
-  const live = props.status === "confirmed";
-  const joinOpen =
-    live && now >= start.getTime() - props.joinWindowMin * 60_000 && now <= end.getTime();
+  // Confirmed stays the status until the attendance job settles the session, so time decides too.
+  const started = now >= start.getTime();
+  const live = props.status === "confirmed" && now <= end.getTime();
+  const changeable = live && !started;
+  const joinOpen = live && now >= start.getTime() - props.joinWindowMin * 60_000;
 
   // Cancel
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -266,7 +268,7 @@ export function BookingActions(props: BookingActionsProps) {
             </a>
           </Button>
         ) : null}
-        {live &&
+        {changeable &&
         props.reschedule?.mentorSlug &&
         props.reschedule.serviceId &&
         !props.pendingRequest ? (
@@ -274,7 +276,7 @@ export function BookingActions(props: BookingActionsProps) {
             <CalendarClock aria-hidden="true" /> Reschedule
           </Button>
         ) : null}
-        {live || props.status === "held" ? (
+        {changeable || props.status === "held" ? (
           <Button
             variant="ghost"
             className="text-danger hover:bg-danger/8"

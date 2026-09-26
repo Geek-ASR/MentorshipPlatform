@@ -93,6 +93,11 @@ export async function requestReschedule(
     }
 
     const { start: currentStart, end: currentEnd } = sessionWindow(session);
+    if (now >= currentStart) {
+      throw new AppError("INVALID_STATE_TRANSITION", {
+        detail: "This session has already started, so it can't be moved.",
+      });
+    }
     const durationMin = (currentEnd.getTime() - currentStart.getTime()) / 60_000;
     const newEnd = addMinutes(newStartsAt, durationMin);
     const settings = await findSchedulingSettings(tx, session.hostUserId);

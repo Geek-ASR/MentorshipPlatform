@@ -24,6 +24,8 @@ export const GET = defineRoute(
           const { start, end } = sessionWindow(r.session);
           return {
             id: r.id,
+            sessionId: r.sessionId,
+            kind: r.session.kind,
             status: r.status,
             priceMinor: r.priceMinor,
             currency: r.currency,

@@ -96,6 +96,21 @@ async function loadParticipant(
   throw new AppError("NOT_FOUND");
 }
 
+/**
+ * A confirmed booking can't be cancelled once the session has begun: what happened is settled by
+ * the attendance claims and, if needed, a dispute (docs/09 §11, docs/10 §8). Without this, a
+ * student could join, then cancel before the attendance job ran and collect the late-cancel
+ * courtesy refund for a session that took place. An unpaid hold can always be abandoned.
+ */
+function refuseOnceStarted(booking: BookingRow, start: Date, now: Date): void {
+  if (booking.status !== "held" && now >= start) {
+    throw new AppError("INVALID_STATE_TRANSITION", {
+      detail:
+        "This session has already started, so it can't be cancelled. If something went wrong, tell us how it went on the booking page.",
+    });
+  }
+}
+
 export async function getCancellationQuote(
   db: Database,
   userId: string,
@@ -103,6 +118,7 @@ export async function getCancellationQuote(
   now: Date,
 ): Promise<CancellationQuote> {
   const { booking, start, role } = await loadParticipant(db, userId, bookingId);
+  refuseOnceStarted(booking, start, now);
   const policy = booking.policySnapshot.cancellation as CancellationPolicySnapshot;
   const courtesyAvailable =
     role === "student" ? await hasCourtesyAvailable(db, userId, now) : false;
@@ -129,6 +145,7 @@ export async function cancelBooking(
       actor.userId,
       bookingId,
     );
+    refuseOnceStarted(booking, start, now);
     const event = role === "student" ? "student_cancel" : "mentor_cancel";
     if (!canTransition(booking.status, event)) {
       throw new AppError("INVALID_STATE_TRANSITION", {

@@ -1085,6 +1085,13 @@ export const PAST_SESSIONS: PastSessionSeed[] = [
   { mentor: "kabir", student: "ishaan", daysAgo: 3, service: 0, durationMin: 45, review: null },
 ];
 
+/** A session that ended in the last day and hasn't been settled yet — the first mentor with a
+ * free slot in that window is used. */
+export const RECENTLY_ENDED = {
+  student: "ishaan",
+  mentors: ["vikram", "pooja", "divya", "nikhil", "rahul", "aisha"],
+};
+
 export type UpcomingSessionSeed = {
   mentor: string;
   student: string;

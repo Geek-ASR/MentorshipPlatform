@@ -47,6 +47,7 @@ export {
 } from "./application/reschedule";
 export { findPendingReschedule, type RescheduleRequestRow } from "./infra/reschedule-repo";
 export {
+  attendanceClaimWindow,
   joinSession,
   checkIn,
   submitAttendanceClaim,
@@ -58,11 +59,14 @@ export { bookingJobs, bookingRecurringJobs } from "./application/jobs";
 export {
   findSession,
   findSessionTitles,
+  listHostedSeatSessions,
+  listUpcomingGroupSessionsForHost,
   sessionWindow,
+  type HostedSeatSession,
   type SessionRow,
   type SessionTitle,
 } from "./infra/session-repo";
-export { listClaimsForBooking } from "./infra/attendance-repo";
+export { listClaimsForBooking, type AttendanceClaimRow } from "./infra/attendance-repo";
 export {
   ATTENDANCE_CLAIM_OUTCOMES,
   BOOKING_STATUSES,
@@ -116,6 +120,7 @@ export {
   listPublicEvents,
   getEventBySlug,
   getEventDetailsForSession,
+  getPublicSeatCount,
   type CreateEventInput,
   type CreateEventResult,
   type CreatedInvite,

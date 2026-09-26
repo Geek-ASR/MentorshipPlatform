@@ -10,6 +10,7 @@ import { formatLongDate } from "@/ui/format";
 import { Field, Input, Label, Select } from "@/ui/input";
 import { listTimeZones } from "@/ui/time-zones";
 import { useToast } from "@/ui/toast";
+import { todayIn, zonedInstant } from "@/ui/zoned-time";
 import { useHydrated } from "@/ui/use-hydrated";
 
 export type Settings = {
@@ -24,46 +25,6 @@ export type Rule = { id: string; weekday: number; startLocal: string; endLocal: 
 export type TimeOff = { id: string; start: string; end: string };
 
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
-/** UTC instant of local midnight on `date` (YYYY-MM-DD) in `timeZone` — Intl only, no library. */
-function zonedMidnight(date: string, timeZone: string): Date {
-  const [y, m, d] = date.split("-").map(Number) as [number, number, number];
-  const guess = Date.UTC(y, m - 1, d);
-  const offset = (instant: number) => {
-    const parts = new Intl.DateTimeFormat("en-US", {
-      timeZone,
-      hourCycle: "h23",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    }).formatToParts(new Date(instant));
-    const get = (type: string) => Number(parts.find((p) => p.type === type)?.value);
-    return (
-      Date.UTC(
-        get("year"),
-        get("month") - 1,
-        get("day"),
-        get("hour"),
-        get("minute"),
-        get("second"),
-      ) - instant
-    );
-  };
-  const first = guess - offset(guess);
-  return new Date(guess - offset(first));
-}
-
-function todayIn(timeZone: string): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
-}
 
 export function AvailabilityEditor({
   settings,
@@ -164,10 +125,10 @@ export function AvailabilityEditor({
     setBusyOff(true);
     setOffError(null);
     try {
-      const start = zonedMidnight(offFrom, settings.timezone);
+      const start = zonedInstant(offFrom, "00:00", settings.timezone);
       const endDay = new Date(`${offTo}T00:00:00Z`);
       endDay.setUTCDate(endDay.getUTCDate() + 1);
-      const end = zonedMidnight(endDay.toISOString().slice(0, 10), settings.timezone);
+      const end = zonedInstant(endDay.toISOString().slice(0, 10), "00:00", settings.timezone);
       await api("/api/v1/me/mentor/availability-exceptions", {
         method: "POST",
         body: {

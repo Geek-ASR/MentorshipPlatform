@@ -367,6 +367,36 @@ flowchart LR
 
 **Tested:** 355 unit (+20: meeting-link validation) / 144 integration (+2: allowlist rejections as field errors; link and questions stored, changed and removed, with join resolving the service's link for a booking made before the link existed) / 61 E2E passing, 5 skipped by design (+1: docs/13 E6 — apply through the wizard, verify a university email through the captured link, approval in the staff console, a session type with a meeting link, weekly hours, payouts, and the public profile live; axe on the mentor home and application).
 
+### 15d — Events and trust ✅ (2026-09-26)
+
+**Built:**
+- **Event pages with registration** (docs/09 §9): register in one click, join the waitlist when it's full (a freed spot passes automatically), cancel so someone else gets the spot, add to calendar, open the booking. Signed-out visitors sign in and come back; the host sees a link to manage it. The page is cached for a minute, so the panel reads the live seat count on load (new public `GET /sessions/{id}/seats`, which hides private events and 1:1 sessions).
+- **Group sessions on mentor profiles** (docs/09 §8): time in the visitor's zone, price per seat, seats left, the minimum needed and the full-refund promise if it isn't met; booking a seat goes through checkout; when full, a waitlist whose freed seats are offered for a limited time.
+- **Events & groups** in the mentor area: create a free event (date and time in the mentor's zone, length, spots, public/unlisted/private, meeting link) or a paid group session with a live price preview — what each student pays, what the mentor receives at the minimum and when full, and the minimum seat price. Live seat counts, cancellation with its consequences stated, and a recording link afterwards. Event hosting shows as by-invitation for mentors without `event_host`.
+- **After a session, on the booking page:** "How did it go?" (went ahead / the other person didn't show — offered only after the grace period / a technical problem), a verified review with stars within 14 days, and disputes — opened within 72 hours with the consequences stated, each side's account while evidence is open, then the decision. Each side sees only what it sent.
+- **Report and block** from a ⋯ menu on profiles, bookings and event pages, with reasons in plain words; the acknowledgement never reveals anything about the target.
+- **Safety settings:** account standing (active limits with end dates, each notice with its reason in plain words, how long it lasts and the date appeals close; appeal with a statement; the appeal's status) and blocked people with Unblock. The dashboard shows a notice when there's a recent decision or an active limit.
+- **Waitlist tab** in bookings, with claim and leave.
+- **Demo data:** events and the group session have meeting links; the demo student has a session that ended an hour ago waiting for "How did it go?", and a completed one to review.
+
+**Real bugs found and fixed:**
+1. **A session could be cancelled after it had started** (ADR-055). A booking stays `confirmed` until the attendance job runs after the end, and cancellation only checked the status — so the late-cancel courtesy refunded 50% for a session that had taken place, a mentor could turn a no-show into an ordinary cancellation, and either side could ask to move a session already under way. Found when the new "just ended" demo session still showed Cancel and Reschedule.
+2. **Appeals after the 30-day window were accepted** (docs/10 §7.4) — only the listing hid the button; a direct request still opened an appeal.
+3. **Reports on a mentor profile or an event could never be decided** — the staff decision only resolved users, reviews and review responses, and the new report menu files exactly those two kinds.
+4. **A time clash when creating an event or group session was a server error** ("Something went wrong on our side") instead of saying the time is taken. Found by the E8 journey.
+5. **Two same-titled events created at the same moment:** the loser of the slug race got a server error. Found by parallel e2e projects.
+6. **The booking page offered Join, Reschedule and Cancel after a session had ended** (the status is still `confirmed` until the attendance job runs) — the actions now follow the clock, and an ended session reads "Wrapping up".
+7. **The staff console showed the first 8 characters of ids** — identical for anything created in the same minute, because ids are time-ordered (UUIDv7). It now shows the random tail.
+
+**Deviations, decided and documented:**
+- **E7 and the clock-driven half of E9 stay integration tests** (group minimum not met → cancelled and refunded; provisional no-show → uncontested → refund and trust event) — both need the server clock advanced. E2E covers the member side of E9: the attendance answer, the start-time cut-off and the review, with the session moved into the past in the database and the attendance job's result stood in for.
+- **E10's report about another member is filed through the API the report menu uses** — nothing in the product shows one student to another; the menu itself is exercised on a mentor profile. The moderator's decision, the notice and the appeal are UI-driven.
+- **Dispute appeals have no endpoint** (`appealDisputeResolution` exists; docs/06 lists no route), so the booking page shows the decision without an appeal button.
+- **No "list my blocks" endpoint** (none in docs/06): the Safety tab reads blocks on the server, and the profile menu always offers Block (it's idempotent).
+- **Not yet in the hosting page:** invite links for private events, changing a group's capacity, and editing an event's meeting link (all but the last exist in the API). The page warns when an upcoming event has no link.
+
+**Tested:** 358 unit (+3: wall-clock times across a daylight-saving change) / 148 integration (+4: a late appeal refused and the appeal shown on the standing; profile and event reports decided against their owner; no cancelling or moving once started, for either side; same-titled events created at once — plus the time-clash field error and the public seat count, including a private event's 404, in existing tests) / 66 E2E passing on the PR-smoke Chromium projects, 6 skipped by design (+5: docs/13 E8 on desktop and mobile, E9's member side on desktop and mobile, E10 on desktop; axe on the event page, the booking page after a session, and Safety settings).
+
 ## Phase 16 — Deploy sandbox beta (S)
 
 **Scope:** host decision per [14 §3](14-deployment.md#3-hosting-decision-procedure-phase-16); Supabase staging (Mumbai) setup checklist; Razorpay test-mode webhooks; `pg_cron` tick; backups + restore drill; uptime + alerts; Sentry; invite-only beta (feature flag); beta feedback loop.

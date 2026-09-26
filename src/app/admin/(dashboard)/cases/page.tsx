@@ -35,7 +35,11 @@ export default async function AdminCasesPage() {
                 <Tr key={c.id}>
                   <Td>
                     <span className="tabular text-xs text-ink-muted">{c.targetType}</span>{" "}
-                    <span className="font-mono text-xs">{c.targetId.slice(0, 8)}…</span>
+                    {/* Ids are time-ordered (UUIDv7): the first characters repeat for anything
+                        created in the same minute, so the random tail is what tells rows apart. */}
+                    <span className="font-mono text-xs" title={c.targetId}>
+                      …{c.targetId.slice(-8)}
+                    </span>
                   </Td>
                   <Td>
                     <Badge tone={c.status === "closed" ? "neutral" : "accent"}>{c.status}</Badge>
