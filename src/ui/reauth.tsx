@@ -8,6 +8,7 @@ import { Dialog } from "./dialog";
 import { Field, Input } from "./input";
 import { normalizeMfaCode } from "./mfa-code";
 import { PasswordInput } from "./password-input";
+import { invalidateViewer } from "./viewer";
 
 type SignInResponse = { outcome: "signed_in" } | { outcome: "mfa_required"; pendingToken: string };
 
@@ -57,6 +58,7 @@ export function useReauth(email: string): {
   }
 
   function succeed() {
+    invalidateViewer();
     setOpen(false);
     reset();
     pending.current?.resolve();

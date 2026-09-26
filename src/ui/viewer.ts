@@ -18,14 +18,32 @@ export type Viewer = {
 
 export type ViewerState = { status: "loading" } | { status: "ready"; viewer: Viewer | null };
 
-/** Who is signed in, for statically rendered pages (one request per mount, never a 401). */
+/** Several islands on one page (header, booking panel, save button) share one request. */
+const CACHE_MS = 60_000;
+let cached: { at: number; promise: Promise<Viewer | null> } | null = null;
+
+function fetchViewer(): Promise<Viewer | null> {
+  if (cached && Date.now() - cached.at < CACHE_MS) return cached.promise;
+  const promise = api<{ viewer: Viewer | null }>("/api/v1/auth/viewer")
+    .then((result) => result.viewer)
+    .catch(() => null);
+  cached = { at: Date.now(), promise };
+  return promise;
+}
+
+/** Call after signing in or out so the next `useViewer` asks the server again. */
+export function invalidateViewer(): void {
+  cached = null;
+}
+
+/** Who is signed in, for statically rendered pages (never a 401, one request per page). */
 export function useViewer(): ViewerState {
   const [state, setState] = useState<ViewerState>({ status: "loading" });
   useEffect(() => {
     let cancelled = false;
-    api<{ viewer: Viewer | null }>("/api/v1/auth/viewer")
-      .then((result) => !cancelled && setState({ status: "ready", viewer: result.viewer }))
-      .catch(() => !cancelled && setState({ status: "ready", viewer: null }));
+    void fetchViewer().then((viewer) => {
+      if (!cancelled) setState({ status: "ready", viewer });
+    });
     return () => {
       cancelled = true;
     };
@@ -36,6 +54,7 @@ export function useViewer(): ViewerState {
 /** Signs this device out, then does a full navigation so every layout re-renders signed out. */
 export async function signOut(redirectTo = "/"): Promise<void> {
   await api("/api/v1/auth/sign-out", { method: "POST" }).catch(() => undefined);
+  invalidateViewer();
   window.location.assign(redirectTo);
 }
 

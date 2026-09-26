@@ -1,7 +1,10 @@
 "use client";
 
 import {
+  CalendarDays,
   CalendarHeart,
+  Heart,
+  Receipt,
   Compass,
   LayoutDashboard,
   Menu as MenuIcon,
@@ -26,6 +29,9 @@ function sectionsFor(viewer: Viewer): NavSection[] {
     {
       items: [
         { href: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
+        { href: "/dashboard/bookings", label: "Bookings", icon: CalendarDays },
+        { href: "/dashboard/saved", label: "Saved mentors", icon: Heart },
+        { href: "/dashboard/payments", label: "Payments", icon: Receipt },
         { href: "/dashboard/settings", label: "Settings", icon: Settings },
       ],
     },

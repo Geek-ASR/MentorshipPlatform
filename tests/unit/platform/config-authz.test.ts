@@ -62,6 +62,19 @@ describe("environment configuration", () => {
       /OPS_SECRET/,
     );
   });
+
+  it("never lets the production site boot with the fake payment provider", () => {
+    const production = {
+      ...validEnv,
+      APP_ENV: "production",
+      APP_BASE_URL: "https://aheadly.example",
+    };
+    expect(() => parseEnv(production)).toThrow(/fake payment provider/);
+    // Every other environment may use it — including `next start` builds (NODE_ENV=production).
+    expect(
+      parseEnv({ ...validEnv, APP_ENV: "staging", NODE_ENV: "production" }).PAYMENTS_PROVIDER,
+    ).toBe("fake");
+  });
 });
 
 const now = new Date("2026-09-17T10:00:00Z");

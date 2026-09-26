@@ -1,7 +1,7 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import type { Executor } from "@/server/platform/db/client";
 import { newId } from "@/server/platform/ids";
-import { orders, paymentIntents, payments } from "./tables";
+import { orderItems, orders, paymentIntents, payments } from "./tables";
 import type { PaymentStatus, Provider } from "../domain/types";
 
 export type PaymentRow = typeof payments.$inferSelect;
@@ -114,4 +114,38 @@ export async function addRefundedAmount(
     .where(eq(payments.id, id))
     .returning();
   return row;
+}
+
+export type StudentPaymentHistoryRow = {
+  paymentId: string;
+  bookingId: string;
+  status: PaymentRow["status"];
+  amountMinor: number;
+  refundedMinor: number;
+  currency: string;
+  paidAt: Date;
+};
+
+/** A student's payments with the booking each one paid for (docs/19 Phase 15b payments page). */
+export async function listPaymentHistoryForStudent(
+  executor: Executor,
+  studentId: string,
+): Promise<StudentPaymentHistoryRow[]> {
+  const rows = await executor
+    .select({ payment: payments, bookingId: orderItems.bookingId })
+    .from(payments)
+    .innerJoin(paymentIntents, eq(paymentIntents.id, payments.paymentIntentId))
+    .innerJoin(orders, eq(orders.id, paymentIntents.orderId))
+    .innerJoin(orderItems, eq(orderItems.orderId, orders.id))
+    .where(eq(orders.studentId, studentId))
+    .orderBy(desc(payments.createdAt));
+  return rows.map(({ payment, bookingId }) => ({
+    paymentId: payment.id,
+    bookingId,
+    status: payment.status,
+    amountMinor: payment.amountMinor,
+    refundedMinor: payment.refundedMinor,
+    currency: payment.currency,
+    paidAt: payment.createdAt,
+  }));
 }

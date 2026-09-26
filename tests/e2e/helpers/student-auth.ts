@@ -101,3 +101,20 @@ export async function capturedEmailLink(email: string, path: string): Promise<st
     await sql.end();
   }
 }
+
+/** The fake provider's order id behind a booking — what a real provider's own UI would hold. */
+export async function providerOrderIdForBooking(bookingId: string): Promise<string> {
+  const env = loadedEnv();
+  const sql = postgres(env.DATABASE_URL, { max: 1, onnotice: () => {} });
+  try {
+    const rows = await sql<{ provider_order_id: string }[]>`
+      select i.provider_order_id from app.payment_intents i
+      join app.order_items oi on oi.order_id = i.order_id
+      where oi.booking_id = ${bookingId}
+    `;
+    if (!rows[0]) throw new Error(`no payment intent for booking ${bookingId}`);
+    return rows[0].provider_order_id;
+  } finally {
+    await sql.end();
+  }
+}

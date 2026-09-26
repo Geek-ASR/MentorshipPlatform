@@ -12,6 +12,7 @@ import { Field, Input } from "@/ui/input";
 import { normalizeMfaCode } from "@/ui/mfa-code";
 import { safeReturnTo } from "@/ui/navigation";
 import { PasswordInput } from "@/ui/password-input";
+import { invalidateViewer } from "@/ui/viewer";
 import { AuthHeader, AuthSwitch } from "../auth-ui";
 
 type SignInResponse = { outcome: "signed_in" } | { outcome: "mfa_required"; pendingToken: string };
@@ -37,6 +38,7 @@ export function SignInForm({ googleEnabled }: { googleEnabled: boolean }) {
   const [submitting, setSubmitting] = useState(false);
 
   function finish() {
+    invalidateViewer();
     router.replace(returnTo);
     router.refresh();
   }

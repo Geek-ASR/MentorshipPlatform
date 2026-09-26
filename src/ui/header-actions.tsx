@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  CalendarDays,
   ChevronDown,
   LayoutDashboard,
   LogOut,
@@ -71,6 +72,9 @@ export function AccountMenu({ viewer }: { viewer: Viewer }) {
       <MenuSeparator />
       <MenuItem href="/dashboard">
         <LayoutDashboard aria-hidden="true" /> Dashboard
+      </MenuItem>
+      <MenuItem href="/dashboard/bookings">
+        <CalendarDays aria-hidden="true" /> Bookings
       </MenuItem>
       <MenuItem href="/dashboard/settings">
         <Settings aria-hidden="true" /> Settings

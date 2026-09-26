@@ -11,6 +11,7 @@ import { isReauthCancelled, useReauth } from "@/ui/reauth";
 import { Skeleton } from "@/ui/skeleton";
 import { ErrorState } from "@/ui/states";
 import { useToast } from "@/ui/toast";
+import { invalidateViewer } from "@/ui/viewer";
 
 type SessionSummary = {
   id: string;
@@ -86,6 +87,7 @@ export function SessionsCard({ email }: { email: string }) {
     setBusy(true);
     try {
       await withReauth(() => api("/api/v1/auth/sessions/revoke-all", { method: "POST" }));
+      invalidateViewer();
       router.replace("/sign-in?reason=signed_out");
       router.refresh();
     } catch (err) {

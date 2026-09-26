@@ -673,6 +673,14 @@
   },
   {
     "method": "POST",
+    "path": "/api/v1/bookings/:id/payment-sync",
+    "file": "src/app/api/v1/bookings/[id]/payment-sync/route.ts",
+    "name": "POST /api/v1/bookings/:id/payment-sync",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
     "path": "/api/v1/bookings/:id/reschedule",
     "file": "src/app/api/v1/bookings/[id]/reschedule/route.ts",
     "name": "POST /api/v1/bookings/:id/reschedule",

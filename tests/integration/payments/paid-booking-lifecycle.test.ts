@@ -33,6 +33,7 @@ import { GET as getSlots } from "@/app/api/v1/mentors/[slug]/slots/route";
 import { POST as createBooking } from "@/app/api/v1/bookings/route";
 import { GET as getBooking } from "@/app/api/v1/bookings/[id]/route";
 import { POST as cancelBookingRoute } from "@/app/api/v1/bookings/[id]/cancel/route";
+import { POST as paymentSync } from "@/app/api/v1/bookings/[id]/payment-sync/route";
 
 import { POST as onboardPayoutAccount } from "@/app/api/v1/me/mentor/payout-account/route";
 import { POST as fakeCheckout } from "@/app/api/v1/dev/fake-checkout/route";
@@ -926,5 +927,87 @@ describe("paid booking lifecycle (docs/19 Phase 8 exit criteria)", () => {
     // Two late cancellations at the partial rate (50%), then the allowance is spent.
     expect(refunds).toEqual([PRICE_MINOR / 2, PRICE_MINOR / 2, 0]);
     await assertLedgerBalanced();
+  });
+
+  // docs/19 Phase 15b: the checkout page asks "is it paid yet?" right after paying, instead of
+  // waiting for the next scheduler tick (docs/08 §6 rule 5 — same code path as the sweeper).
+  describe("POST /api/v1/bookings/:id/payment-sync", () => {
+    async function sync(bookingId: string, cookie: string) {
+      const response = await paymentSync(
+        jsonRequest(`/api/v1/bookings/${bookingId}/payment-sync`, { headers: { cookie } }),
+        routeContext({ id: bookingId }),
+      );
+      return { status: response.status, body: (await response.json()) as { status: string } };
+    }
+
+    async function pay(providerOrderId: string, cookie: string, outcome: "succeed" | "fail") {
+      const response = await fakeCheckout(
+        jsonRequest("/api/v1/dev/fake-checkout", {
+          body: { providerOrderId, outcome },
+          headers: idemHeaders(cookie),
+        }),
+        routeContext(),
+      );
+      expect(response.status).toBe(200);
+    }
+
+    it("confirms a paid booking immediately, with no scheduler tick, and stays idempotent with the webhook job", async () => {
+      const { mentor, slug, serviceId } = await setupPaidListedMentor(
+        "mentor.clientsync@example.com",
+        "Client Sync Mentor",
+        "clientsync",
+      );
+      const student = await signUpAndVerify("student.clientsync@example.com", "Sync Student");
+      const created = await createPaidBooking(mentor.userId, slug, serviceId, student.cookie);
+
+      expect((await sync(created.booking.id, student.cookie)).body.status).toBe("held");
+      await pay(created.checkout!.providerOrderId, student.cookie, "succeed");
+      const synced = await sync(created.booking.id, student.cookie);
+      expect(synced).toMatchObject({ status: 200, body: { status: "confirmed" } });
+
+      // The webhook job that would normally have done this finds nothing left to do.
+      const registry = createJobRegistry(paymentsJobs);
+      await processDueJobs(t.db, registry, {
+        workerId: "test-worker",
+        logger: silentLogger,
+      });
+      expect(await syncPaidBookingsOnce(t.db, new Date(), "http://localhost:3000")).toEqual({
+        confirmed: 0,
+        orphaned: 0,
+      });
+      const [payments] = await t.db.execute<{ n: number }>(
+        sql`select count(*)::int as n from app.payments p join app.payment_intents i on i.id = p.payment_intent_id where i.provider_order_id = ${created.checkout!.providerOrderId}`,
+      );
+      expect(payments!.n).toBe(1);
+      await assertLedgerBalanced();
+    });
+
+    it("E3 path: a failed attempt leaves the hold open, and a retry within the hold confirms", async () => {
+      const { mentor, slug, serviceId } = await setupPaidListedMentor(
+        "mentor.retrysync@example.com",
+        "Retry Sync Mentor",
+        "retrysync",
+      );
+      const student = await signUpAndVerify("student.retrysync@example.com", "Retry Student");
+      const created = await createPaidBooking(mentor.userId, slug, serviceId, student.cookie);
+
+      await pay(created.checkout!.providerOrderId, student.cookie, "fail");
+      expect((await sync(created.booking.id, student.cookie)).body.status).toBe("held");
+      await pay(created.checkout!.providerOrderId, student.cookie, "succeed");
+      expect((await sync(created.booking.id, student.cookie)).body.status).toBe("confirmed");
+      await assertLedgerBalanced();
+    });
+
+    it("is only available to the booking's own student", async () => {
+      const { mentor, slug, serviceId } = await setupPaidListedMentor(
+        "mentor.othersync@example.com",
+        "Other Sync Mentor",
+        "othersync",
+      );
+      const student = await signUpAndVerify("student.ownsync@example.com", "Own Student");
+      const stranger = await signUpAndVerify("student.strangersync@example.com", "Stranger");
+      const created = await createPaidBooking(mentor.userId, slug, serviceId, student.cookie);
+      expect((await sync(created.booking.id, stranger.cookie)).status).toBe(404);
+    });
   });
 });

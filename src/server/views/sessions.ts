@@ -35,6 +35,14 @@ export type SessionCardView = {
 };
 
 const UPCOMING: BookingStatusName[] = ["held", "confirmed"];
+const CANCELLED: BookingStatusName[] = [
+  "expired",
+  "cancelled_by_student",
+  "cancelled_by_mentor",
+  "cancelled_by_admin",
+  "cancelled_system",
+  "payment_orphaned",
+];
 const HISTORY: BookingStatusName[] = [
   "awaiting_outcome",
   "completed",
@@ -137,4 +145,34 @@ function splitByTime(cards: SessionCardView[], now: Date) {
     .filter((c) => HISTORY.includes(c.status))
     .sort((a, b) => b.start.getTime() - a.start.getTime());
   return { upcoming, past };
+}
+
+/** The "My bookings" tabs: upcoming, past and cancelled (including lapsed holds and refunds). */
+export async function loadStudentBookingTabs(db: Database, studentId: string, now: Date) {
+  const rows = await listBookingsForStudent(db, studentId, {
+    statuses: [...UPCOMING, ...HISTORY, ...CANCELLED],
+  });
+  const cards = await toCards(db, rows, (row) => row.session.hostUserId);
+  const { upcoming, past } = splitByTime(cards, now);
+  const cancelled = cards
+    .filter((c) => CANCELLED.includes(c.status))
+    .sort((a, b) => b.start.getTime() - a.start.getTime());
+  return { upcoming, past, cancelled };
+}
+
+/** A mentor's hosted bookings by time, seats of one group session or event collapsed to a row. */
+export async function loadHostedBookingTabs(db: Database, mentorUserId: string, now: Date) {
+  const rows = await listBookingsForMentor(db, mentorUserId, {
+    statuses: [...UPCOMING, ...HISTORY, ...CANCELLED],
+  });
+  const cards = await toCards(db, rows, (row) => row.studentId);
+  const { upcoming, past } = splitByTime(cards, now);
+  const cancelled = cards
+    .filter((c) => CANCELLED.includes(c.status))
+    .sort((a, b) => b.start.getTime() - a.start.getTime());
+  return {
+    upcoming: collapseSeats(upcoming),
+    past: collapseSeats(past),
+    cancelled: collapseSeats(cancelled),
+  };
 }

@@ -15,6 +15,8 @@ export {
   createCheckout,
   hasActivePayoutAccount,
   getPaymentStatusForBooking,
+  getCheckoutState,
+  type CheckoutState,
   type CreateCheckoutInput,
   type CheckoutResult,
   type OrderItemPaymentStatus,
@@ -43,7 +45,7 @@ export {
   findWebhookEvent,
   type WebhookEventRow,
 } from "./infra/webhook-events-repo";
-export { sweepExpiredPaymentIntents } from "./application/sweeper";
+export { sweepExpiredPaymentIntents, refreshPaymentForOrderItem } from "./application/sweeper";
 export { paymentsJobs, paymentsRecurringJobs } from "./application/jobs";
 export {
   createCommissionRule,
@@ -85,7 +87,9 @@ export {
   listPaymentsForAdmin,
   listPaymentsForIntent,
   listPaymentsForStudent,
+  listPaymentHistoryForStudent,
   type PaymentRow,
+  type StudentPaymentHistoryRow,
 } from "./infra/payments-repo";
 export {
   findRefund,
