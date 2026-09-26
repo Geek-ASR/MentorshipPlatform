@@ -545,6 +545,14 @@
   },
   {
     "method": "POST",
+    "path": "/api/v1/auth/sessions/:id/revoke",
+    "file": "src/app/api/v1/auth/sessions/[id]/revoke/route.ts",
+    "name": "POST /api/v1/auth/sessions/:id/revoke",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "POST",
     "path": "/api/v1/auth/sessions/revoke-all",
     "file": "src/app/api/v1/auth/sessions/revoke-all/route.ts",
     "name": "POST /api/v1/auth/sessions/revoke-all",
@@ -589,6 +597,22 @@
     "file": "src/app/api/v1/auth/verify-email/route.ts",
     "name": "POST /api/v1/auth/verify-email",
     "actorMode": "none",
+    "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/verify-email/resend",
+    "file": "src/app/api/v1/auth/verify-email/resend/route.ts",
+    "name": "POST /api/v1/auth/verify-email/resend",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/auth/viewer",
+    "file": "src/app/api/v1/auth/viewer/route.ts",
+    "name": "GET /api/v1/auth/viewer",
+    "actorMode": null,
     "hasVisibleAuthzCall": false
   },
   {
@@ -710,6 +734,14 @@
     "name": "GET /api/v1/events/:slug",
     "actorMode": null,
     "hasVisibleAuthzCall": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/me/account",
+    "file": "src/app/api/v1/me/account/route.ts",
+    "name": "PATCH /api/v1/me/account",
+    "actorMode": null,
+    "hasVisibleAuthzCall": true
   },
   {
     "method": "GET",

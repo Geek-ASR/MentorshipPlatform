@@ -1,0 +1,103 @@
+import { existsSync } from "node:fs";
+import postgres from "postgres";
+import type { BrowserContext } from "@playwright/test";
+import { getEnv, type Env } from "@/config/env";
+
+function loadedEnv(): Env {
+  if (!process.env.DATABASE_URL && existsSync(".env.local")) process.loadEnvFile(".env.local");
+  return getEnv();
+}
+
+const AUTH_HEADERS = (baseURL: string) => ({ origin: baseURL, "sec-fetch-site": "same-origin" });
+
+export type StudentFixture = { email: string; password: string; displayName: string };
+
+/**
+ * Every e2e test signs up and in from the same IP, so the real per-IP limits on those routes (10
+ * sign-ups/hour, 20 sign-ins/15 min) would start refusing fixtures part-way through a run. Tests
+ * clear just those two buckets — the limits themselves are covered by integration tests.
+ */
+export async function resetAuthRateLimits(): Promise<void> {
+  const env = loadedEnv();
+  const sql = postgres(env.DATABASE_URL, { max: 1, onnotice: () => {} });
+  try {
+    await sql`
+      delete from app.rate_limit_buckets
+      where key like 'POST /api/v1/auth/sign-up:%' or key like 'POST /api/v1/auth/sign-in:%'
+    `;
+  } finally {
+    await sql.end();
+  }
+}
+
+/**
+ * A fresh student created through the real sign-up API, with the email marked verified by direct
+ * SQL (the verification link itself is covered by integration tests; e2e can't open an inbox).
+ * Pass `signIn: true` to also sign the browser context in through the real sign-in API.
+ */
+export async function createStudent(
+  context: BrowserContext,
+  baseURL: string,
+  tag: string,
+  { signIn = false }: { signIn?: boolean } = {},
+): Promise<StudentFixture> {
+  await resetAuthRateLimits();
+  const env = loadedEnv();
+  const sql = postgres(env.DATABASE_URL, { max: 1, onnotice: () => {} });
+  try {
+    const email = `e2e.student.${tag}.${Date.now()}.${Math.random().toString(36).slice(2, 8)}@example.com`;
+    const password = "velvet lantern orbit meadow";
+    const displayName = "Riya Kapoor";
+    const signUpRes = await context.request.post(`${baseURL}/api/v1/auth/sign-up`, {
+      data: {
+        email,
+        password,
+        displayName,
+        birthYear: 2001,
+        termsVersion: "2026-09-25",
+        privacyVersion: "2026-09-25",
+      },
+      headers: AUTH_HEADERS(baseURL),
+    });
+    if (!signUpRes.ok()) {
+      throw new Error(`fixture sign-up failed: ${signUpRes.status()} ${await signUpRes.text()}`);
+    }
+    await sql`update app.users set email_verified = true, timezone = 'Asia/Kolkata' where email = ${email}`;
+    if (signIn) {
+      const signInRes = await context.request.post(`${baseURL}/api/v1/auth/sign-in`, {
+        data: { email, password },
+        headers: AUTH_HEADERS(baseURL),
+      });
+      if (!signInRes.ok()) {
+        throw new Error(`fixture sign-in failed: ${signInRes.status()} ${await signInRes.text()}`);
+      }
+    }
+    return { email, password, displayName };
+  } finally {
+    await sql.end();
+  }
+}
+
+/**
+ * The newest auth email queued for `email`, read from the outbox (docs/13 §7 E1 "verify email
+ * (captured)") — e2e runs with no job runner, so queued emails stay put, and the link inside is
+ * exactly what a real inbox would receive.
+ */
+export async function capturedEmailLink(email: string, path: string): Promise<string> {
+  const env = loadedEnv();
+  const sql = postgres(env.DATABASE_URL, { max: 1, onnotice: () => {} });
+  try {
+    const rows = await sql<{ text: string }[]>`
+      select payload->>'text' as text from app.outbox_jobs
+      where type = 'auth.send_email' and payload->>'to' = ${email}
+      order by created_at desc limit 1
+    `;
+    const match = new RegExp(`${path.replace("/", "\\/")}\\?token=([\\w%-]+)`).exec(
+      rows[0]?.text ?? "",
+    );
+    if (!match) throw new Error(`no ${path} link captured for ${email}`);
+    return `${path}?token=${match[1]}`;
+  } finally {
+    await sql.end();
+  }
+}

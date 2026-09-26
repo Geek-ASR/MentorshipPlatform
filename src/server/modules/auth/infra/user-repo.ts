@@ -88,6 +88,20 @@ export async function updateUserEmail(
     .where(eq(users.id, userId));
 }
 
+export async function updateUserAccount(
+  executor: Executor,
+  userId: string,
+  changes: { displayName?: string; timezone?: string },
+  now: Date,
+): Promise<UserRow> {
+  const [row] = await executor
+    .update(users)
+    .set({ ...changes, updatedAt: now })
+    .where(eq(users.id, userId))
+    .returning();
+  return row!;
+}
+
 export async function updateUserStatus(
   executor: Executor,
   userId: string,

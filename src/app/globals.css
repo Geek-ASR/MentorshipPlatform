@@ -17,6 +17,20 @@
   --warning: #b45309;
   --danger: #b42318;
   --focus: #0e5a6b;
+  --shadow-color: 11 27 43;
+  /* Avatar/identity tones: soft background + dark foreground, each pair ≥ 5:1. */
+  --tone-1-bg: #dbeef1;
+  --tone-1-fg: #0e5a6b;
+  --tone-2-bg: #fbefd9;
+  --tone-2-fg: #7a4a07;
+  --tone-3-bg: #fbe4e4;
+  --tone-3-fg: #9b2c2c;
+  --tone-4-bg: #e5e7fb;
+  --tone-4-fg: #3730a3;
+  --tone-5-bg: #dff3e7;
+  --tone-5-fg: #1f6b43;
+  --tone-6-bg: #f1e4f5;
+  --tone-6-fg: #6b2a7a;
   color-scheme: light;
 }
 
@@ -37,6 +51,19 @@
     --warning: #f5a524;
     --danger: #f97066;
     --focus: #5cc3d6;
+    --shadow-color: 0 0 0;
+    --tone-1-bg: #16303a;
+    --tone-1-fg: #8fdcea;
+    --tone-2-bg: #33280f;
+    --tone-2-fg: #f5c77e;
+    --tone-3-bg: #3a1d1f;
+    --tone-3-fg: #f6a5a5;
+    --tone-4-bg: #1f2347;
+    --tone-4-fg: #b4b9f7;
+    --tone-5-bg: #15321f;
+    --tone-5-fg: #8fd9ae;
+    --tone-6-bg: #2e1a33;
+    --tone-6-fg: #deb1ea;
     color-scheme: dark;
   }
 }
@@ -57,6 +84,19 @@
   --warning: #f5a524;
   --danger: #f97066;
   --focus: #5cc3d6;
+  --shadow-color: 0 0 0;
+  --tone-1-bg: #16303a;
+  --tone-1-fg: #8fdcea;
+  --tone-2-bg: #33280f;
+  --tone-2-fg: #f5c77e;
+  --tone-3-bg: #3a1d1f;
+  --tone-3-fg: #f6a5a5;
+  --tone-4-bg: #1f2347;
+  --tone-4-fg: #b4b9f7;
+  --tone-5-bg: #15321f;
+  --tone-5-fg: #8fd9ae;
+  --tone-6-bg: #2e1a33;
+  --tone-6-fg: #deb1ea;
   color-scheme: dark;
 }
 
@@ -80,6 +120,33 @@
   --radius-control: 8px;
   --radius-card: 12px;
   --radius-sheet: 16px;
+  /* docs/22 §6.3: borders over shadows — one subtle elevation for overlays, one hover lift. */
+  --shadow-overlay:
+    0 1px 2px rgb(var(--shadow-color) / 0.06), 0 12px 32px -8px rgb(var(--shadow-color) / 0.18);
+  --shadow-lift:
+    0 1px 2px rgb(var(--shadow-color) / 0.04), 0 8px 24px -12px rgb(var(--shadow-color) / 0.16);
+  --animate-fade-in: fade-in 160ms ease-out;
+  --animate-rise-in: rise-in 180ms ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 html {
@@ -100,6 +167,46 @@ body {
 
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* Quiet dotted texture for hero and brand panels; purely decorative. */
+.bg-dots {
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    color-mix(in oklab, var(--ink) 9%, transparent) 1px,
+    transparent 0
+  );
+  background-size: 22px 22px;
+}
+
+.tone-1 {
+  background: var(--tone-1-bg);
+  color: var(--tone-1-fg);
+}
+.tone-2 {
+  background: var(--tone-2-bg);
+  color: var(--tone-2-fg);
+}
+.tone-3 {
+  background: var(--tone-3-bg);
+  color: var(--tone-3-fg);
+}
+.tone-4 {
+  background: var(--tone-4-bg);
+  color: var(--tone-4-fg);
+}
+.tone-5 {
+  background: var(--tone-5-bg);
+  color: var(--tone-5-fg);
+}
+.tone-6 {
+  background: var(--tone-6-bg);
+  color: var(--tone-6-fg);
+}
+
+dialog::backdrop {
+  background: rgb(11 27 43 / 0.45);
+  backdrop-filter: blur(2px);
 }
 
 @media (prefers-reduced-motion: reduce) {

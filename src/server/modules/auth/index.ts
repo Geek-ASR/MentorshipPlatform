@@ -12,12 +12,13 @@ export {
 } from "@/server/platform/authz/actor";
 
 export { signUp, type SignUpInput, type SignUpResult } from "./application/sign-up";
-export { verifyEmail } from "./application/verify-email";
+export { verifyEmail, resendVerificationEmail } from "./application/verify-email";
 export { signIn, type SignInInput, type SignInResult } from "./application/sign-in";
 export { completeMfaSignIn, type CompleteMfaSignInResult } from "./application/mfa-sign-in";
 export { signOut } from "./application/sign-out";
 export { requestPasswordReset, resetPassword } from "./application/password-reset";
 export { changePassword } from "./application/change-password";
+export { updateAccount, isKnownTimeZone } from "./application/account";
 export {
   requestEmailChange,
   confirmEmailChange,
@@ -25,7 +26,12 @@ export {
 } from "./application/email-change";
 export { startMfaEnrollment, confirmMfaEnrollment, disableMfa, mfaStatus } from "./application/mfa";
 export { verifyMfaStepUp } from "./application/mfa-step-up";
-export { listSessions, revokeAllSessions, type SessionSummary } from "./application/sessions";
+export {
+  listSessions,
+  revokeAllSessions,
+  revokeOwnSession,
+  type SessionSummary,
+} from "./application/sessions";
 export {
   startGoogleSignIn,
   completeGoogleSignIn,

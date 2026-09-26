@@ -53,7 +53,13 @@ export {
 export { generateBookingIcs, getBookingIcsContent, type BookingIcsInput } from "./application/ics";
 export { bookingNotificationJobs } from "./application/notifications";
 export { bookingJobs, bookingRecurringJobs } from "./application/jobs";
-export { findSession, sessionWindow, type SessionRow } from "./infra/session-repo";
+export {
+  findSession,
+  findSessionTitles,
+  sessionWindow,
+  type SessionRow,
+  type SessionTitle,
+} from "./infra/session-repo";
 export { listClaimsForBooking } from "./infra/attendance-repo";
 export {
   ATTENDANCE_CLAIM_OUTCOMES,

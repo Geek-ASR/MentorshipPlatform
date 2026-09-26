@@ -2,9 +2,11 @@ import { sha256Hex } from "@/server/platform/crypto";
 import type { Clock } from "@/server/platform/clock";
 import type { Database } from "@/server/platform/db/client";
 import { writeAudit } from "@/server/platform/audit";
+import { AppError } from "@/server/platform/errors";
 import {
   listActiveSessionsForUser,
   revokeAllSessionsForUser,
+  revokeSession,
   type SessionRow,
 } from "../infra/session-repo";
 
@@ -48,6 +50,31 @@ export async function revokeAllSessions(
       action: "auth.sessions_revoked_all",
       targetType: "user",
       targetId: userId,
+    });
+  });
+}
+
+/**
+ * Signs out one chosen device (ASVS 7.5.2 "terminate any … session"). Only the caller's own active
+ * sessions are addressable — any other id, including another user's, is a plain 404 so session ids
+ * can't be probed.
+ */
+export async function revokeOwnSession(
+  userId: string,
+  sessionId: string,
+  deps: { db: Database; clock: Clock },
+): Promise<void> {
+  const now = deps.clock.now();
+  await deps.db.transaction(async (tx) => {
+    const active = await listActiveSessionsForUser(tx, userId);
+    if (!active.some((session) => session.id === sessionId)) throw new AppError("NOT_FOUND");
+    await revokeSession(tx, sessionId, "user_revoked", now);
+    await writeAudit(tx, {
+      actorType: "user",
+      actorUserId: userId,
+      action: "auth.session_revoked",
+      targetType: "auth_session",
+      targetId: sessionId,
     });
   });
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { brand } from "@/config/brand";
+import { LEGAL_VERSIONS, legalVersionLabel } from "@/config/legal";
 import { LegalDocument } from "@/ui/legal-shell";
 
 export const metadata: Metadata = {
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <LegalDocument title="Privacy Policy" lastUpdated="25 September 2026">
+    <LegalDocument title="Privacy Policy" lastUpdated={legalVersionLabel(LEGAL_VERSIONS.privacy)}>
       <p>
         This policy explains what personal data {brand.name} collects, why, and the rights you have
         over it, in line with India&apos;s Digital Personal Data Protection Act 2023 and, for
