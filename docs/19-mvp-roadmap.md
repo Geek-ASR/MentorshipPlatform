@@ -317,6 +317,32 @@ flowchart LR
 
 **Tested:** 334 unit (+29 since Phase 14: formatting and zone labels, current zone names, the open-redirect guard, API error mapping, 2-step code normalisation) / 139 integration (+15: account update, the viewer probe, verification resend, per-session revoke including the cross-user 404, and the three booking-money regressions — each confirmed to fail without its fix) / 50 E2E passing on the PR-smoke Chromium projects, 4 skipped by design on mobile (+23: the full docs/13 E1 journey with a captured verification link, sign-in, wrong password, the signed-out redirect, sign-up validation, settings, devices and sign-out-everywhere, the header account menu by keyboard, 320 px overflow on signed-in pages, and axe on sign-in, sign-up, forgot-password, the dashboard and both settings pages; E13 rewritten for the new explore layout and extended to a keyboard-chosen filter).
 
+### 15b — Booking journey ✅ (2026-09-26)
+
+**Built:**
+- **Mentor profile, redesigned** (docs/22 §3 J1 step 2): dated verification badges per affiliation, rating (or "New mentor"), sessions held, reliability once there are three sessions, languages, the mentor's local time; About, Education & experience, Can help with, Sessions with every length and price, Reviews with a rating breakdown and the mentor's published responses, and the mentor's free events. Reviewers are shown by first name and last initial.
+- **Booking panel** (J1 step 3): session type → length → a two-week date strip with dots on open days → start times in the viewer's zone, with the mentor's time alongside → optional intake answers → the total ("no fees are added at checkout") and the cancellation terms, before anything is committed. A sticky card on desktop; on phones a sticky price bar that opens it as a bottom sheet. Times that clash with the student's own bookings are shown but can't be picked. Signed-out visitors are sent to sign in and back; unverified accounts are told how to fix it; mentors can't book themselves.
+- **Checkout** (J1 step 4) against the fake provider: a live hold countdown (announced once a minute, not every second), "Pay" and "Simulate a failed payment", a retry after failure while the hold lasts, a "Confirming your payment…" state, a slow-confirmation fallback and a hold-ended state.
+- **Booking page** (J1 step 5): confirmation banner, both time zones, the join button with its opening time, calendar download, reschedule with the same picker (moves at once when self-service rules allow, otherwise sends a request the other side accepts or declines on the same page), cancel with the refund previewed in words before confirming, what was paid and refunded, the cancellation terms the booking was made under, and the intake answers. Works for both participants.
+- **Bookings** (upcoming, past, cancelled, and "you're hosting" for mentors), **Payments** (paid, refunded, per-booking history) and **Saved mentors** (with undo), plus Save on profiles.
+
+**Backend additions:** `POST /api/v1/bookings/:id/payment-sync` — the student's "is it paid yet?" re-reads the provider's own record and settles the booking at once (docs/08 §6 rule 5), sharing one code path with the scheduled sweep (ADR-053). Booking pages still waiting for payment call it once on load, so a student who closed the tab mid-payment sees the booking confirmed when they come back (E4).
+
+**Real problems found and fixed:**
+1. **A paid booking could only ever be confirmed by a scheduler tick.** docs/08 §6 rule 5 requires client confirmation to share the webhook/sweeper path; no such path existed, so every student would have waited up to a tick interval (a minute or more on pg_cron) staring at "confirming". Fixed with the per-booking sync above.
+2. **The fake payment provider was switched off in every production build** — its checkout and webhook routes refused `NODE_ENV=production`, which is true for any `next start`, including e2e and the planned sandbox. They now refuse only `APP_ENV=production`, and config validation refuses to boot the production site with the fake provider at all.
+3. **Invalid definition-list markup** on the profile and checkout pages (icons and wrappers inside `<dl>`), caught by the new axe checks in E2.
+4. **Demo payments all showed today's date** — the seed now dates them on its own timeline.
+5. **Renaming a mentor left their search entry stale** (names are searchable); the account update now refreshes it.
+
+**Deviations, decided and documented:**
+- **Receipts/invoices aren't generated** — the payments page lists payments and refunds; numbered tax invoices belong with live payments (docs/08 §13).
+- **Resizing across the 1024 px breakpoint mid-selection resets the booking panel** (it mounts once — sidebar or sheet, never both). Rare in practice; lifting the selection state is the fix if it matters.
+- **Mentors' group sessions and events link to the event page** from their lists; per-session attendee management is 15c/15d, as is leaving a review.
+- **Join still can't succeed** until mentors can set meeting links (15a finding, due in 15c).
+
+**Tested:** 335 unit (+1: the production site refuses the fake provider) / 142 integration (+3: client-initiated confirmation with no scheduler tick and idempotency with the webhook job, a failed attempt then a retry within the hold, and the owner-only 404) / 60 E2E passing on the PR-smoke Chromium projects, 4 skipped by design (+10: docs/13 E2, E3, E4, E5 and sign-in-to-book, each on desktop and mobile — the mobile runs are E12, through the bottom sheet — with axe on the profile, checkout and booking pages). CI now seeds the demo data before the e2e suite.
+
 ## Phase 16 — Deploy sandbox beta (S)
 
 **Scope:** host decision per [14 §3](14-deployment.md#3-hosting-decision-procedure-phase-16); Supabase staging (Mumbai) setup checklist; Razorpay test-mode webhooks; `pg_cron` tick; backups + restore drill; uptime + alerts; Sentry; invite-only beta (feature flag); beta feedback loop.
