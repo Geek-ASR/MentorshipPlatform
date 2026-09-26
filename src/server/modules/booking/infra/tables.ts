@@ -49,6 +49,8 @@ export const mentorServices = appSchema.table(
       .$type<{ id: string; label: string }[]>()
       .notNull()
       .default([]),
+    /** The mentor's link for this service's sessions (docs/09 §12); allowlisted, never emailed. */
+    meetingUrl: text("meeting_url"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

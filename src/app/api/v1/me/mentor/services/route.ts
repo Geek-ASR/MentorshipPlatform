@@ -26,6 +26,11 @@ const bodySchema = z.object({
     )
     .min(1)
     .max(6),
+  meetingUrl: z.string().max(500).nullable().optional(),
+  intakeQuestions: z
+    .array(z.object({ label: z.string().trim().min(1).max(200) }))
+    .max(5)
+    .optional(),
 });
 
 export const POST = defineRoute(

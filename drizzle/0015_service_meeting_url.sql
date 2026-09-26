@@ -1,0 +1,1 @@
+ALTER TABLE "app"."mentor_services" ADD COLUMN "meeting_url" text;

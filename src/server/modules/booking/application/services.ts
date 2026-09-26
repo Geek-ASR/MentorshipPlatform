@@ -2,13 +2,16 @@ import type { Database } from "@/server/platform/db/client";
 import { AppError } from "@/server/platform/errors";
 import { getSetting } from "@/server/platform/settings/settings";
 import { findMentorProfile } from "@/server/modules/profiles";
+import { newId } from "@/server/platform/ids";
 import {
   createService,
   findService,
   listServicesForMentor,
   setServiceActive,
+  updateServiceDetails,
   type ServiceWithPrices,
 } from "../infra/service-repo";
+import { checkMeetingLink, MEETING_LINK_MESSAGES } from "../domain/meeting-link";
 
 async function requireMentor(db: Database, userId: string): Promise<void> {
   const profile = await findMentorProfile(db, userId);
@@ -26,7 +29,40 @@ export type CreateServiceInput = {
   title: string;
   descriptionMd?: string | null;
   prices: { durationMin: number; priceMinor: number; currency: string }[];
+  /** docs/09 §12 — validated against the admin allowlist. */
+  meetingUrl?: string | null;
+  /** Up to five optional questions students may answer when booking. */
+  intakeQuestions?: { label: string }[];
 };
+
+async function validatedMeetingUrl(
+  db: Database,
+  raw: string | null | undefined,
+  now: Date,
+): Promise<string | null | undefined> {
+  if (raw === undefined) return undefined;
+  if (raw === null || raw.trim() === "") return null;
+  const allowlist = await getSetting(db, "meeting.link_allowlist", now);
+  const result = checkMeetingLink(raw, allowlist);
+  if (!result.ok) {
+    throw new AppError("VALIDATION_FAILED", {
+      errors: [
+        { path: "meetingUrl", code: result.reason, message: MEETING_LINK_MESSAGES[result.reason] },
+      ],
+    });
+  }
+  return result.url;
+}
+
+function toIntakeQuestions(
+  questions: { label: string }[] | undefined,
+): { id: string; label: string }[] | undefined {
+  return questions
+    ?.map((q) => q.label.trim())
+    .filter(Boolean)
+    .slice(0, 5)
+    .map((label) => ({ id: newId(), label }));
+}
 
 export async function createMentorService(
   db: Database,
@@ -56,13 +92,44 @@ export async function createMentorService(
       ],
     });
   }
+  const meetingUrl = await validatedMeetingUrl(db, input.meetingUrl, now);
   return createService(db, {
     mentorUserId,
     title: input.title,
     descriptionMd: input.descriptionMd ?? null,
     allowedDurationsMin: durations,
     prices: input.prices,
+    meetingUrl: meetingUrl ?? null,
+    intakeQuestions: toIntakeQuestions(input.intakeQuestions),
   });
+}
+
+/** Changes to an existing service that never affect price or bookable slots. */
+export async function updateMentorService(
+  db: Database,
+  mentorUserId: string,
+  serviceId: string,
+  changes: {
+    isActive?: boolean;
+    meetingUrl?: string | null;
+    intakeQuestions?: { label: string }[];
+  },
+  now: Date,
+): Promise<ServiceWithPrices> {
+  await requireMentor(db, mentorUserId);
+  const service = await findService(db, serviceId);
+  if (!service || service.mentorUserId !== mentorUserId) throw new AppError("NOT_FOUND");
+  const meetingUrl = await validatedMeetingUrl(db, changes.meetingUrl, now);
+  await updateServiceDetails(db, serviceId, {
+    ...(meetingUrl !== undefined ? { meetingUrl } : {}),
+    ...(changes.intakeQuestions !== undefined
+      ? { intakeQuestions: toIntakeQuestions(changes.intakeQuestions) ?? [] }
+      : {}),
+  });
+  if (changes.isActive !== undefined) {
+    await setServiceActive(db, mentorUserId, serviceId, changes.isActive);
+  }
+  return (await findService(db, serviceId))!;
 }
 
 export async function setMentorServiceActive(

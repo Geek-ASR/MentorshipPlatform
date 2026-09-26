@@ -49,6 +49,8 @@ export async function createService(
     descriptionMd: string | null;
     allowedDurationsMin: number[];
     prices: { durationMin: number; priceMinor: number; currency: string }[];
+    intakeQuestions?: { id: string; label: string }[];
+    meetingUrl?: string | null;
   },
 ): Promise<ServiceWithPrices> {
   const [row] = await executor
@@ -60,6 +62,8 @@ export async function createService(
       title: input.title,
       descriptionMd: input.descriptionMd,
       allowedDurationsMin: input.allowedDurationsMin,
+      intakeQuestions: input.intakeQuestions ?? [],
+      meetingUrl: input.meetingUrl ?? null,
     })
     .returning();
   const prices = input.prices.length
@@ -77,6 +81,18 @@ export async function createService(
         .returning()
     : [];
   return { ...row!, prices };
+}
+
+export async function updateServiceDetails(
+  executor: Executor,
+  serviceId: string,
+  changes: { meetingUrl?: string | null; intakeQuestions?: { id: string; label: string }[] },
+): Promise<void> {
+  if (Object.keys(changes).length === 0) return;
+  await executor
+    .update(mentorServices)
+    .set({ ...changes, updatedAt: new Date() })
+    .where(eq(mentorServices.id, serviceId));
 }
 
 /** A group session's "service" row (docs/09 §8) — kind='group', no `service_prices`: the seat price

@@ -116,6 +116,21 @@ export const settingsRegistry = {
     defaultValue: [30, 45, 60],
     description: "Session durations mentors may offer without the custom-durations flag.",
   }),
+  "meeting.link_allowlist": defineSetting({
+    schema: z
+      .array(z.string().regex(/^[a-z0-9-]+(\.[a-z0-9-]+)+$/, "a lowercase hostname"))
+      .min(1)
+      .max(20),
+    defaultValue: [
+      "meet.google.com",
+      "zoom.us",
+      "teams.microsoft.com",
+      "teams.live.com",
+      "whereby.com",
+      "meet.jit.si",
+    ],
+    description: "Meeting providers whose links mentors may attach to sessions (docs/09 §12).",
+  }),
   "booking.max_active_holds_per_student": defineSetting({
     schema: z.number().int().min(1).max(10),
     defaultValue: 3,
