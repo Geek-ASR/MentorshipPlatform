@@ -95,6 +95,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run db:setup
+      # Fictional mentors, students and events the booking journeys (docs/13 §7 E2–E5) run against.
+      - run: npm run db:seed:demo
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e

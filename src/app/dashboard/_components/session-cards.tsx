@@ -174,30 +174,39 @@ export function SessionRow({
   const month = new Intl.DateTimeFormat("en-IN", { timeZone, month: "short" }).format(
     session.start,
   );
+  const href =
+    session.attendeeCount !== undefined && session.eventSlug
+      ? `/events/${session.eventSlug}`
+      : `/dashboard/bookings/${session.bookingId}`;
   return (
-    <li className="flex items-center gap-4 py-4">
-      <div
-        aria-hidden="true"
-        className="flex size-12 shrink-0 flex-col items-center justify-center rounded-[var(--radius-control)] border border-line bg-canvas leading-none"
+    <li>
+      <Link
+        href={href}
+        className="group -mx-3 flex items-center gap-4 rounded-[var(--radius-control)] px-3 py-4 transition-colors hover:bg-canvas"
       >
-        <span className="text-[10px] font-semibold tracking-wide text-ink-muted uppercase">
-          {month}
-        </span>
-        <span className="tabular mt-0.5 text-lg font-semibold text-ink">{day}</span>
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-medium text-ink">{session.title}</p>
-        <p className="tabular truncate text-sm text-ink-muted">
-          <span className="sr-only">{formatDate(session.start, timeZone, now)}, </span>
-          {formatTimeRange(session.start, session.end, timeZone)} ·{" "}
-          {session.attendeeCount !== undefined
-            ? `${pluralize(session.attendeeCount, "person", "people")} registered`
-            : `${role === "student" ? "with" : "for"} ${session.counterpart.name}`}
-        </p>
-      </div>
-      {showStatus ? (
-        <BookingStatusBadge status={session.status} className="hidden sm:inline-flex" />
-      ) : null}
+        <div
+          aria-hidden="true"
+          className="flex size-12 shrink-0 flex-col items-center justify-center rounded-[var(--radius-control)] border border-line bg-canvas leading-none group-hover:bg-surface"
+        >
+          <span className="text-[10px] font-semibold tracking-wide text-ink-muted uppercase">
+            {month}
+          </span>
+          <span className="tabular mt-0.5 text-lg font-semibold text-ink">{day}</span>
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-medium text-ink group-hover:text-primary">{session.title}</p>
+          <p className="tabular truncate text-sm text-ink-muted">
+            <span className="sr-only">{formatDate(session.start, timeZone, now)}, </span>
+            {formatTimeRange(session.start, session.end, timeZone)} ·{" "}
+            {session.attendeeCount !== undefined
+              ? `${pluralize(session.attendeeCount, "person", "people")} registered`
+              : `${role === "student" ? "with" : "for"} ${session.counterpart.name}`}
+          </p>
+        </div>
+        {showStatus ? (
+          <BookingStatusBadge status={session.status} className="hidden sm:inline-flex" />
+        ) : null}
+      </Link>
     </li>
   );
 }
