@@ -1,5 +1,8 @@
-import type { Database, Executor } from "@/server/platform/db/client";
+import { hasSqlState, type Database, type Executor } from "@/server/platform/db/client";
+import { newId } from "@/server/platform/ids";
 import { AppError } from "@/server/platform/errors";
+import { blockHostTime } from "./host-calendar";
+import { validatedMeetingUrl } from "./meeting-links";
 import { writeAudit } from "@/server/platform/audit";
 import { randomToken, sha256Hex } from "@/server/platform/crypto";
 import type { UserActor } from "@/server/platform/authz/actor";
@@ -10,7 +13,6 @@ import type { EventVisibility, RecordingVisibility } from "../domain/types";
 import {
   findSession,
   findSessionForUpdate,
-  insertCalendarBlock,
   insertGroupOrEventSession,
   type SessionRow,
 } from "../infra/session-repo";
@@ -27,6 +29,7 @@ import {
   type EventInviteRow,
   type EventWithSession,
 } from "../infra/event-repo";
+import { listLiveBookingsForSession } from "../infra/booking-repo";
 import { cancelEverySeatAndRefund } from "./group-sessions";
 
 export type CreateEventInput = {
@@ -36,6 +39,8 @@ export type CreateEventInput = {
   end: Date;
   capacity: number;
   visibility: EventVisibility;
+  /** docs/09 §12 — the event's own link; join prefers it over any service link. */
+  meetingUrl?: string | null;
 };
 
 export type CreateEventResult = { session: SessionRow; details: EventDetailsRow };
@@ -75,6 +80,7 @@ export async function createEvent(
   if (!canHostEvents(actor)) {
     throw new AppError("FORBIDDEN", { detail: "You don't have permission to host events." });
   }
+  const meetingUrl = await validatedMeetingUrl(db, input.meetingUrl, now);
   const mentor = await findMentorProfile(db, actor.userId);
   if (!mentor || mentor.applicationStatus !== "approved") {
     throw new AppError("BAD_REQUEST", {
@@ -111,23 +117,36 @@ export async function createEvent(
       registrationClosesAt: input.start,
       minParticipantsCheckAt: null,
       meetingProvider: null,
-      meetingUrl: null,
+      meetingUrl: meetingUrl ?? null,
     });
-    await insertCalendarBlock(tx, {
-      mentorId: actor.userId,
-      sourceType: "session",
-      sourceId: session.id,
+    await blockHostTime(tx, {
+      hostUserId: actor.userId,
+      sessionId: session.id,
       start: input.start,
       end: input.end,
     });
-    const slug = await uniqueEventSlug(tx, input.title);
-    const details = await insertEventDetails(tx, {
-      sessionId: session.id,
-      slug,
-      title: input.title,
-      descriptionMd: input.descriptionMd ?? null,
-      visibility: input.visibility,
-    });
+    // The free-slug check and the insert can race another host creating a same-titled event;
+    // the unique index decides, and a loser retries once with a short suffix (in a savepoint, so
+    // the failed insert doesn't abort this transaction).
+    let details: EventDetailsRow | undefined;
+    for (let attempt = 0; !details; attempt += 1) {
+      const base = await uniqueEventSlug(tx, input.title);
+      const candidate = attempt === 0 ? base : `${base}-${newId().slice(-4)}`;
+      try {
+        details = await tx.transaction((savepoint) =>
+          insertEventDetails(savepoint, {
+            sessionId: session.id,
+            slug: candidate,
+            title: input.title,
+            descriptionMd: input.descriptionMd ?? null,
+            visibility: input.visibility,
+          }),
+        );
+      } catch (error) {
+        if (attempt >= 2 || !hasSqlState(error, "23505")) throw error;
+      }
+    }
+    const slug = details.slug;
     await writeAudit(tx, {
       actorType: "user",
       actorUserId: actor.userId,
@@ -258,4 +277,24 @@ export function getEventDetailsForSession(
   sessionId: string,
 ): Promise<EventDetailsRow | undefined> {
   return findEventDetails(db, sessionId);
+}
+
+/**
+ * The live seat count shown on public pages (docs/09 §8, §9): group sessions and public or unlisted
+ * events only. A private event or a 1:1 session reads as absent, like everywhere else.
+ */
+export async function getPublicSeatCount(
+  db: Database,
+  sessionId: string,
+): Promise<{ capacity: number; liveSeats: number; status: string } | null> {
+  const session = await findSession(db, sessionId);
+  if (!session) return null;
+  if (session.kind === "event") {
+    const details = await findEventDetails(db, sessionId);
+    if (!details || details.visibility === "private") return null;
+  } else if (session.kind !== "group") {
+    return null;
+  }
+  const live = await listLiveBookingsForSession(db, sessionId);
+  return { capacity: session.capacity, liveSeats: live.length, status: session.status };
 }

@@ -208,7 +208,126 @@ describe("E10: report -> moderator case -> warning -> user sees notice -> appeal
       }),
       routeContext(),
     );
-    const afterBody = (await enforcementAfter.json()) as { actions: { id: string }[] };
+    const afterBody = (await enforcementAfter.json()) as {
+      actions: { id: string }[];
+      appeals: { moderationActionId: string; status: string }[];
+    };
     expect(afterBody.actions.some((a) => a.id === action.id)).toBe(true);
+    expect(afterBody.appeals).toEqual([
+      expect.objectContaining({ moderationActionId: action.id, status: "upheld" }),
+    ]);
+  });
+});
+
+async function warnFromNewCase(
+  moderatorCookie: string,
+  reporterCookie: string,
+  targetType: string,
+  targetId: string,
+): Promise<{ id: string; subjectUserId: string }> {
+  await createReport(
+    jsonRequest("/api/v1/reports", {
+      body: { targetType, targetId, reasonCode: "spam" },
+      headers: idemHeaders(reporterCookie),
+    }),
+    routeContext(),
+  );
+  const casesRes = await listCases(
+    new Request("http://localhost:3000/api/v1/admin/cases", {
+      headers: { cookie: moderatorCookie },
+    }),
+    routeContext(),
+  );
+  const { cases } = (await casesRes.json()) as { cases: { id: string; targetId: string }[] };
+  const found = cases.find((c) => c.targetId === targetId);
+  expect(found).toBeDefined();
+  const actionRes = await decideCaseAction(
+    jsonRequest(`/api/v1/admin/cases/${found!.id}/actions`, {
+      body: {
+        decision: "act",
+        action: "warn",
+        restrictions: [],
+        durationDays: null,
+        reasonCode: "spam",
+        rationale: "Promotional content.",
+      },
+      headers: idemHeaders(moderatorCookie),
+    }),
+    routeContext({ id: found!.id }),
+  );
+  expect(actionRes.status).toBe(201);
+  return (await actionRes.json()) as { id: string; subjectUserId: string };
+}
+
+describe("appeal window and reportable targets (docs/10 §7.1, §7.4)", () => {
+  it("refuses an appeal made more than 30 days after the decision", async () => {
+    const reporter = await signUpAndVerify("reporter.window@example.com", "Reporter Two");
+    const reported = await signUpAndVerify("reported.window@example.com", "Reported Two");
+    const moderator = await signUpAndVerify("moderator.window@example.com", "Mod Two");
+    await makeModerator(moderator.cookie);
+    const action = await warnFromNewCase(
+      moderator.cookie,
+      reporter.cookie,
+      "user",
+      reported.userId,
+    );
+
+    await t.db.execute(
+      sql`update app.moderation_actions set created_at = now() - interval '31 days' where id = ${action.id}::uuid`,
+    );
+    const enforcementRes = await getEnforcement(
+      new Request("http://localhost:3000/api/v1/me/enforcement", {
+        headers: { cookie: reported.cookie },
+      }),
+      routeContext(),
+    );
+    const enforcement = (await enforcementRes.json()) as { appealableActionIds: string[] };
+    expect(enforcement.appealableActionIds).not.toContain(action.id);
+
+    // Before this fix only the listing hid the button — a direct request still opened an appeal.
+    const appealRes = await openAppealRoute(
+      jsonRequest(`/api/v1/moderation-actions/${action.id}/appeals`, {
+        body: { statement: "Late, but I disagree." },
+        headers: idemHeaders(reported.cookie),
+      }),
+      routeContext({ id: action.id }),
+    );
+    expect(appealRes.status).toBe(409);
+    const [count] = await t.db.execute<{ n: number }>(
+      sql`select count(*)::int as n from app.appeals where moderation_action_id = ${action.id}::uuid`,
+    );
+    expect(count!.n).toBe(0);
+  });
+
+  it("decides reports on a mentor profile and on an event against their owner", async () => {
+    const reporter = await signUpAndVerify("reporter.targets@example.com", "Reporter Three");
+    const mentor = await signUpAndVerify("mentor.targets@example.com", "Mentor Three");
+    const moderator = await signUpAndVerify("moderator.targets@example.com", "Mod Three");
+    await makeModerator(moderator.cookie);
+    await t.db.execute(
+      sql`insert into app.mentor_profiles (user_id, slug) values (${mentor.userId}::uuid, 'mentor-three')`,
+    );
+    const eventSessionId = randomUUID();
+    await t.db.execute(sql`
+      insert into app.sessions (id, kind, host_user_id, during, capacity, seat_price_minor)
+      values (${eventSessionId}::uuid, 'event', ${mentor.userId}::uuid,
+              tstzrange(now() + interval '3 days', now() + interval '3 days 1 hour'), 20, 0)
+    `);
+
+    // Before this fix, deciding either case failed: only user and review targets resolved.
+    const profileAction = await warnFromNewCase(
+      moderator.cookie,
+      reporter.cookie,
+      "mentor_profile",
+      mentor.userId,
+    );
+    expect(profileAction.subjectUserId).toBe(mentor.userId);
+    const eventAction = await warnFromNewCase(
+      moderator.cookie,
+      reporter.cookie,
+      "event",
+      eventSessionId,
+    );
+    expect(eventAction.subjectUserId).toBe(mentor.userId);
   });
 });

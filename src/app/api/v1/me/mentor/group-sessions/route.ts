@@ -13,6 +13,7 @@ const bodySchema = z.object({
   minParticipants: z.number().int().min(1).optional(),
   targetTotalMinor: z.number().int().min(0),
   currency: z.string().length(3).default("INR"),
+  meetingUrl: z.string().max(500).nullable().optional(),
 });
 
 export const POST = defineRoute(

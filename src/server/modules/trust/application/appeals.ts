@@ -2,6 +2,7 @@ import type { Database } from "@/server/platform/db/client";
 import { AppError } from "@/server/platform/errors";
 import { writeAudit } from "@/server/platform/audit";
 import type { AppealStatus } from "../domain/types";
+import { APPEAL_WINDOW_DAYS, isWithinAppealWindow } from "../domain/appeal-window";
 import {
   decideAppeal as decideAppealRow,
   findAppeal,
@@ -19,10 +20,21 @@ export async function openAppeal(
   appellantUserId: string,
   moderationActionId: string,
   statement: string,
+  now: Date,
 ): Promise<AppealRow> {
   const action = await findAction(db, moderationActionId);
   if (!action) throw new AppError("NOT_FOUND");
   if (action.subjectUserId !== appellantUserId) throw new AppError("FORBIDDEN");
+  if (action.action === "reinstate") {
+    throw new AppError("INVALID_STATE_TRANSITION", {
+      detail: "A reinstatement lifts restrictions — there's nothing to appeal.",
+    });
+  }
+  if (!isWithinAppealWindow(action.createdAt, now)) {
+    throw new AppError("INVALID_STATE_TRANSITION", {
+      detail: `Appeals must be made within ${APPEAL_WINDOW_DAYS} days of the decision.`,
+    });
+  }
 
   const existing = await findAppealForAction(db, moderationActionId);
   if (existing) {

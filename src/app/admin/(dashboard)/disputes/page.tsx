@@ -33,7 +33,7 @@ export default async function AdminDisputesPage() {
             <Tbody>
               {disputes.map((d) => (
                 <Tr key={d.id}>
-                  <Td className="font-mono text-xs">{d.bookingId.slice(0, 8)}…</Td>
+                  <Td className="font-mono text-xs">…{d.bookingId.slice(-8)}</Td>
                   <Td>
                     <Badge tone={d.status === "closed" ? "neutral" : "accent"}>{d.status}</Badge>
                   </Td>

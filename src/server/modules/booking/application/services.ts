@@ -11,7 +11,7 @@ import {
   updateServiceDetails,
   type ServiceWithPrices,
 } from "../infra/service-repo";
-import { checkMeetingLink, MEETING_LINK_MESSAGES } from "../domain/meeting-link";
+import { validatedMeetingUrl } from "./meeting-links";
 
 async function requireMentor(db: Database, userId: string): Promise<void> {
   const profile = await findMentorProfile(db, userId);
@@ -34,25 +34,6 @@ export type CreateServiceInput = {
   /** Up to five optional questions students may answer when booking. */
   intakeQuestions?: { label: string }[];
 };
-
-async function validatedMeetingUrl(
-  db: Database,
-  raw: string | null | undefined,
-  now: Date,
-): Promise<string | null | undefined> {
-  if (raw === undefined) return undefined;
-  if (raw === null || raw.trim() === "") return null;
-  const allowlist = await getSetting(db, "meeting.link_allowlist", now);
-  const result = checkMeetingLink(raw, allowlist);
-  if (!result.ok) {
-    throw new AppError("VALIDATION_FAILED", {
-      errors: [
-        { path: "meetingUrl", code: result.reason, message: MEETING_LINK_MESSAGES[result.reason] },
-      ],
-    });
-  }
-  return result.url;
-}
 
 function toIntakeQuestions(
   questions: { label: string }[] | undefined,

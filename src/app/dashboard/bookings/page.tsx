@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CalendarDays, CalendarX2, History } from "lucide-react";
 import Link from "next/link";
 import { getDb } from "@/server/platform/db/client";
+import { loadMyWaitlist } from "@/server/views/events";
 import { loadHostedBookingTabs, loadStudentBookingTabs } from "@/server/views/sessions";
 import type { SessionCardView } from "@/server/views/sessions";
 import { requireViewer } from "@/server/views/viewer";
@@ -10,6 +11,7 @@ import { PageHeader } from "@/ui/page-header";
 import { EmptyState } from "@/ui/states";
 import { Tabs, type TabItem } from "@/ui/tabs";
 import { SessionList } from "../_components/session-cards";
+import { WaitlistList } from "./waitlist-list";
 
 export const metadata: Metadata = { title: "Bookings" };
 
@@ -41,9 +43,10 @@ export default async function BookingsPage() {
   const now = new Date();
   const timeZone = user.timezone;
   const isMentor = actor.roles.has("mentor");
-  const [mine, hosted] = await Promise.all([
+  const [mine, hosted, waitlist] = await Promise.all([
     loadStudentBookingTabs(db, user.id, now),
     isMentor ? loadHostedBookingTabs(db, user.id, now) : Promise.resolve(null),
+    loadMyWaitlist(db, user.id),
   ]);
 
   const explore = (
@@ -72,6 +75,25 @@ export default async function BookingsPage() {
         />
       ),
     },
+    ...(waitlist.length > 0
+      ? [
+          {
+            id: "waitlist",
+            label: "Waitlist",
+            count: waitlist.length,
+            content: (
+              <WaitlistList
+                timeZone={timeZone}
+                items={waitlist.map((item) => ({
+                  ...item,
+                  start: item.start.toISOString(),
+                  offerExpiresAt: item.offerExpiresAt?.toISOString() ?? null,
+                }))}
+              />
+            ),
+          },
+        ]
+      : []),
     {
       id: "past",
       label: "Past",

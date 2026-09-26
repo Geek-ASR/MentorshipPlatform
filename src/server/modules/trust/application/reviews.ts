@@ -26,7 +26,7 @@ import {
 } from "../infra/reviews-repo";
 import { recomputeMentorStats } from "./reliability";
 
-const REVIEW_WINDOW_DAYS = 14; // docs/10 §10: "Window: 14 days after completion".
+export const REVIEW_WINDOW_DAYS = 14; // docs/10 §10: "Window: 14 days after completion".
 const EDIT_WINDOW_HOURS = 48; // docs/10 §10: "editable for 48 h after posting".
 const DUPLICATE_LOOKBACK_DAYS = 180;
 

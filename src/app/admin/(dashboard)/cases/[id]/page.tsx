@@ -17,7 +17,7 @@ export default async function AdminCaseDetailPage({ params }: PageProps<"/admin/
   return (
     <div className="max-w-3xl">
       <CardTitle className="text-2xl">
-        Case · {detail.case.targetType} {detail.case.targetId.slice(0, 8)}…
+        Case · {detail.case.targetType} …{detail.case.targetId.slice(-8)}
       </CardTitle>
       <CardDescription>
         Opened {new Date(detail.case.openedAt).toLocaleString()} · status{" "}

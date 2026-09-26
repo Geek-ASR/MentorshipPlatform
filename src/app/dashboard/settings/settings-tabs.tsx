@@ -7,6 +7,7 @@ import { cn } from "@/ui/cn";
 const TABS = [
   { href: "/dashboard/settings", label: "Account" },
   { href: "/dashboard/settings/security", label: "Security" },
+  { href: "/dashboard/settings/safety", label: "Safety" },
 ];
 
 export function SettingsTabs() {

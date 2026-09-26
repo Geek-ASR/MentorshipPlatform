@@ -1224,6 +1224,14 @@
     "hasVisibleAuthzCall": true
   },
   {
+    "method": "GET",
+    "path": "/api/v1/sessions/:id/seats",
+    "file": "src/app/api/v1/sessions/[id]/seats/route.ts",
+    "name": "GET /api/v1/sessions/:id/seats",
+    "actorMode": null,
+    "hasVisibleAuthzCall": false
+  },
+  {
     "method": "DELETE",
     "path": "/api/v1/sessions/:id/waitlist",
     "file": "src/app/api/v1/sessions/[id]/waitlist/route.ts",

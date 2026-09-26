@@ -36,7 +36,7 @@ export default async function AdminReportsPage() {
                 <Tr key={r.id}>
                   <Td>
                     <span className="text-xs text-ink-muted">{r.targetType}</span>{" "}
-                    <span className="font-mono text-xs">{r.targetId.slice(0, 8)}…</span>
+                    <span className="font-mono text-xs">…{r.targetId.slice(-8)}</span>
                   </Td>
                   <Td>
                     <Badge>{r.reasonCode}</Badge>

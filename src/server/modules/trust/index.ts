@@ -26,6 +26,7 @@ export {
   type ReviewStatus,
   type TrustEventType,
 } from "./domain/types";
+export { APPEAL_WINDOW_DAYS } from "./domain/appeal-window";
 export {
   TRUST_EVENT_CATALOG,
   pointsFor,
@@ -116,9 +117,11 @@ export {
   appealDisputeResolution,
   sweepDisputeAppealDeadlines,
   decideDisputeAppeal,
+  DISPUTE_WINDOW_HOURS,
   type ResolveDisputeInput,
   type DecideDisputeAppealInput,
 } from "./application/disputes";
+export { findDisputeByBooking } from "./infra/disputes-repo";
 export type { DisputeEvidenceRow, DisputeRow } from "./infra/disputes-repo";
 
 // --- Reviews ---
@@ -126,6 +129,7 @@ export {
   createReview,
   editReview,
   respondToReview,
+  REVIEW_WINDOW_DAYS,
   type CreateReviewInput,
 } from "./application/reviews";
 export {

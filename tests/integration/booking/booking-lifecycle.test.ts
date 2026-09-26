@@ -424,6 +424,67 @@ describe("booking lifecycle (docs/19 Phase 7 exit criteria)", () => {
     expect(reopenedBody.slots.some((s) => s.startsAt === slot.startsAt)).toBe(true);
   });
 
+  it("refuses to cancel or move a session once it has started", async () => {
+    const { mentor, slug, serviceId } = await setupListedMentor(
+      "mentor.started@example.com",
+      "Started Mentor",
+      "started",
+    );
+    const student = await signUpAndVerify("student.started@example.com", "Started Student");
+    const slot = await firstAvailableSlot(slug, serviceId);
+    const bookingResponse = await createBooking(
+      jsonRequest("/api/v1/bookings", {
+        body: {
+          mentorUserId: mentor.userId,
+          serviceId,
+          durationMin: 60,
+          startsAt: slot.startsAt,
+          intakeAnswers: [],
+        },
+        headers: idemHeaders(student.cookie),
+      }),
+      routeContext(),
+    );
+    const { booking } = (await bookingResponse.json()) as { booking: { id: string } };
+    // The session is now ten minutes in; the attendance job hasn't settled it yet.
+    await t.db.execute(sql`
+      update app.sessions set during = tstzrange(now() - interval '10 minutes', now() + interval '50 minutes')
+      where id = (select session_id from app.bookings where id = ${booking.id}::uuid)
+    `);
+
+    // Before this fix the quote offered the late-cancel courtesy refund for a session under way.
+    const quote = await getCancellationQuote(
+      new Request(`http://localhost:3000/api/v1/bookings/${booking.id}/cancellation-quote`, {
+        headers: { cookie: student.cookie },
+      }),
+      routeContext({ id: booking.id }),
+    );
+    expect(quote.status).toBe(409);
+    for (const cookie of [student.cookie, mentor.cookie]) {
+      const cancel = await cancelBookingRoute(
+        jsonRequest(`/api/v1/bookings/${booking.id}/cancel`, {
+          body: { reasonCode: "other" },
+          headers: idemHeaders(cookie),
+        }),
+        routeContext({ id: booking.id }),
+      );
+      expect(cancel.status).toBe(409);
+    }
+    const move = await requestReschedule(
+      jsonRequest(`/api/v1/bookings/${booking.id}/reschedule`, {
+        body: { startsAt: new Date(Date.now() + 3 * 86_400_000).toISOString() },
+        headers: idemHeaders(student.cookie),
+      }),
+      routeContext({ id: booking.id }),
+    );
+    expect(move.status).toBe(409);
+
+    const [row] = await t.db.execute<{ status: string }>(
+      sql`select status from app.bookings where id = ${booking.id}::uuid`,
+    );
+    expect(row!.status).toBe("confirmed");
+  });
+
   it("rejects a duration the service doesn't offer, and returns a machine-readable reason", async () => {
     const { mentor, slug, serviceId } = await setupListedMentor(
       "mentor.reason@example.com",

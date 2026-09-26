@@ -36,7 +36,7 @@ export default async function AdminBookingsPage() {
           <Tbody>
             {bookings.map((b) => (
               <Tr key={b.id}>
-                <Td className="font-mono text-xs">{b.sessionId.slice(0, 8)}…</Td>
+                <Td className="font-mono text-xs">…{b.sessionId.slice(-8)}</Td>
                 <Td>
                   <Badge tone={STATUS_TONE[b.status] ?? "neutral"}>{b.status}</Badge>
                 </Td>

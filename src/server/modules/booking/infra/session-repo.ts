@@ -245,3 +245,66 @@ export async function countSessionsByLocalDate(
   `);
   return new Map(rows.map((r) => [r.local_date, r.n]));
 }
+
+/** A host's upcoming group sessions still open for registration (docs/09 §8), soonest first. */
+export async function listUpcomingGroupSessionsForHost(
+  executor: Executor,
+  hostUserId: string,
+  now: Date,
+): Promise<(SessionRow & { title: string; descriptionMd: string | null })[]> {
+  const rows = await executor
+    .select({
+      session: sessions,
+      title: mentorServices.title,
+      descriptionMd: mentorServices.descriptionMd,
+    })
+    .from(sessions)
+    .innerJoin(mentorServices, eq(mentorServices.id, sessions.serviceId))
+    .where(
+      and(
+        eq(sessions.hostUserId, hostUserId),
+        eq(sessions.kind, "group"),
+        eq(sessions.status, "scheduled"),
+        sql`lower(${sessions.during}) > ${now.toISOString()}::timestamptz`,
+      ),
+    );
+  return rows
+    .map((r) => ({ ...r.session, title: r.title, descriptionMd: r.descriptionMd }))
+    .sort((a, b) => sessionWindow(a).start.getTime() - sessionWindow(b).start.getTime());
+}
+
+export type HostedSeatSession = SessionRow & {
+  title: string;
+  eventSlug: string | null;
+  eventVisibility: string | null;
+  recordingUrl: string | null;
+};
+
+/** Every group session and event a host has run or scheduled, newest start first. */
+export async function listHostedSeatSessions(
+  executor: Executor,
+  hostUserId: string,
+): Promise<HostedSeatSession[]> {
+  const rows = await executor
+    .select({
+      session: sessions,
+      serviceTitle: mentorServices.title,
+      eventTitle: eventDetails.title,
+      eventSlug: eventDetails.slug,
+      eventVisibility: eventDetails.visibility,
+      recordingUrl: eventDetails.recordingUrl,
+    })
+    .from(sessions)
+    .leftJoin(mentorServices, eq(mentorServices.id, sessions.serviceId))
+    .leftJoin(eventDetails, eq(eventDetails.sessionId, sessions.id))
+    .where(and(eq(sessions.hostUserId, hostUserId), inArray(sessions.kind, ["group", "event"])));
+  return rows
+    .map((r) => ({
+      ...r.session,
+      title: r.eventTitle ?? r.serviceTitle ?? "Session",
+      eventSlug: r.eventSlug,
+      eventVisibility: r.eventVisibility,
+      recordingUrl: r.recordingUrl,
+    }))
+    .sort((a, b) => sessionWindow(b).start.getTime() - sessionWindow(a).start.getTime());
+}

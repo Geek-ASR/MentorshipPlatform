@@ -14,7 +14,7 @@ import {
 } from "../domain/attendance";
 import { canTransition, transition } from "../domain/state-machine";
 import type { AttendanceClaimOutcome } from "../domain/types";
-import { findSession, sessionWindow } from "../infra/session-repo";
+import { findSession, sessionWindow, type SessionRow } from "../infra/session-repo";
 import { bookings } from "../infra/tables";
 import {
   listClaimsForBooking,
@@ -86,6 +86,23 @@ export async function checkIn(
     });
   }
   await recordSignal(db, { sessionId, userId: actor.userId, kind: "check_in", occurredAt: now });
+}
+
+/**
+ * When a participant may tell us how a session went (docs/09 §11): whether it happened, or a
+ * technical problem, from the start; that the other party didn't show, only after the no-show grace
+ * — the same rule `submitAttendanceClaim` enforces, so the booking page can say when it opens.
+ */
+export async function attendanceClaimWindow(
+  executor: Executor,
+  session: SessionRow,
+  now: Date,
+): Promise<{ opensAt: Date; absenceOpensAt: Date }> {
+  const { start, end } = sessionWindow(session);
+  const durationMin = (end.getTime() - start.getTime()) / 60_000;
+  const graceConfig = await getSetting(executor, "attendance.no_show_grace_min", now);
+  const graceMin = noShowGraceMinutes({ durationMin, ...graceConfig });
+  return { opensAt: start, absenceOpensAt: new Date(start.getTime() + graceMin * 60_000) };
 }
 
 export async function submitAttendanceClaim(

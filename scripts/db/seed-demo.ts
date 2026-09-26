@@ -66,6 +66,7 @@ import {
   GUIDES,
   MENTORS,
   PAST_SESSIONS,
+  RECENTLY_ENDED,
   SAVED_MENTORS,
   STUDENTS,
   TEAM,
@@ -477,6 +478,67 @@ async function main(): Promise<void> {
   }
   console.log(`Past sessions: ${PAST_SESSIONS.length} completed, ${reviewCount} reviewed.`);
 
+  // --- a session that ended a little while ago, still waiting for "how did it go?" --------------
+  // Not finalised, so the booking page shows the attendance prompt (docs/09 §11). Mentors' hours
+  // vary by time of day, so the first one with a slot in the last day is used.
+  const recentWindow = {
+    notBefore: new Date(realNow.getTime() - 25 * 3_600_000),
+    notAfter: new Date(realNow.getTime() - 15 * 60_000),
+  };
+  let recentMentor: string | null = null;
+  for (const key of RECENTLY_ENDED.mentors) {
+    const mentor = mentors.get(key)!;
+    const student = students.get(RECENTLY_ENDED.student)!;
+    const serviceId = mentor.serviceIds[0]!;
+    const durationMin = mentor.seed.services[0]!.prices[0]!.durationMin;
+    const found = await findSlot(
+      mentor,
+      serviceId,
+      durationMin,
+      realNow,
+      recentWindow,
+      (dayStart) => new Date(dayStart.getTime() - 3 * DAY),
+    ).catch(() => null);
+    if (!found) continue;
+    const studentActor = await actorFor(student.id, found.bookedAt);
+    const created = await createBooking(
+      db,
+      studentActor,
+      {
+        mentorUserId: mentor.id,
+        serviceId,
+        durationMin,
+        startsAt: found.slot.start,
+        intakeAnswers: [],
+      },
+      found.bookedAt,
+      appBaseUrl,
+    );
+    if (created.checkout) await payAndConfirm(created.checkout.providerOrderId, found.bookedAt);
+    const booking = await findBooking(db, created.booking.id);
+    if (booking) {
+      await checkIn(db, studentActor, booking.sessionId, minutes(found.slot.start, 1));
+      await checkIn(
+        db,
+        await actorFor(mentor.id, found.slot.start),
+        booking.sessionId,
+        minutes(found.slot.start, 3),
+      );
+      await db
+        .update(bookings)
+        .set({ createdAt: found.bookedAt })
+        .where(eq(bookings.id, booking.id));
+    }
+    await purgeEmailJobs();
+    recentMentor = key;
+    break;
+  }
+  console.log(
+    recentMentor
+      ? `Recently ended: 1 session with ${recentMentor}, waiting for attendance answers.`
+      : "Recently ended: skipped (no mentor had hours in the last day).",
+  );
+
   // --- upcoming sessions ---------------------------------------------------------------------------
   const upcomingWindow = {
     notBefore: new Date(realNow.getTime() + 6 * 3_600_000),
@@ -539,6 +601,7 @@ async function main(): Promise<void> {
         end: minutes(start, event.durationMin),
         capacity: event.capacity,
         visibility: "public",
+        meetingUrl: `https://meet.jit.si/aheadly-demo-event-${event.host}-${event.inDays}`,
       },
       createdAt,
     );
@@ -570,6 +633,7 @@ async function main(): Promise<void> {
         minParticipants: group.minParticipants,
         targetTotalMinor: group.targetTotalMinor,
         currency: "INR",
+        meetingUrl: `https://meet.jit.si/aheadly-demo-group-${group.host}-${group.inDays}`,
       },
       createdAt,
     );
