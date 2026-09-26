@@ -86,6 +86,15 @@ export const envSchema = z
         });
       }
     }
+    // The fake provider (and its dev checkout/webhook routes) is for local, test and sandbox
+    // environments only; the production site must never boot with it.
+    if (env.APP_ENV === "production" && env.PAYMENTS_PROVIDER === "fake") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["PAYMENTS_PROVIDER"],
+        message: "the fake payment provider can't run with APP_ENV=production",
+      });
+    }
     if (env.PAYMENTS_PROVIDER === "razorpay") {
       for (const key of [
         "RAZORPAY_KEY_ID",

@@ -3,6 +3,7 @@ import { defineRoute } from "@/server/platform/http/route";
 import { authorize, requireUser } from "@/server/platform/authz/authorize";
 import { AppError } from "@/server/platform/errors";
 import { mfaStatus, toMeDto, updateAccount } from "@/server/modules/auth";
+import { refreshMentorListing } from "@/server/modules/profiles";
 
 const bodySchema = z
   .object({
@@ -26,6 +27,10 @@ export const PATCH = defineRoute(
 
     const db = await getDb();
     const user = await updateAccount(actor.userId, body, { db, clock });
+    // A mentor's name is part of their search document — keep "search by name" current.
+    if (body.displayName !== undefined && actor.roles.has("mentor")) {
+      await refreshMentorListing(db, actor.userId, clock.now());
+    }
     const { enabled } = await mfaStatus(actor.userId, {
       db,
       clock,

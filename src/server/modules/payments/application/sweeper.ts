@@ -1,7 +1,13 @@
 import type { Database } from "@/server/platform/db/client";
 import { canTransitionIntent, transitionIntent } from "../domain/state-machines";
 import { createFakeGateway, type FakeGatewayChaos } from "../infra/fake-gateway";
-import { listExpiredPendingIntents, transitionPaymentIntent } from "../infra/payment-intents-repo";
+import {
+  findPaymentIntentByOrder,
+  listExpiredPendingIntents,
+  transitionPaymentIntent,
+} from "../infra/payment-intents-repo";
+import { findOrderItem } from "../infra/orders-repo";
+import type { PaymentIntentStatus } from "../domain/types";
 import { applyVerifiedCapture } from "./apply-capture";
 
 export type SweepResult = { checked: number; captured: number; expired: number; failed: number };
@@ -61,4 +67,44 @@ export async function sweepExpiredPaymentIntents(
     }
   }
   return result;
+}
+
+/**
+ * Client-initiated confirmation (docs/08 §6 rule 5: "the same code path handles client
+ * confirmation, webhooks, sweepers and reconciliation"). After checkout the browser asks the
+ * server to look again; the provider's own record decides — nothing the client sends is trusted.
+ * Idempotent with the webhook job: whichever runs second finds the capture already applied.
+ */
+export async function refreshPaymentForOrderItem(
+  db: Database,
+  orderItemId: string,
+  now: Date,
+): Promise<PaymentIntentStatus | null> {
+  const orderItem = await findOrderItem(db, orderItemId);
+  if (!orderItem) return null;
+  const intent = await findPaymentIntentByOrder(db, orderItem.orderId);
+  if (!intent) return null;
+  if (intent.status === "succeeded" || intent.status === "failed") return intent.status;
+
+  const gateway = createFakeGateway(db);
+  const authoritative = await gateway.fetchPaymentStatus(intent.providerOrderId);
+  if (
+    authoritative.status === "captured" &&
+    authoritative.providerPaymentId &&
+    authoritative.amountMinor !== null
+  ) {
+    await applyVerifiedCapture(
+      db,
+      gateway,
+      intent,
+      {
+        providerPaymentId: authoritative.providerPaymentId,
+        amountMinor: authoritative.amountMinor,
+        currency: intent.currency,
+      },
+      now,
+    );
+    return "succeeded";
+  }
+  return intent.status;
 }

@@ -214,6 +214,13 @@ async function payAndConfirm(providerOrderId: string, at: Date): Promise<void> {
     clock: fixedClock(minutes(paidAt, 1)),
   });
   await syncPaidBookingsOnce(db, minutes(paidAt, 2), appBaseUrl);
+  // Rows default their timestamps to the database's real clock; the payment history page shows
+  // when a payment was made, so it must say when it happened in the seeded timeline.
+  await db.execute(
+    sql`UPDATE app.payments p SET created_at = ${paidAt.toISOString()}::timestamptz
+        FROM app.payment_intents i
+        WHERE i.id = p.payment_intent_id AND i.provider_order_id = ${providerOrderId}`,
+  );
 }
 
 async function findSlot(

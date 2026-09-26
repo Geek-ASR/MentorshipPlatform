@@ -44,6 +44,7 @@ export {
   decideReschedule,
   expirePendingReschedules,
 } from "./application/reschedule";
+export { findPendingReschedule, type RescheduleRequestRow } from "./infra/reschedule-repo";
 export {
   joinSession,
   checkIn,
@@ -78,7 +79,11 @@ export {
   confirmPaidBooking,
   type ConfirmPaidBookingOutcome,
 } from "./application/paid-confirmation";
-export { syncPaidBookingsOnce, type SyncPaidBookingsSummary } from "./application/paid-sync";
+export {
+  syncPaidBookingsOnce,
+  syncPaidBooking,
+  type SyncPaidBookingsSummary,
+} from "./application/paid-sync";
 
 // --- Phase 9: group sessions, free events, waitlists ---
 export {

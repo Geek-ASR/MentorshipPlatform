@@ -124,3 +124,29 @@ export async function getPaymentStatusForBooking(
   if (!intent) return null;
   return { orderItemId, status: intent.status };
 }
+
+export type CheckoutState = {
+  providerOrderId: string;
+  status: PaymentIntentStatus;
+  amountMinor: number;
+  currency: string;
+  holdExpiresAt: Date | null;
+};
+
+/** What the checkout page needs to show and drive one booking's payment (docs/22 §3 J1 step 4). */
+export async function getCheckoutState(
+  executor: Executor,
+  orderItemId: string,
+): Promise<CheckoutState | null> {
+  const orderItem = await findOrderItem(executor, orderItemId);
+  if (!orderItem) return null;
+  const intent = await findPaymentIntentByOrder(executor, orderItem.orderId);
+  if (!intent) return null;
+  return {
+    providerOrderId: intent.providerOrderId,
+    status: intent.status,
+    amountMinor: intent.amountMinor,
+    currency: intent.currency,
+    holdExpiresAt: intent.holdExpiresAt,
+  };
+}

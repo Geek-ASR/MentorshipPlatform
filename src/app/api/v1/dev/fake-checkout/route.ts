@@ -17,7 +17,7 @@ const bodySchema = z.object({
 export const POST = defineRoute(
   { name: "POST /api/v1/dev/fake-checkout", body: bodySchema, idempotency: "required" },
   async ({ actor, body, getDb, clock, env }) => {
-    if (env.PAYMENTS_PROVIDER !== "fake" || env.NODE_ENV === "production") {
+    if (env.PAYMENTS_PROVIDER !== "fake" || env.APP_ENV === "production") {
       throw new AppError("NOT_FOUND");
     }
     if (actor.kind !== "user") throw new AppError("UNAUTHENTICATED");
