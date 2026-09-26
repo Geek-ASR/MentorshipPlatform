@@ -343,6 +343,30 @@ flowchart LR
 
 **Tested:** 335 unit (+1: the production site refuses the fake provider) / 142 integration (+3: client-initiated confirmation with no scheduler tick and idempotency with the webhook job, a failed attempt then a retry within the hold, and the owner-only 404) / 60 E2E passing on the PR-smoke Chromium projects, 4 skipped by design (+10: docs/13 E2, E3, E4, E5 and sign-in-to-book, each on desktop and mobile — the mobile runs are E12, through the bottom sheet — with axe on the profile, checkout and booking pages). CI now seeds the demo data before the e2e suite.
 
+### 15c — Mentor area ✅ (2026-09-26)
+
+**Built:**
+- **Mentor home** (docs/22 §3 J2 "status page with checklist"): application status, paid or volunteer mode, a setup checklist (application, verification, a bookable session type, a meeting link on every one, weekly hours, payouts for paid mentors), whether the profile is listed with a link to it, and upcoming hosted sessions. A newcomer sees what mentoring involves and starts an application in one click.
+- **Application wizard** with save-and-resume: about you, education & work (organisations from the reference lists), topics grouped by section (up to 20) and languages with level, eligibility with a plain explanation of paid versus volunteer mode, optional professional links, then review & submit. Every step saves to the server, so it resumes where it was left — on any device — and stays editable after approval.
+- **Verification**: each affiliation with its confirmation, or a "Verify" dialog that emails a one-time link to the organisation's domain; the `/verify-affiliation` landing page (the path that email has always used) confirms it behind an explicit click.
+- **Sessions & prices**: create session types with lengths and prices in rupees (free for volunteer mentors), a meeting link and up to five questions for students; change the link and questions later; hide or re-show a type.
+- **Availability**: a weekly-hours editor in the mentor's own zone, booking rules (zone, minimum notice, how far ahead, break between sessions, daily cap, start-time spacing) and time off.
+- **Payouts** (simulated linked account in test mode, with released and upcoming totals and every transfer) and **Reviews** with one public reply each.
+
+**Backend additions and gaps closed:**
+1. **Meeting links finally exist** (15a's finding, docs/09 §12): an allowlist validator (https only, exact host or subdomain of the allowlisted providers; credentials, IP hosts, non-default ports and punycode rejected), the allowlist as an admin setting (`meeting.link_allowlist`), `mentor_services.meeting_url` (migration 0015), and join resolving a session-specific link first, then the service's link at join time — so a link added or corrected after booking still reaches the student (ADR-054). The demo mentors now have working links, so Join works end to end in the demo.
+2. **Intake questions could never be set.** The column existed and the booking panel shows them, but no API accepted them; service creation and the new service update now do.
+3. **Services could only be switched on or off.** `PATCH /me/mentor/services/:id` now also changes the meeting link and questions.
+
+**Deviations, decided and documented:**
+- **Price and length changes to an existing session type aren't offered** — they'd silently change what students see mid-decision; the flow is "create the new one, hide the old".
+- **Events and group sessions get their meeting link with event hosting (15d)** — the per-session link column already exists and join prefers it.
+- **Document-upload verification** is still unbuilt (no object storage yet); organisations outside the reference list can't be email-verified.
+- **The organisation picker is a plain select** (29 universities, 9 companies today); a typeahead is the next step when the lists grow.
+- **E6 runs on desktop only** — its staff-console half is desktop-only by design (docs/22 §7).
+
+**Tested:** 355 unit (+20: meeting-link validation) / 144 integration (+2: allowlist rejections as field errors; link and questions stored, changed and removed, with join resolving the service's link for a booking made before the link existed) / 61 E2E passing, 5 skipped by design (+1: docs/13 E6 — apply through the wizard, verify a university email through the captured link, approval in the staff console, a session type with a meeting link, weekly hours, payouts, and the public profile live; axe on the mentor home and application).
+
 ## Phase 16 — Deploy sandbox beta (S)
 
 **Scope:** host decision per [14 §3](14-deployment.md#3-hosting-decision-procedure-phase-16); Supabase staging (Mumbai) setup checklist; Razorpay test-mode webhooks; `pg_cron` tick; backups + restore drill; uptime + alerts; Sentry; invite-only beta (feature flag); beta feedback loop.
