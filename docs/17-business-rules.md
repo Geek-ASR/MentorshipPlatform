@@ -79,6 +79,8 @@ Defaults below are **proposals** to validate in beta. Every value is configurabl
 | `group.min_participants_unmet_refund_pct` | 100 | |
 | `refund.goodwill_max_minor@INR` (staff without second approval) | 1000000 (₹10,000) | Above → second approver |
 
+**Cut-off at the start (ADR-055):** a confirmed booking can't be cancelled or rescheduled once the session has started, by either side. From then on the outcome is settled by attendance claims, check-ins and, if needed, a dispute — a mentor who doesn't show is refunded to the student in full through that path (`refund.mentor_no_show_pct`), not as a cancellation.
+
 Refund split recomputation: see [08 §8](08-payment-architecture.md#8-refunds-cancellation-fees-adjustments).
 
 ## 6. Group sessions & events

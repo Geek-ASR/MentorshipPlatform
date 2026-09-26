@@ -174,11 +174,12 @@ Keyed by actor id when authenticated, else by IP (IPv6 /64). Responses include `
 |---------------|------|-------|
 | `POST /bookings` 🔑 | U | 1:1: `{serviceId, durationMin, startsAt, intakeAnswers}` → `201 {booking, paymentIntent, checkout}` or free confirmation |
 | `POST /sessions/{id}/bookings` 🔑 | U | Group seat / event registration |
-| `GET /me/bookings` | U | `role=student|mentor, status, from, to, cursor` |
+| `GET /sessions/{id}/seats` | A | `{capacity, liveSeats, status}` for a group session or a public/unlisted event (404 otherwise); `no-store` — cached pages read it on load |
+| `GET /me/bookings` | U | `role=student|mentor, status, from, to, cursor`; each row carries `sessionId` and `kind` |
 | `GET /bookings/{id}` | U | Participants and host only |
 | `GET /bookings/{id}/cancellation-quote` | U | Refund preview from the policy snapshot |
-| `POST /bookings/{id}/cancel` 🔑 | U | `{reasonCode, note}`; student or mentor semantics differ |
-| `POST /bookings/{id}/reschedule` 🔑 | U | `{startsAt}` within policy; mentor-consent flow if late |
+| `POST /bookings/{id}/cancel` 🔑 | U | `{reasonCode, note}`; student or mentor semantics differ; `409` once the session has started (ADR-055) |
+| `POST /bookings/{id}/reschedule` 🔑 | U | `{startsAt}` within policy; mentor-consent flow if late; `409` once the session has started |
 | `POST /bookings/{id}/check-in` | U | Within the join window |
 | `GET /sessions/{id}/join` | U | 302 → meeting URL (window + participant check; logs attendance signal) |
 | `POST /bookings/{id}/attendance-claims` | U | `{outcome: held|mentor_absent|student_absent|technical_issue, note}` |
@@ -213,8 +214,8 @@ Keyed by actor id when authenticated, else by IP (IPv6 /64). Responses include `
 |---------------|------|-------|
 | `POST /reports` | U | `{targetType, targetId, reasonCode, details}` (no existence oracle: always 202) |
 | `POST /bookings/{id}/disputes` 🔑 · `GET /disputes/{id}` · `POST /disputes/{id}/evidence` | U (participant) | Window-limited |
-| `GET /me/enforcement` | U | Active restrictions, actions, appeal eligibility |
-| `POST /moderation-actions/{id}/appeals` | U (subject) | One appeal per action |
+| `GET /me/enforcement` | U | Active restrictions, actions, appeal eligibility, and the appeal already made against each action |
+| `POST /moderation-actions/{id}/appeals` | U (subject) | One appeal per action, within 30 days (`409` after) |
 
 ### 7.9 Admin (`/api/v1/admin/*`; staff + MFA; audited)
 | Area | Endpoints | Roles |
