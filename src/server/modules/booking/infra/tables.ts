@@ -224,6 +224,13 @@ export const bookings = appSchema.table(
       .notNull()
       .default([]),
     policySnapshot: jsonb("policy_snapshot").$type<Record<string, unknown>>().notNull(),
+    /**
+     * When the booking first became `confirmed` (never cleared, even after a later cancellation).
+     * Status alone can't tell "cancelled after being confirmed and refunded normally" apart from
+     * "cancelled while the payment was still pending" — the late-capture sync must only ever act on
+     * the second (docs/09 §6.3), so it filters on this column.
+     */
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
     version: integer("version").notNull().default(0),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
@@ -231,6 +238,10 @@ export const bookings = appSchema.table(
   (t) => [
     check("bookings_status_valid", checkIn("status", BOOKING_STATUSES)),
     check("bookings_price_non_negative", sql`${t.priceMinor} >= 0`),
+    check(
+      "bookings_confirmed_at_consistency",
+      sql`${t.status} <> 'confirmed' OR ${t.confirmedAt} IS NOT NULL`,
+    ),
     index("bookings_session_idx").on(t.sessionId),
     index("bookings_student_idx").on(t.studentId),
     uniqueIndex("bookings_one_active_seat")

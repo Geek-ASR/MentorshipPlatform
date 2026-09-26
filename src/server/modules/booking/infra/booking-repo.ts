@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import type { Executor } from "@/server/platform/db/client";
 import { newId } from "@/server/platform/ids";
 import { toTstzRange } from "@/server/platform/db/sql-helpers";
@@ -26,6 +26,8 @@ export async function insertBooking(
     currency: string;
     intakeAnswers: { questionId: string; value: string }[];
     policySnapshot: Record<string, unknown>;
+    /** Required whenever `status` is `confirmed` (a free booking confirms on insert). */
+    confirmedAt?: Date | null;
   },
 ): Promise<BookingRow> {
   const [row] = await executor
@@ -48,7 +50,14 @@ export async function transitionBookingStatus(
 ): Promise<BookingRow | undefined> {
   const [row] = await executor
     .update(bookings)
-    .set({ status: to, version: expectedVersion + 1, updatedAt: now })
+    .set({
+      status: to,
+      version: expectedVersion + 1,
+      updatedAt: now,
+      ...(to === "confirmed"
+        ? { confirmedAt: sql`coalesce(${bookings.confirmedAt}, ${now.toISOString()}::timestamptz)` }
+        : {}),
+    })
     .where(and(eq(bookings.id, id), eq(bookings.version, expectedVersion)))
     .returning();
   return row;
@@ -263,13 +272,20 @@ export async function listBookingsForAdmin(
 }
 
 /** Paid bookings whose payment status still needs checking (docs/08 §10 payment sweeper input) —
- * `booking`'s own sync job polls this instead of `payments` calling into `booking` directly. */
+ * `booking`'s own sync job polls this instead of `payments` calling into `booking` directly.
+ * A booking that was ever confirmed already settled its payment through the normal flow (and, if
+ * later cancelled, its refund through the cancellation policy), so it is never a late-capture
+ * candidate — without that filter a normal cancellation would be refunded a second time. */
 export async function listBookingsPendingPaymentSync(executor: Executor): Promise<BookingRow[]> {
   return executor
     .select()
     .from(bookings)
     .where(
-      and(inArray(bookings.status, PENDING_PAYMENT_SYNC_STATUSES), isNotNull(bookings.orderItemId)),
+      and(
+        inArray(bookings.status, PENDING_PAYMENT_SYNC_STATUSES),
+        isNotNull(bookings.orderItemId),
+        isNull(bookings.confirmedAt),
+      ),
     );
 }
 

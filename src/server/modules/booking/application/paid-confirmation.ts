@@ -39,6 +39,12 @@ export async function confirmPaidBooking(
       // Already confirmed by an earlier delivery, or moved on to some other terminal state.
       return { outcome: "already_settled", booking };
     }
+    if (booking.confirmedAt !== null) {
+      // Confirmed once and cancelled afterwards: its payment already captured through the normal
+      // flow and any refund was decided by the cancellation policy. Orphaning it here would refund
+      // it a second time (and a no-refund late cancellation in full).
+      return { outcome: "already_settled", booking };
+    }
 
     const session = await findSession(tx, booking.sessionId);
     if (!session) throw new AppError("NOT_FOUND");

@@ -99,6 +99,13 @@
       "when": 1790339632388,
       "tag": "0013_content_articles",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1790384119998,
+      "tag": "0014_booking_confirmed_at",
+      "breakpoints": true
     }
   ]
 }
