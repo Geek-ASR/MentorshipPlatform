@@ -1,6 +1,13 @@
 "use client";
 
 import {
+  BadgeCheck,
+  Banknote,
+  CalendarClock,
+  HandCoins,
+  Sparkles,
+  Star,
+  UserRound,
   CalendarDays,
   CalendarHeart,
   Heart,
@@ -43,6 +50,25 @@ function sectionsFor(viewer: Viewer): NavSection[] {
       ],
     },
   ];
+  const mentor = viewer.roles.includes("mentor");
+  sections.push({
+    title: "Mentoring",
+    items: mentor
+      ? [
+          { href: "/dashboard/mentor", label: "Mentor home", icon: Sparkles, exact: true },
+          { href: "/dashboard/mentor/services", label: "Sessions & prices", icon: HandCoins },
+          { href: "/dashboard/mentor/availability", label: "Availability", icon: CalendarClock },
+          { href: "/dashboard/mentor/verification", label: "Verification", icon: BadgeCheck },
+          { href: "/dashboard/mentor/payouts", label: "Payouts", icon: Banknote },
+          { href: "/dashboard/mentor/reviews", label: "Reviews", icon: Star },
+          {
+            href: "/dashboard/mentor/application",
+            label: "Profile & application",
+            icon: UserRound,
+          },
+        ]
+      : [{ href: "/dashboard/mentor", label: "Become a mentor", icon: Sparkles }],
+  });
   if (isStaff(viewer.roles)) {
     sections.push({
       title: "Staff",

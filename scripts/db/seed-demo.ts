@@ -378,6 +378,10 @@ async function main(): Promise<void> {
           title: service.title,
           descriptionMd: service.description,
           prices: service.prices.map((p) => ({ ...p, currency: "INR" })),
+          // A public Jitsi room per mentor, so "Join" works end to end in the demo (docs/09 §12
+          // allowlists meet.jit.si); nothing here identifies a real person.
+          meetingUrl: `https://meet.jit.si/aheadly-demo-${seed.key}-${serviceIds.length + 1}`,
+          intakeQuestions: service.intakeQuestions?.map((label) => ({ label })),
         },
         setupAt,
       );

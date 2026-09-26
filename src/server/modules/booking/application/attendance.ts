@@ -4,6 +4,7 @@ import type { UserActor } from "@/server/platform/authz/actor";
 import { AppError } from "@/server/platform/errors";
 import { writeAudit } from "@/server/platform/audit";
 import { getSetting } from "@/server/platform/settings/settings";
+import { findService } from "../infra/service-repo";
 import { createFakeGateway, refundOrderItem } from "@/server/modules/payments";
 import {
   determineAttendanceOutcome,
@@ -61,7 +62,11 @@ export async function joinSession(
     throw new AppError("BAD_REQUEST", { detail: "The join link isn't active yet." });
   }
   await recordSignal(db, { sessionId, userId: actor.userId, kind: "join_click", occurredAt: now });
-  return { meetingUrl: session.meetingUrl };
+  // A session-specific link wins; otherwise the mentor's link for the service it was booked from
+  // (read now, so a link added or corrected after booking still reaches the student).
+  if (session.meetingUrl) return { meetingUrl: session.meetingUrl };
+  const service = session.serviceId ? await findService(db, session.serviceId) : undefined;
+  return { meetingUrl: service?.meetingUrl ?? null };
 }
 
 export async function checkIn(

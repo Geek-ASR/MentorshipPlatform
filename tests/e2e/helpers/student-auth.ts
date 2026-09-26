@@ -39,7 +39,7 @@ export async function createStudent(
   context: BrowserContext,
   baseURL: string,
   tag: string,
-  { signIn = false }: { signIn?: boolean } = {},
+  { signIn = false, displayName = "Riya Kapoor" }: { signIn?: boolean; displayName?: string } = {},
 ): Promise<StudentFixture> {
   await resetAuthRateLimits();
   const env = loadedEnv();
@@ -47,7 +47,6 @@ export async function createStudent(
   try {
     const email = `e2e.student.${tag}.${Date.now()}.${Math.random().toString(36).slice(2, 8)}@example.com`;
     const password = "velvet lantern orbit meadow";
-    const displayName = "Riya Kapoor";
     const signUpRes = await context.request.post(`${baseURL}/api/v1/auth/sign-up`, {
       data: {
         email,
@@ -96,6 +95,8 @@ export async function capturedEmailLink(email: string, path: string): Promise<st
       rows[0]?.text ?? "",
     );
     if (!match) throw new Error(`no ${path} link captured for ${email}`);
+    // Captured, so never delivered: the address may sit on a real institution's domain.
+    await sql`delete from app.outbox_jobs where type = 'auth.send_email' and payload->>'to' = ${email}`;
     return `${path}?token=${match[1]}`;
   } finally {
     await sql.end();

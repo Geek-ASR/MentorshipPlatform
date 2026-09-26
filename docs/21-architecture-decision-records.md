@@ -409,3 +409,11 @@ New ADRs are appended; superseded ADRs are marked, not deleted.
 - **Decision:** (c). `refreshPaymentForOrderItem` (payments) reuses `applyVerifiedCapture`; `settlePaidBooking` (booking) is now the single per-booking step behind both `syncPaidBookingsOnce` and the new `syncPaidBooking`, which only the booking's own student may call. The checkout calls it after paying and polls it briefly; booking pages still "waiting for payment" call it once on load. The fake routes now check `APP_ENV !== "production"`, and env validation refuses `PAYMENTS_PROVIDER=fake` with `APP_ENV=production`.
 - **Reason:** Immediate, trustworthy confirmation without a second code path, and a fake provider that is off exactly where it must be.
 - **Revisit when:** Razorpay's checkout handler lands (Phase 16) — its success callback should call the same sync after verifying the handler signature.
+
+### ADR-054 — Meeting links live on the service and are resolved at join time; a session-specific link wins (Phase 15c)
+- **Problem:** docs/09 §12 (an MVP requirement) has mentors set a meeting link "per service or per session", but nothing ever set one — `sessions.meeting_url` was always null, so the join redirect could never succeed.
+- **Options:** (a) copy the service's link onto each session when it's booked; (b) keep the link on the service and resolve it when someone joins, letting a per-session link override; (c) generate rooms automatically (Google Meet/Zoom APIs).
+- **Trade-offs:** (a) freezes a typo or a rotated link into every existing booking. (c) needs OAuth verification or paid APIs — Beta scope in docs/09. (b) is one column and one fallback, always current, and keeps the per-session override for events and group sessions.
+- **Decision:** (b). `mentor_services.meeting_url`, validated against the admin-editable `meeting.link_allowlist` (docs/09 §12's rules: https only, exact host or subdomain, no credentials, IP hosts, non-default ports or punycode). `joinSession` returns the session's own link if set, otherwise the service's, read at join time. Links still never appear in emails or calendar files — only the checked join redirect.
+- **Reason:** Working joins now, with no stale copies.
+- **Revisit when:** provider integrations (Beta) create per-session rooms automatically — they'd fill the session column, which already wins.

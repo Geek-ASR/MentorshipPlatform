@@ -24,6 +24,7 @@ export type ServiceSeed = {
   title: string;
   description: string;
   prices: { durationMin: number; priceMinor: number }[];
+  intakeQuestions?: string[];
 };
 
 export type MentorSeed = {
@@ -114,6 +115,10 @@ In a session we can shortlist universities against your actual transcript, walk 
           { durationMin: 30, priceMinor: 90_000 },
           { durationMin: 60, priceMinor: 150_000 },
         ],
+        intakeQuestions: [
+          "Which universities and programmes are you considering?",
+          "Where are you in the process — shortlisting, documents, or applications sent?",
+        ],
       },
       {
         title: "Intro call",
@@ -175,12 +180,14 @@ My sessions are practical: a realistic mock interview, then a written debrief wi
         description:
           "A realistic interview on a problem suited to your target level, followed by a structured debrief and written notes.",
         prices: [{ durationMin: 60, priceMinor: 180_000 }],
+        intakeQuestions: ["What level are you interviewing for, and at which companies?"],
       },
       {
         title: "Resume review for software roles",
         description:
           "Line-by-line feedback on your resume for the roles you're targeting, with a rewritten summary and example bullets.",
         prices: [{ durationMin: 30, priceMinor: 70_000 }],
+        intakeQuestions: ["Which roles are you applying for?"],
       },
     ],
     hostsEvents: true,

@@ -17,6 +17,7 @@ export {
   listMyServices,
   createMentorService,
   setMentorServiceActive,
+  updateMentorService,
   findService,
   type CreateServiceInput,
 } from "./application/services";

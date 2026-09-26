@@ -24,6 +24,9 @@ import { POST as confirmChallenge } from "@/app/api/v1/verification/email-challe
 import { PATCH as patchScheduling } from "@/app/api/v1/me/mentor/scheduling/route";
 import { POST as addRule } from "@/app/api/v1/me/mentor/availability-rules/route";
 import { POST as createService } from "@/app/api/v1/me/mentor/services/route";
+import { PATCH as patchService } from "@/app/api/v1/me/mentor/services/[id]/route";
+import { joinSession } from "@/server/modules/booking";
+import { resolveSessionActor } from "@/server/modules/auth";
 import { GET as getSlots } from "@/app/api/v1/mentors/[slug]/slots/route";
 import { POST as createBooking } from "@/app/api/v1/bookings/route";
 import { GET as getBooking } from "@/app/api/v1/bookings/[id]/route";
@@ -536,5 +539,103 @@ describe("booking lifecycle (docs/19 Phase 7 exit criteria)", () => {
       routeContext({ id: created.booking.id }),
     );
     expect(claim.status).toBe(400);
+  });
+
+  // docs/09 §12 (found missing in docs/19 Phase 15a: nothing ever set a meeting link, so "Join"
+  // could never succeed).
+  describe("meeting links", () => {
+    it("rejects links that aren't on the provider allowlist, with a field error", async () => {
+      const { mentor } = await setupListedMentor(
+        "mentor.badlink@example.com",
+        "Bad Link",
+        "badlink",
+      );
+      for (const meetingUrl of [
+        "http://meet.google.com/abc-defg-hij",
+        "https://evil.example/zoom.us",
+        "https://user@zoom.us/j/1",
+      ]) {
+        const response = await createService(
+          jsonRequest("/api/v1/me/mentor/services", {
+            body: {
+              title: "Review",
+              prices: [{ durationMin: 30, priceMinor: 0, currency: "INR" }],
+              meetingUrl,
+            },
+            headers: { cookie: mentor.cookie },
+          }),
+          routeContext(),
+        );
+        expect(response.status, meetingUrl).toBe(422);
+        const body = (await response.json()) as { errors: { path: string }[] };
+        expect(body.errors[0]!.path).toBe("meetingUrl");
+      }
+    });
+
+    it("stores a link and questions, lets the mentor change them, and join resolves the service's link", async () => {
+      const { mentor, slug, serviceId } = await setupListedMentor(
+        "mentor.link@example.com",
+        "Link Mentor",
+        "linkmentor",
+      );
+      const patch = await patchService(
+        jsonRequest(`/api/v1/me/mentor/services/${serviceId}`, {
+          method: "PATCH",
+          body: {
+            meetingUrl: "https://meet.jit.si/aheadly-test-room",
+            intakeQuestions: [{ label: "What would you like to cover?" }],
+          },
+          headers: { cookie: mentor.cookie },
+        }),
+        routeContext({ id: serviceId }),
+      );
+      expect(patch.status).toBe(204);
+      const [row] = await t.db.execute<{
+        meeting_url: string;
+        intake_questions: { label: string }[];
+      }>(
+        sql`select meeting_url, intake_questions from app.mentor_services where id = ${serviceId}`,
+      );
+      expect(row!.meeting_url).toBe("https://meet.jit.si/aheadly-test-room");
+      expect(row!.intake_questions.map((q) => q.label)).toEqual(["What would you like to cover?"]);
+
+      // A booking made before the link existed still gets it: join reads the service's link.
+      const student = await signUpAndVerify("student.link@example.com", "Link Student");
+      const slot = await firstAvailableSlot(slug, serviceId);
+      const booking = await createBooking(
+        jsonRequest("/api/v1/bookings", {
+          body: {
+            mentorUserId: mentor.userId,
+            serviceId,
+            durationMin: 60,
+            startsAt: slot.startsAt,
+            intakeAnswers: [],
+          },
+          headers: idemHeaders(student.cookie),
+        }),
+        routeContext(),
+      );
+      const created = (await booking.json()) as { booking: { id: string } };
+      const [session] = await t.db.execute<{ session_id: string }>(
+        sql`select session_id from app.bookings where id = ${created.booking.id}`,
+      );
+      const token = decodeURIComponent(student.cookie.split("=")[1]!);
+      const actor = await resolveSessionActor(t.db, token, new Date());
+      if (actor.kind !== "user") throw new Error("expected a signed-in student");
+      const joined = await joinSession(t.db, actor, session!.session_id, new Date(slot.startsAt));
+      expect(joined.meetingUrl).toBe("https://meet.jit.si/aheadly-test-room");
+
+      // Removing the link is allowed; join then has nothing to open.
+      await patchService(
+        jsonRequest(`/api/v1/me/mentor/services/${serviceId}`, {
+          method: "PATCH",
+          body: { meetingUrl: null },
+          headers: { cookie: mentor.cookie },
+        }),
+        routeContext({ id: serviceId }),
+      );
+      const again = await joinSession(t.db, actor, session!.session_id, new Date(slot.startsAt));
+      expect(again.meetingUrl).toBeNull();
+    });
   });
 });
