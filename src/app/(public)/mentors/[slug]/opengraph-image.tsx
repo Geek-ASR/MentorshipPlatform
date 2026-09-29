@@ -32,7 +32,7 @@ export default async function Image({ params }: { params: Promise<ImageParams> }
         fontFamily: "sans-serif",
       }}
     >
-      <div style={{ display: "flex", fontSize: 28, color: "#3A615A", fontWeight: 600 }}>
+      <div style={{ display: "flex", fontSize: 28, color: "#1E6759", fontWeight: 600 }}>
         {brand.name}
       </div>
       <div

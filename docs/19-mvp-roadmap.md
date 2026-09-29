@@ -436,6 +436,12 @@ The founder's review of the preview: the colours felt generic and not beautiful.
 
 The founder then supplied the brand palette: sage `#97B3AE`, pale sage `#D2E0D3`, blush `#F0DDD6`, dusty pink `#F2C3B9`, greige `#D6CBBF`, off-white `#F0EEEA` (ADR-058, docs/22 §6.1). All six are used as-is for the page, tints, soft badges, avatar tones, brand light and the logo; because they are too light for text (≤ 2.2:1 on white), text and actions use deep shades of the same hues — deep sage for actions, terracotta for accents, a forest sage for the sign-in panel, mentor band, footer and preview banner. The home hero became light (pale-sage, blush and pink light on the off-white; "been there." over a dusty-pink marker). Every text pair passes AA in light and dark mode — enforced by the contrast test added in the previous refresh — and axe passes in every e2e journey.
 
+### After 15e — Buttons brightened (2026-09-29)
+
+The founder found the primary button dull and flat — flagged against the dark-mode checkout screen, where `--primary` (`#97B3AE`) was only 16% saturated and read as grayish against the dark surface. Fixed without leaving the palette: same hues, pushed to 59–80% saturation, deeper in light mode and brighter in dark mode (ADR-059) — `--primary` `#3A615A → #1E6759` (light) and `#97B3AE → #54D4BD` (dark, a vivid jade), `--accent` `#9E4A3B → #A33B29` (light) and `#F2C3B9 → #ED795E` (dark, a vivid coral). The button component's own glow shadow, already colour-mixed from these tokens, brightens with them; its opacity and blur were nudged up too, with a stronger glow on hover. `on-primary`, `on-accent`, the soft tints and every other token are unchanged. `tests/unit/ui/palette-contrast.test.ts` re-verified every pair still meets AA — light `--primary`/`--primary-soft` was the tightest candidate, which is why light mode stayed dark-and-saturated rather than dark-and-bright.
+
+**Tested:** 365 unit (contrast test re-passing with the new values) / 66 E2E on Chromium, 6 skipped by design, axe clean across every journey.
+
 ## Phase 16 — Deploy sandbox beta (S)
 
 **Scope:** host decision per [14 §3](14-deployment.md#3-hosting-decision-procedure-phase-16); Supabase staging (Mumbai) setup checklist; Razorpay test-mode webhooks; `pg_cron` tick; backups + restore drill; uptime + alerts; Sentry; invite-only beta (feature flag); beta feedback loop.

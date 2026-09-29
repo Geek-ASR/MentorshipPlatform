@@ -91,9 +91,9 @@ Basics → Expertise → Education & work → Eligibility (country, status; expl
 
 ## 6. Design language & tokens
 
-### 6.1 Colour (WCAG-checked pairs) — the founder's palette (ADR-058, replaces "Neel & Rani")
+### 6.1 Colour (WCAG-checked pairs) — the founder's palette (ADR-058), buttons brightened (ADR-059)
 
-The palette: **sage `#97B3AE`**, **pale sage `#D2E0D3`**, **blush `#F0DDD6`**, **dusty pink `#F2C3B9`**, **greige `#D6CBBF`**, **off-white `#F0EEEA`**. These six are used as-is for the page, tints, soft badges, avatar tones and brand light. They are too light to carry text (at most 2.2:1 on white), so text and actions use **deep shades of the same hues**: deep sage for the brand and every action, terracotta (from the dusty pink) as a sparing accent. The home hero is light — the off-white with pale-sage, blush and pink light and a faint grid, "been there." in deep sage over a dusty-pink marker stroke. A deep **forest** shade of the sage carries the grounding moments: the sign-in panel, the mentor band, the footer and the preview banner. In dark mode the palette's sage and pink themselves become the action and accent colours.
+The palette: **sage `#97B3AE`**, **pale sage `#D2E0D3`**, **blush `#F0DDD6`**, **dusty pink `#F2C3B9`**, **greige `#D6CBBF`**, **off-white `#F0EEEA`**. These six are used as-is for the page, tints, soft badges, avatar tones and brand light. They are too light to carry text (at most 2.2:1 on white), so text and actions use **more saturated, deeper shades of the same hues**: a rich emerald sage for the brand and every action, a vivid terracotta (from the dusty pink) as a sparing accent — bright and confident, not muted (ADR-059, in response to the founder finding the first pass too dull). The home hero is light — the off-white with pale-sage, blush and pink light and a faint grid, "been there." in deep sage over a dusty-pink marker stroke. A deep **forest** shade of the sage carries the grounding moments: the sign-in panel, the mentor band, the footer and the preview banner. In dark mode the palette's own sage and pink hues, pushed brighter and more saturated, become the action and accent colours — a vivid jade and a vivid coral, luminous against the dark surfaces.
 
 | Token | Light | Dark | Use | Contrast note |
 |-------|-------|------|-----|---------------|
@@ -102,10 +102,10 @@ The palette: **sage `#97B3AE`**, **pale sage `#D2E0D3`**, **blush `#F0DDD6`**, *
 | `--line` | `#DDD4CA` (from greige) | `#2E3A37` | Dividers, inputs | Non-text |
 | `--ink` | `#1F2B29` | `#EEEAE4` | Body text | 12.6:1 on canvas (light), 14.6:1 (dark) |
 | `--ink-muted` | `#56645F` | `#A9B5B1` | Secondary text | 5.4:1 on canvas (light), 8.3:1 (dark) ✓ |
-| `--primary` | `#3A615A` (deep sage) | `#97B3AE` (sage) | Buttons, links, focus | White on light 6.9:1 ✓; dark text on sage 7.3:1 ✓ |
-| `--primary-strong` | `#2C4B45` | `#B2C8C4` | Hover/pressed | 9.6:1 / 9.3:1 ✓ |
-| `--primary-soft` | `#D2E0D3` (pale sage) | `#243431` | Selected rows, icon wells | Primary text on it 5.1:1 / 5.8:1 ✓ |
-| `--accent` | `#9E4A3B` (terracotta) | `#F2C3B9` (dusty pink) | Eyebrows, the mentor CTA | 5.2:1 on canvas; white on it 6.0:1 ✓ |
+| `--primary` | `#1E6759` (vivid emerald sage) | `#54D4BD` (vivid jade) | Buttons, links, focus | White on light 6.7:1 ✓; dark text on jade 9.0:1 ✓ |
+| `--primary-strong` | `#174F45` | `#7EE6D3` | Hover/pressed | 9.4:1 / 11.1:1 ✓ |
+| `--primary-soft` | `#D2E0D3` (pale sage) | `#243431` | Selected rows, icon wells | Primary text on it 4.9:1 / 7.2:1 ✓ |
+| `--accent` | `#A33B29` (vivid terracotta) | `#ED795E` (vivid coral) | Eyebrows, the mentor CTA | 5.6:1 on canvas; white on it 6.5:1 ✓ |
 | `--accent-soft` / `--accent-ink` | `#F0DDD6` (blush) / `#8A3F32` | `#3A2A25` / `#F2C3B9` | Soft badges | 5.6:1 / 8.6:1 ✓ |
 | `--star` | `#D49A2A` | `#E8B85A` | Rating stars and bars only | Decorative — ratings always show the number |
 | `--night` / `--night-2` | `#1F2F2C` / `#2C433E` (forest) | `#0F1716` / `#1A2825` | Grounding surfaces | White 10.6:1+; `--on-night-muted` `#C8D6D2` 7.1:1+ ✓ |

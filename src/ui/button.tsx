@@ -10,9 +10,9 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "bg-primary text-on-primary shadow-[inset_0_1px_0_rgb(255_255_255/0.16),0_1px_2px_rgb(var(--shadow-color)/0.18),0_4px_12px_-4px_color-mix(in_oklab,var(--primary)_55%,transparent)] hover:bg-primary-strong",
+          "bg-primary text-on-primary shadow-[inset_0_1px_0_rgb(255_255_255/0.22),0_1px_2px_rgb(var(--shadow-color)/0.18),0_6px_18px_-4px_color-mix(in_oklab,var(--primary)_70%,transparent)] hover:bg-primary-strong hover:shadow-[inset_0_1px_0_rgb(255_255_255/0.22),0_1px_2px_rgb(var(--shadow-color)/0.18),0_8px_22px_-4px_color-mix(in_oklab,var(--primary)_80%,transparent)]",
         accent:
-          "bg-accent text-on-accent shadow-[inset_0_1px_0_rgb(255_255_255/0.16),0_1px_2px_rgb(var(--shadow-color)/0.18),0_4px_12px_-4px_color-mix(in_oklab,var(--accent)_55%,transparent)] hover:bg-accent/90",
+          "bg-accent text-on-accent shadow-[inset_0_1px_0_rgb(255_255_255/0.22),0_1px_2px_rgb(var(--shadow-color)/0.18),0_6px_18px_-4px_color-mix(in_oklab,var(--accent)_70%,transparent)] hover:bg-accent/90 hover:shadow-[inset_0_1px_0_rgb(255_255_255/0.22),0_1px_2px_rgb(var(--shadow-color)/0.18),0_8px_22px_-4px_color-mix(in_oklab,var(--accent)_80%,transparent)]",
         secondary:
           "border border-line bg-surface text-ink shadow-[0_1px_2px_rgb(var(--shadow-color)/0.05)] hover:border-primary/35 hover:bg-primary-soft/50",
         ghost: "text-ink hover:bg-primary-soft",
