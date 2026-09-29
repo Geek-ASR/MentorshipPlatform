@@ -134,7 +134,10 @@ export default async function BookingsPage() {
     },
   ];
   if (hosted) {
-    items.push({
+    // A mentor with nothing booked as a student lands on what they're hosting — the same
+    // "mentor first" rule the overview uses.
+    const mentorFirst = mine.upcoming.length === 0 && hosted.upcoming.length > 0;
+    items[mentorFirst ? "unshift" : "push"]({
       id: "hosting",
       label: "You're hosting",
       count: hosted.upcoming.length,
