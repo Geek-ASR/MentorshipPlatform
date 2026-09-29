@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BASE_PATH } from "@/config/preview";
 import { api } from "./api";
 
 /** Client-side mirror of the server's `MeDto` (client code must not import server modules). */
@@ -55,7 +56,8 @@ export function useViewer(): ViewerState {
 export async function signOut(redirectTo = "/"): Promise<void> {
   await api("/api/v1/auth/sign-out", { method: "POST" }).catch(() => undefined);
   invalidateViewer();
-  window.location.assign(redirectTo);
+  // A full navigation so every layout re-renders signed out; the preview lives under a base path.
+  window.location.assign(new URL(`${BASE_PATH}${redirectTo}`, window.location.origin));
 }
 
 /** Mirrors `STAFF_ROLES` in platform/authz — only decides whether to show a link; the admin

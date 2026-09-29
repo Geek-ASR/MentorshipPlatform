@@ -1,3 +1,5 @@
+import { PREVIEW } from "@/config/preview";
+
 /**
  * Browser client for the REST API (ADR-019: every mutation goes through a `defineRoute` handler).
  * Adds an idempotency key to every non-GET request and turns RFC 9457 problem+json responses into
@@ -53,6 +55,10 @@ export async function api<T = unknown>(
   path: string,
   { method = "GET", body }: { method?: ApiMethod; body?: unknown } = {},
 ): Promise<T> {
+  if (PREVIEW) {
+    const { previewRequest } = await import("./preview-api");
+    return (await previewRequest(path, method, body)) as T;
+  }
   const headers: Record<string, string> = { accept: "application/json" };
   if (method !== "GET") {
     headers["content-type"] = "application/json";

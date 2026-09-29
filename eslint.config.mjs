@@ -49,5 +49,7 @@ export default defineConfig([
     "test-results/**",
     "drizzle/**",
     "docs/**",
+    ".preview/**",
+    "dist-pages/**",
   ]),
 ]);

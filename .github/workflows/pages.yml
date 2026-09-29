@@ -1,12 +1,13 @@
 name: Pages
 
+# The public GitHub Pages site (docs/19 Phase 15e): a static preview of the whole UI on fictional
+# demo data at the root (student view) and /as-mentor/ (mentor view), with the build-progress
+# dashboard at /progress/. Rebuilt daily so the sample data's relative dates stay current.
 on:
   push:
     branches: [main]
-    paths:
-      - "progress-site/**"
-      - "docs/19-mvp-roadmap.md"
-      - ".github/workflows/pages.yml"
+  schedule:
+    - cron: "30 0 * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -18,11 +19,35 @@ concurrency:
   group: pages
   cancel-in-progress: false
 
+# Placeholder values (not secrets) for a throwaway database that exists only during the build.
+env:
+  APP_ENV: test
+  APP_BASE_URL: https://geek-asr.github.io/MentorshipPlatform
+  LOG_LEVEL: warn
+  DATABASE_URL: postgres://postgres:postgres@localhost:5432/aheadly_preview
+  DATABASE_MIGRATOR_URL: postgres://postgres:postgres@localhost:5432/aheadly_preview
+  TEST_DATABASE_ADMIN_URL: postgres://postgres:postgres@localhost:5432/postgres
+  JOB_TICK_SECRET: ci-placeholder-job-tick-value-not-a-real-secret
+  OPS_SECRET: ci-placeholder-ops-value-not-a-real-secret-000
+  MFA_ENCRYPTION_KEY: ci-placeholder-mfa-key-value-not-a-real-secret-0
+  NEXT_TELEMETRY_DISABLED: "1"
+
 jobs:
   build:
-    name: Build progress dashboard
+    name: Build UI preview and progress dashboard
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -30,7 +55,16 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run db:setup
+      - run: npm run db:seed:demo
+      - run: node scripts/preview/build.mjs
+        env:
+          PREVIEW_ROOT: /MentorshipPlatform
       - run: node progress-site/generate.mjs
+        env:
+          PROGRESS_OUT_DIR: dist-pages/progress
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:

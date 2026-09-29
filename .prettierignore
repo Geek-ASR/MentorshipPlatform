@@ -7,3 +7,5 @@ drizzle
 package-lock.json
 docs
 *.md
+.preview
+dist-pages
