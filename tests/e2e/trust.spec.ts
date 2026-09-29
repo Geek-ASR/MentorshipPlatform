@@ -30,11 +30,13 @@ test.describe("after a session", () => {
   }) => {
     await createStudent(context, baseURL!, "e9", { signIn: true });
     const lane = LANE[test.info().project.name] ?? 0;
+    // Meera: a free mentor no booking journey uses, so parallel projects can't fill another
+    // test's mentor's daily cap. Lanes pick slots a few days apart for the same reason.
     const { bookingId, mentorName } = await bookFreeDemoSession(
       context,
       baseURL!,
-      lane % 2 === 0 ? "meera" : "ananya",
-      lane * 3 + test.info().retry,
+      "meera",
+      lane * 7 + test.info().retry,
     );
     const firstName = mentorName.split(" ")[0]!;
     await moveSessionIntoPast(bookingId, 45, 30);
