@@ -85,29 +85,37 @@ Basics → Expertise → Education & work → Eligibility (country, status; expl
 
 - **Working name:** Aheadly (placeholder; trademark/domain clearance pending). Name lives only in `src/config/brand.ts` (ADR-020). A web search found no mentorship platform using this name; "Been There" is taken by a UK mentoring app.
 - **Tagline:** *Guidance from people who've been there.*
-- **Logo concept:** lowercase wordmark `aheadly` with a mark of **two offset rounded squares forming a step** ("one step ahead"). The mark works as a monochrome favicon; no gradients.
+- **Logo concept:** lowercase wordmark `aheadly` with a mark of **two offset rounded squares forming a step** ("one step ahead") — the lower square in neel indigo, the upper in rani rose (white and rose on night surfaces). The mark still works as a monochrome favicon; no gradients in the mark itself.
 - **Voice:** clear, warm, specific, honest about limits ("mentor experience, not official advice"). No hype ("guaranteed", "top 1%").
 - **Imagery:** real mentor photos (consented), simple line illustrations for empty states; no stock-photo handshakes.
 
 ## 6. Design language & tokens
 
-### 6.1 Colour (WCAG-checked pairs)
+### 6.1 Colour (WCAG-checked pairs) — "Neel & Rani" (ADR-057, replaces Harbor & Saffron)
+
+Deep ink-indigo (after *neel*, indigo dye) carries the brand and every action; rani rose is a sparing accent (eyebrows, highlights, one CTA per view at most); gold is reserved for ratings. Neutrals are cool and crisp. A **night** surface — deep indigo with soft indigo, violet and rose light — marks the brand moments: the home hero, the sign-in panel, the mentor band, the footer and the preview banner.
 
 | Token | Light | Dark | Use | Contrast note |
 |-------|-------|------|-----|---------------|
-| `--bg` | `#FAFAF7` | `#0E1419` | Page background | — |
-| `--surface` | `#FFFFFF` | `#151D24` | Cards, sheets | — |
-| `--border` | `#E4E2DC` | `#26313A` | Dividers, inputs | Non-text |
-| `--text` | `#0B1B2B` | `#E7ECEF` | Body text | ≈ 17:1 on `--bg` (light) |
-| `--text-muted` | `#5B6470` | `#9AA7B2` | Secondary text | ≈ 5.7:1 on `--bg` (light) ✓ AA |
-| `--primary` | `#0E5A6B` (Harbor) | `#5CC3D6` | Primary buttons, links | White on `#0E5A6B` ≈ 7.8:1 ✓; dark mode uses dark text on `#5CC3D6` |
-| `--accent` | `#E8A33D` (Saffron) | `#F0B55A` | Highlights, badges background, focus ring accent | Use **dark text** on accent (≈ 8:1) |
-| `--success` | `#1F7A4D` | `#4CC38A` | Confirmed states | White on light token ≈ 5.3:1 ✓ |
-| `--warning` | `#B45309` | `#F5A524` | Holds, expiring | White on light token ≈ 5.0:1 ✓ |
-| `--danger` | `#B42318` | `#F97066` | Errors, destructive | White on light token ≈ 6.6:1 ✓ |
-| `--focus` | `#0E5A6B` 2px + 2px offset | `#5CC3D6` | Focus ring | ≥ 3:1 against adjacent colours |
+| `--canvas` | `#F5F6FB` | `#0B0C1C` | Page background | — |
+| `--surface` | `#FFFFFF` | `#141634` | Cards, sheets, header | — |
+| `--line` | `#E2E4F0` | `#272A52` | Dividers, inputs | Non-text |
+| `--ink` | `#141638` | `#EDEEF9` | Body text | 16.2:1 on canvas (light), 16.8:1 (dark) |
+| `--ink-muted` | `#585C7E` | `#A6A9CB` | Secondary text | 6.0:1 on canvas (light), 8.5:1 (dark) ✓ |
+| `--primary` | `#3B3FD4` (Neel) | `#9197FF` | Primary buttons, links, focus | White on light 7.4:1 ✓; dark text on dark 7.5:1 ✓ |
+| `--primary-strong` | `#2C2FB0` | `#AEB2FF` | Primary hover/pressed | White on light 9.8:1 ✓ |
+| `--primary-soft` | `#ECEDFD` | `#1D2055` | Selected rows, icon wells | Primary text on it 6.4:1 ✓ |
+| `--accent` | `#C92D66` (Rani) | `#FF7AA6` | Eyebrows, highlights, the mentor CTA | White on light 5.2:1 ✓; 4.8:1 as text on canvas ✓ |
+| `--accent-soft` / `--accent-ink` | `#FDE9F0` / `#A8174E` | `#3B1B2E` / `#FFB3CC` | Soft badges ("New mentor", drafts) | 6.2:1 (light), 9.1:1 (dark) ✓ |
+| `--star` | `#F2A900` | `#FFC43D` | Rating stars and bars only | Decorative — ratings always show the number |
+| `--night` / `--night-2` | `#0E1030` / `#1A1C52` | `#07081A` / `#121440` | Brand surfaces | `--on-night` white 18.5:1; `--on-night-muted` `#B7BAE0` 9.8:1 ✓ |
+| `--success` | `#0A7249` | `#3DD39A` | Confirmed states | 5.5:1 on canvas; 4.8:1 on its own 10% tint ✓ |
+| `--warning` | `#9A4A05` | `#F5A524` | Holds, expiring | 5.8:1 on canvas; 5.0:1 on its 10% tint ✓ |
+| `--danger` | `#B3223A` | `#FF7A85` | Errors, destructive | 6.1:1 on canvas; 5.2:1 on its 10% tint; white on it 6.6:1 ✓ |
 
-Colour is never the only carrier of meaning (icons + text for statuses). Final values are re-verified with an automated contrast check in the design-system test suite.
+Six identity tones (indigo, rose, violet, emerald, amber, sky) give avatars a stable colour per person; every foreground/background pair is ≥ 5.7:1 in light mode and ≥ 8.4:1 in dark. Highlighted words on the night surface use a light indigo → rose gradient (≥ 8.8:1 at every stop).
+
+Colour is never the only carrier of meaning (icons + text for statuses). Final values are re-verified with an automated contrast check in the design-system test suite, and axe runs in the e2e journeys.
 
 ### 6.2 Typography
 - **UI & headings:** *Instrument Sans* (open licence), weights 400/500/600.
@@ -118,7 +126,7 @@ Colour is never the only carrier of meaning (icons + text for statuses). Final v
 
 ### 6.3 Layout, spacing, shape, motion
 - 4 px spacing base (4/8/12/16/24/32/48/64); container max 1200 px; 12-column grid ≥ 1024 px, single column < 640 px.
-- Radius: 8 px (inputs, buttons), 12 px (cards), 16 px (sheets). Borders over shadows; one subtle elevation shadow for overlays.
+- Radius: 10 px (inputs, buttons), 14 px (cards), 20 px (sheets). Borders first, with tinted, layered shadows for overlays and hover lift; primary buttons carry a faint top highlight and a coloured glow.
 - Motion 150–200 ms ease-out for state changes only; **`prefers-reduced-motion` disables** non-essential animation. No parallax, no autoplay.
 
 ### 6.4 Component inventory (Radix primitives + owned components)
