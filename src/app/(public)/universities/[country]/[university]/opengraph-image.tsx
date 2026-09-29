@@ -39,12 +39,12 @@ export default async function Image({ params }: { params: Promise<ImageParams> }
         flexDirection: "column",
         justifyContent: "center",
         padding: "80px",
-        background: "#F5F6FB",
-        color: "#141638",
+        background: "#F0EEEA",
+        color: "#1F2B29",
         fontFamily: "sans-serif",
       }}
     >
-      <div style={{ display: "flex", fontSize: 28, color: "#3B3FD4", fontWeight: 600 }}>
+      <div style={{ display: "flex", fontSize: 28, color: "#3A615A", fontWeight: 600 }}>
         {brand.name} · Study abroad
       </div>
       <div
@@ -53,7 +53,7 @@ export default async function Image({ params }: { params: Promise<ImageParams> }
         {name}
       </div>
       {country ? (
-        <div style={{ display: "flex", marginTop: 24, fontSize: 32, color: "#585C7E" }}>
+        <div style={{ display: "flex", marginTop: 24, fontSize: 32, color: "#56645F" }}>
           {country.name}
         </div>
       ) : null}

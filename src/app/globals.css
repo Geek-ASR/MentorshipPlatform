@@ -1,129 +1,145 @@
 @import "tailwindcss";
 
-/* Design tokens (docs/22 §5–6, ADR-057 "Neel & Rani"): deep ink-indigo for the brand and every
- * action, rani rose as a sparing accent, gold only for ratings, cool neutrals, and a "night"
- * surface for the brand moments (hero, sign-in panel, footer). Contrast pairs verified for
- * WCAG 2.2 AA — see ADR-057 for the table. */
+/* Design tokens (docs/22 §5–6, ADR-058): the founder's palette — sage #97B3AE, pale sage
+ * #D2E0D3, blush #F0DDD6, dusty pink #F2C3B9, greige #D6CBBF, off-white #F0EEEA — used as-is for
+ * surfaces, tints and brand moments. Those six are too light to carry text, so text and actions use
+ * deep shades of the same hues (sage → #3A615A, pink → #9E4A3B). The deep "night" surface is a
+ * forest shade of the sage. Every text pair meets WCAG 2.2 AA (tests/unit/ui/palette-contrast). */
 :root {
-  --canvas: #f5f6fb;
+  --sage: #97b3ae;
+  --pale-sage: #d2e0d3;
+  --blush: #f0ddd6;
+  --petal: #f2c3b9;
+  --greige: #d6cbbf;
+  --canvas: #f0eeea;
   --surface: #ffffff;
-  --line: #e2e4f0;
-  --ink: #141638;
-  --ink-muted: #585c7e;
-  --primary: #3b3fd4;
-  --primary-strong: #2c2fb0;
+  --line: #ddd4ca;
+  --ink: #1f2b29;
+  --ink-muted: #56645f;
+  --primary: #3a615a;
+  --primary-strong: #2c4b45;
   --on-primary: #ffffff;
-  --primary-soft: #ecedfd;
-  --accent: #c92d66;
+  --primary-soft: #d2e0d3;
+  --accent: #9e4a3b;
   --on-accent: #ffffff;
-  --accent-soft: #fde9f0;
-  --accent-ink: #a8174e;
-  --star: #f2a900;
-  --night: #0e1030;
-  --night-2: #1a1c52;
+  --accent-soft: #f0ddd6;
+  --accent-ink: #8a3f32;
+  --star: #d49a2a;
+  --night: #1f2f2c;
+  --night-2: #2c433e;
   --on-night: #ffffff;
-  --on-night-muted: #b7bae0;
-  --glow-1: #5b5fff;
-  --glow-2: #ff4f8b;
-  --glow-3: #8b5cf6;
-  --success: #0a7249;
-  --warning: #9a4a05;
-  --danger: #b3223a;
-  --focus: #3b3fd4;
-  --shadow-color: 20 22 56;
-  /* Avatar/identity tones: soft background + deep foreground, each pair ≥ 5:1. */
-  --tone-1-bg: #e6e8ff;
-  --tone-1-fg: #2c2fb0;
-  --tone-2-bg: #fde9f0;
-  --tone-2-fg: #a8174e;
-  --tone-3-bg: #efe7ff;
-  --tone-3-fg: #5b2bb5;
-  --tone-4-bg: #dff5ec;
-  --tone-4-fg: #0b6a47;
-  --tone-5-bg: #fff1d6;
-  --tone-5-fg: #875300;
-  --tone-6-bg: #e0f1fb;
-  --tone-6-fg: #0b5a86;
+  --on-night-muted: #c8d6d2;
+  --glow-1: #97b3ae;
+  --glow-2: #f2c3b9;
+  --glow-3: #d2e0d3;
+  --success: #2d6a4c;
+  --warning: #8a5712;
+  --danger: #a33a31;
+  --focus: #3a615a;
+  --shadow-color: 31 43 41;
+  /* Avatar/identity tones from the palette: soft background + deep foreground, each pair ≥ 5.6:1. */
+  --tone-1-bg: #d2e0d3;
+  --tone-1-fg: #2f5049;
+  --tone-2-bg: #f0ddd6;
+  --tone-2-fg: #8a3f32;
+  --tone-3-bg: #f2c3b9;
+  --tone-3-fg: #7c3328;
+  --tone-4-bg: #e6ddd3;
+  --tone-4-fg: #5a4838;
+  --tone-5-bg: #dce8e5;
+  --tone-5-fg: #2d5650;
+  --tone-6-bg: #efdfcb;
+  --tone-6-fg: #6a4726;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --canvas: #0b0c1c;
-    --surface: #141634;
-    --line: #272a52;
-    --ink: #edeef9;
-    --ink-muted: #a6a9cb;
-    --primary: #9197ff;
-    --primary-strong: #aeb2ff;
-    --on-primary: #0b0c1c;
-    --primary-soft: #1d2055;
-    --accent: #ff7aa6;
-    --on-accent: #1a0712;
-    --accent-soft: #3b1b2e;
-    --accent-ink: #ffb3cc;
-    --star: #ffc43d;
-    --night: #07081a;
-    --night-2: #121440;
+    --sage: #97b3ae;
+    --pale-sage: #1f2e2b;
+    --blush: #2e2421;
+    --petal: #3a2622;
+    --greige: #3a332c;
+    --canvas: #141b1a;
+    --surface: #1c2523;
+    --line: #2e3a37;
+    --ink: #eeeae4;
+    --ink-muted: #a9b5b1;
+    --primary: #97b3ae;
+    --primary-strong: #b2c8c4;
+    --on-primary: #142220;
+    --primary-soft: #243431;
+    --accent: #f2c3b9;
+    --on-accent: #3a1c15;
+    --accent-soft: #3a2a25;
+    --accent-ink: #f2c3b9;
+    --star: #e8b85a;
+    --night: #0f1716;
+    --night-2: #1a2825;
     --on-night: #ffffff;
-    --on-night-muted: #b7bae0;
-    --success: #3dd39a;
-    --warning: #f5a524;
-    --danger: #ff7a85;
-    --focus: #9197ff;
+    --on-night-muted: #c8d6d2;
+    --success: #7fc9a4;
+    --warning: #e5b366;
+    --danger: #f29a8f;
+    --focus: #97b3ae;
     --shadow-color: 0 0 0;
-    --tone-1-bg: #1d2055;
-    --tone-1-fg: #b9bcff;
-    --tone-2-bg: #3b1b2e;
-    --tone-2-fg: #ffb3cc;
-    --tone-3-bg: #2a1d52;
-    --tone-3-fg: #d4c2ff;
-    --tone-4-bg: #10352a;
-    --tone-4-fg: #8ee5c2;
-    --tone-5-bg: #3a2a0c;
-    --tone-5-fg: #ffd280;
-    --tone-6-bg: #0f2f45;
-    --tone-6-fg: #9fd8ff;
+    --tone-1-bg: #243431;
+    --tone-1-fg: #bfd6d0;
+    --tone-2-bg: #3a2a25;
+    --tone-2-fg: #f2c3b9;
+    --tone-3-bg: #40241f;
+    --tone-3-fg: #f7cfc6;
+    --tone-4-bg: #332b24;
+    --tone-4-fg: #e0d4c7;
+    --tone-5-bg: #1f3532;
+    --tone-5-fg: #c3ddd8;
+    --tone-6-bg: #3a2c1a;
+    --tone-6-fg: #efd2ae;
     color-scheme: dark;
   }
 }
 
 :root[data-theme="dark"] {
-  --canvas: #0b0c1c;
-  --surface: #141634;
-  --line: #272a52;
-  --ink: #edeef9;
-  --ink-muted: #a6a9cb;
-  --primary: #9197ff;
-  --primary-strong: #aeb2ff;
-  --on-primary: #0b0c1c;
-  --primary-soft: #1d2055;
-  --accent: #ff7aa6;
-  --on-accent: #1a0712;
-  --accent-soft: #3b1b2e;
-  --accent-ink: #ffb3cc;
-  --star: #ffc43d;
-  --night: #07081a;
-  --night-2: #121440;
+  --sage: #97b3ae;
+  --pale-sage: #1f2e2b;
+  --blush: #2e2421;
+  --petal: #3a2622;
+  --greige: #3a332c;
+  --canvas: #141b1a;
+  --surface: #1c2523;
+  --line: #2e3a37;
+  --ink: #eeeae4;
+  --ink-muted: #a9b5b1;
+  --primary: #97b3ae;
+  --primary-strong: #b2c8c4;
+  --on-primary: #142220;
+  --primary-soft: #243431;
+  --accent: #f2c3b9;
+  --on-accent: #3a1c15;
+  --accent-soft: #3a2a25;
+  --accent-ink: #f2c3b9;
+  --star: #e8b85a;
+  --night: #0f1716;
+  --night-2: #1a2825;
   --on-night: #ffffff;
-  --on-night-muted: #b7bae0;
-  --success: #3dd39a;
-  --warning: #f5a524;
-  --danger: #ff7a85;
-  --focus: #9197ff;
+  --on-night-muted: #c8d6d2;
+  --success: #7fc9a4;
+  --warning: #e5b366;
+  --danger: #f29a8f;
+  --focus: #97b3ae;
   --shadow-color: 0 0 0;
-  --tone-1-bg: #1d2055;
-  --tone-1-fg: #b9bcff;
-  --tone-2-bg: #3b1b2e;
-  --tone-2-fg: #ffb3cc;
-  --tone-3-bg: #2a1d52;
-  --tone-3-fg: #d4c2ff;
-  --tone-4-bg: #10352a;
-  --tone-4-fg: #8ee5c2;
-  --tone-5-bg: #3a2a0c;
-  --tone-5-fg: #ffd280;
-  --tone-6-bg: #0f2f45;
-  --tone-6-fg: #9fd8ff;
+  --tone-1-bg: #243431;
+  --tone-1-fg: #bfd6d0;
+  --tone-2-bg: #3a2a25;
+  --tone-2-fg: #f2c3b9;
+  --tone-3-bg: #40241f;
+  --tone-3-fg: #f7cfc6;
+  --tone-4-bg: #332b24;
+  --tone-4-fg: #e0d4c7;
+  --tone-5-bg: #1f3532;
+  --tone-5-fg: #c3ddd8;
+  --tone-6-bg: #3a2c1a;
+  --tone-6-fg: #efd2ae;
   color-scheme: dark;
 }
 
@@ -146,6 +162,11 @@
   --color-night-2: var(--night-2);
   --color-on-night: var(--on-night);
   --color-on-night-muted: var(--on-night-muted);
+  --color-sage: var(--sage);
+  --color-pale-sage: var(--pale-sage);
+  --color-blush: var(--blush);
+  --color-petal: var(--petal);
+  --color-greige: var(--greige);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
@@ -214,30 +235,30 @@ body {
   background-size: 22px 22px;
 }
 
-/* The brand's "night" surface: deep indigo with soft indigo, violet and rose light. Decorative;
- * text on it uses --on-night / --on-night-muted (≥ 9:1). */
+/* The brand's deep surface — a forest shade of the sage with soft sage, pale-sage and pink light.
+ * Decorative; text on it uses --on-night / --on-night-muted (≥ 7:1). */
 .bg-night-aurora {
   background-color: var(--night);
   background-image:
     radial-gradient(
-      48rem 32rem at 88% -12%,
-      color-mix(in oklab, var(--glow-1) 55%, transparent),
+      46rem 30rem at 88% -12%,
+      color-mix(in oklab, var(--glow-1) 42%, transparent),
       transparent 62%
     ),
     radial-gradient(
-      36rem 28rem at 6% 118%,
-      color-mix(in oklab, var(--glow-2) 38%, transparent),
+      34rem 26rem at 6% 118%,
+      color-mix(in oklab, var(--glow-2) 30%, transparent),
       transparent 60%
     ),
     radial-gradient(
-      30rem 22rem at 55% 60%,
-      color-mix(in oklab, var(--glow-3) 22%, transparent),
+      28rem 20rem at 55% 60%,
+      color-mix(in oklab, var(--glow-3) 12%, transparent),
       transparent 70%
     ),
     linear-gradient(180deg, var(--night) 0%, var(--night-2) 100%);
 }
 
-/* Faint grid lines over night surfaces, fading out. */
+/* Faint grid lines over the deep surface, fading out. */
 .bg-night-grid {
   background-image:
     linear-gradient(to right, rgb(255 255 255 / 0.06) 1px, transparent 1px),
@@ -246,9 +267,53 @@ body {
   mask-image: radial-gradient(ellipse at 70% 0%, black 20%, transparent 70%);
 }
 
-/* Highlighted words on night surfaces: light indigo into light rose (both ≥ 7:1 on --night). */
+/* The light hero: the palette's pale sage, blush and pink as soft light on the off-white. */
+.bg-hero-bloom {
+  background-color: var(--canvas);
+  background-image:
+    radial-gradient(
+      44rem 32rem at 94% -10%,
+      color-mix(in oklab, var(--pale-sage) 95%, transparent),
+      transparent 64%
+    ),
+    radial-gradient(
+      36rem 26rem at 72% 108%,
+      color-mix(in oklab, var(--petal) 60%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      32rem 26rem at -4% 18%,
+      color-mix(in oklab, var(--blush) 90%, transparent),
+      transparent 62%
+    );
+}
+
+/* Faint ink grid over the light hero, fading out. */
+.bg-hero-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--ink) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--ink) 6%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at 30% 10%, black 15%, transparent 65%);
+}
+
+/* Highlighted words on the light hero: deep sage over a dusty-pink marker stroke (≥ 4.4:1, large). */
+.text-bloom {
+  color: var(--primary);
+  background-image: linear-gradient(
+    transparent 58%,
+    color-mix(in oklab, var(--petal) 85%, transparent) 58%,
+    color-mix(in oklab, var(--petal) 85%, transparent) 88%,
+    transparent 88%
+  );
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding-inline: 0.08em;
+}
+
+/* Highlighted words on the deep surface: pale sage into pink (≥ 6.7:1 at every stop). */
 .text-glow {
-  background-image: linear-gradient(100deg, #b4b7ff 0%, #d7b8ff 45%, #ffa9c6 100%);
+  background-image: linear-gradient(100deg, #d2e0d3 0%, #f0ddd6 50%, #f2c3b9 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -280,7 +345,7 @@ body {
 }
 
 dialog::backdrop {
-  background: rgb(14 16 48 / 0.5);
+  background: rgb(31 43 41 / 0.45);
   backdrop-filter: blur(2px);
 }
 
