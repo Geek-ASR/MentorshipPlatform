@@ -235,7 +235,7 @@ function ReviewSection(props: OutcomePanelProps) {
               key={n}
               className={cn(
                 "size-4",
-                n <= props.review!.rating ? "fill-accent text-accent" : "text-line",
+                n <= props.review!.rating ? "fill-star text-star" : "text-line",
               )}
               aria-hidden="true"
             />
@@ -310,7 +310,7 @@ function ReviewSection(props: OutcomePanelProps) {
                 <Star
                   className={cn(
                     "size-7 transition-colors",
-                    n <= rating ? "fill-accent text-accent" : "text-ink/25 hover:text-accent/60",
+                    n <= rating ? "fill-star text-star" : "text-ink/25 hover:text-star/60",
                   )}
                   aria-hidden="true"
                 />

@@ -71,7 +71,7 @@ function Stars({ rating }: { rating: number }) {
         <Star
           key={i}
           aria-hidden="true"
-          className={i <= rating ? "size-4 fill-accent text-accent" : "size-4 text-line"}
+          className={i <= rating ? "size-4 fill-star text-star" : "size-4 text-line"}
         />
       ))}
     </span>
@@ -438,13 +438,13 @@ export default async function MentorProfilePage({ params }: { params: Promise<Pa
                           className="flex items-center gap-2 text-xs text-ink-muted"
                         >
                           <span className="tabular w-3">{bar.stars}</span>
-                          <Star className="size-3 fill-accent text-accent" aria-hidden="true" />
+                          <Star className="size-3 fill-star text-star" aria-hidden="true" />
                           <span
                             className="h-1.5 flex-1 overflow-hidden rounded-full bg-line"
                             aria-hidden="true"
                           >
                             <span
-                              className="block h-full rounded-full bg-accent"
+                              className="block h-full rounded-full bg-star"
                               style={{ width: `${pct}%` }}
                             />
                           </span>

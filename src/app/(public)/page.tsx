@@ -28,6 +28,12 @@ import { MentorCard, PriceLine } from "@/ui/mentor-card";
 /** Live mentors, events and guides — refreshed every few minutes rather than per request. */
 export const revalidate = 300;
 
+function Eyebrow({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mb-3 text-xs font-semibold tracking-[0.16em] text-accent uppercase">{children}</p>
+  );
+}
+
 function topicsFor(sectionSlug: string, limit: number): string[] {
   const section = CATEGORY_TREE.find((node) => node.slug === sectionSlug);
   const leaves = (section?.children ?? []).flatMap((child) =>
@@ -103,30 +109,26 @@ export default async function HomePage() {
     <>
       <section
         aria-labelledby="hero-title"
-        className="relative overflow-hidden border-b border-line"
+        className="bg-night-aurora relative overflow-hidden text-on-night"
       >
-        <div
-          aria-hidden="true"
-          className="bg-dots absolute inset-0 [mask-image:linear-gradient(to_bottom,black,transparent_85%)]"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute -top-40 right-[-10%] size-[36rem] rounded-full bg-primary-soft blur-3xl"
-        />
+        <div aria-hidden="true" className="bg-night-grid absolute inset-0" />
         <Container className="relative grid grid-cols-1 gap-12 py-16 md:py-24 lg:grid-cols-[1.15fr_1fr] lg:items-center">
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-ink-muted">
-              <span className="size-1.5 rounded-full bg-accent" aria-hidden="true" />
+            <p className="inline-flex items-center gap-2 rounded-full bg-white/[0.07] px-3 py-1 text-xs font-medium text-on-night-muted ring-1 ring-white/15">
+              <span
+                className="size-1.5 rounded-full bg-[var(--glow-2)] shadow-[0_0_10px_2px_rgb(255_79_139/0.6)]"
+                aria-hidden="true"
+              />
               For students in India and beyond
             </p>
             <h1
               id="hero-title"
-              className="mt-6 max-w-2xl font-serif text-[2.6rem] leading-[1.08] font-semibold tracking-tight text-ink sm:text-6xl"
+              className="mt-6 max-w-2xl font-serif text-[2.6rem] leading-[1.08] font-semibold tracking-tight sm:text-6xl"
             >
               Guidance from people who&apos;ve{" "}
-              <span className="whitespace-nowrap text-primary">been there.</span>
+              <span className="text-glow whitespace-nowrap">been there.</span>
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-muted">
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-on-night-muted">
               Affordable mentorship from professionals, alumni and researchers who recently landed
               the job, cleared the interview or moved to the city you&apos;re heading to.
             </p>
@@ -135,7 +137,7 @@ export default async function HomePage() {
               <label htmlFor="hero-search" className="sr-only">
                 What do you need help with?
               </label>
-              <div className="flex gap-2 rounded-[var(--radius-card)] border border-line bg-surface p-2 shadow-[var(--shadow-lift)]">
+              <div className="flex gap-2 rounded-[var(--radius-card)] bg-surface p-2 shadow-[0_24px_60px_-16px_rgb(0_0_0/0.55)] ring-1 ring-white/10">
                 <div className="relative flex-1">
                   <Search
                     className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-ink-muted"
@@ -155,12 +157,12 @@ export default async function HomePage() {
               </div>
             </form>
             <div className="mt-5 flex flex-wrap items-center gap-2 text-sm">
-              <span className="text-ink-muted">Popular:</span>
+              <span className="text-on-night-muted">Popular:</span>
               {POPULAR_SEARCHES.map((topic) => (
                 <Link
                   key={topic}
                   href={`/mentors?q=${encodeURIComponent(topic)}`}
-                  className="rounded-full border border-line bg-surface px-3 py-1 text-ink-muted transition-colors hover:border-primary/40 hover:text-ink"
+                  className="rounded-full bg-white/[0.07] px-3 py-1 text-on-night-muted ring-1 ring-white/15 transition-colors hover:bg-white/[0.14] hover:text-on-night"
                 >
                   {topic}
                 </Link>
@@ -170,7 +172,11 @@ export default async function HomePage() {
 
           {data.heroMentors.length >= 3 ? (
             <div className="relative mx-auto w-full max-w-md lg:mr-0">
-              <div className="rounded-[var(--radius-sheet)] border border-line bg-surface p-2 shadow-[var(--shadow-overlay)]">
+              <div
+                aria-hidden="true"
+                className="absolute -inset-6 rounded-[2rem] bg-[radial-gradient(closest-side,rgb(91_95_255/0.45),transparent)] blur-2xl"
+              />
+              <div className="relative rounded-[var(--radius-sheet)] bg-surface p-2 text-ink shadow-[0_32px_80px_-20px_rgb(0_0_0/0.6)] ring-1 ring-white/10">
                 <p className="px-4 pt-3 pb-2 text-xs font-medium tracking-wide text-ink-muted uppercase">
                   Meet a few of our mentors
                 </p>
@@ -199,10 +205,7 @@ export default async function HomePage() {
                             ) : null}
                             {mentor.rating ? (
                               <span className="inline-flex items-center gap-1 text-xs text-ink">
-                                <Star
-                                  className="size-3.5 fill-accent text-accent"
-                                  aria-hidden="true"
-                                />
+                                <Star className="size-3.5 fill-star text-star" aria-hidden="true" />
                                 <span className="tabular font-semibold">
                                   {mentor.rating.average.toFixed(1)}
                                 </span>
@@ -258,6 +261,7 @@ export default async function HomePage() {
       <section id="paths" aria-labelledby="paths-title" className="scroll-mt-20 py-16 md:py-24">
         <Container>
           <div className="max-w-2xl">
+            <Eyebrow>Where are you headed?</Eyebrow>
             <h2
               id="paths-title"
               className="font-serif text-3xl font-semibold tracking-tight text-ink sm:text-4xl"
@@ -285,7 +289,7 @@ export default async function HomePage() {
                 description:
                   "Admissions, the visa process as others experienced it, housing and life in a new city.",
                 topics: abroadTopics,
-                tone: "bg-accent-soft text-ink",
+                tone: "bg-accent-soft text-accent-ink",
               },
             ].map((path) => (
               <Link
@@ -333,6 +337,7 @@ export default async function HomePage() {
           <Container>
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div className="max-w-2xl">
+                <Eyebrow>Mentors</Eyebrow>
                 <h2
                   id="mentors-title"
                   className="font-serif text-3xl font-semibold tracking-tight text-ink sm:text-4xl"
@@ -368,6 +373,7 @@ export default async function HomePage() {
       >
         <Container>
           <div className="max-w-2xl">
+            <Eyebrow>How it works</Eyebrow>
             <h2
               id="how-title"
               className="font-serif text-3xl font-semibold tracking-tight text-ink sm:text-4xl"
@@ -385,11 +391,11 @@ export default async function HomePage() {
             />
             {LADDER.map((step, index) => (
               <li key={step.title} className="relative">
-                <span className="relative flex size-12 items-center justify-center rounded-full border border-line bg-surface text-primary shadow-sm">
+                <span className="relative flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-primary to-[var(--glow-3)] text-white shadow-[0_8px_20px_-8px_color-mix(in_oklab,var(--primary)_70%,transparent)] ring-4 ring-canvas">
                   <step.icon className="size-5" aria-hidden="true" />
                 </span>
                 <p className="tabular mt-5 text-xs font-medium tracking-wide text-ink-muted uppercase">
-                  Step {index + 1} · <span className="text-primary">{step.price}</span>
+                  Step {index + 1} · <span className="text-accent">{step.price}</span>
                 </p>
                 <h3 className="mt-1.5 text-lg font-semibold text-ink">{step.title}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">{step.text}</p>
@@ -404,6 +410,7 @@ export default async function HomePage() {
           <Container>
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div className="max-w-2xl">
+                <Eyebrow>Free events</Eyebrow>
                 <h2
                   id="events-title"
                   className="font-serif text-3xl font-semibold tracking-tight text-ink sm:text-4xl"
@@ -438,6 +445,7 @@ export default async function HomePage() {
       >
         <Container className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_1.4fr]">
           <div>
+            <Eyebrow>Trust & safety</Eyebrow>
             <h2
               id="trust-title"
               className="font-serif text-3xl font-semibold tracking-tight text-ink sm:text-4xl"
@@ -474,6 +482,7 @@ export default async function HomePage() {
           <Container>
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div className="max-w-2xl">
+                <Eyebrow>Guides</Eyebrow>
                 <h2
                   id="guides-title"
                   className="font-serif text-3xl font-semibold tracking-tight text-ink sm:text-4xl"
@@ -522,11 +531,8 @@ export default async function HomePage() {
 
       <section id="mentors" aria-labelledby="mentor-cta-title" className="scroll-mt-20">
         <Container>
-          <div className="relative overflow-hidden rounded-[var(--radius-sheet)] bg-primary px-6 py-14 text-on-primary sm:px-12">
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 opacity-[0.12] [background-image:radial-gradient(circle_at_1px_1px,currentColor_1px,transparent_0)] [background-size:22px_22px]"
-            />
+          <div className="bg-night-aurora relative overflow-hidden rounded-[var(--radius-sheet)] px-6 py-14 text-on-night sm:px-12">
+            <div aria-hidden="true" className="bg-night-grid absolute inset-0" />
             <div className="relative grid gap-8 lg:grid-cols-[1.5fr_1fr] lg:items-center">
               <div>
                 <h2
@@ -535,7 +541,7 @@ export default async function HomePage() {
                 >
                   Help the students one step behind you
                 </h2>
-                <p className="mt-4 max-w-2xl text-lg text-on-primary/85">
+                <p className="mt-4 max-w-2xl text-lg text-on-night-muted">
                   Professionals, alumni and researchers set their own prices and hours. Current
                   international students can mentor as volunteers or host free events where their
                   visa doesn&apos;t allow paid work.
@@ -545,12 +551,7 @@ export default async function HomePage() {
                 <Button asChild size="lg" variant="accent">
                   <Link href="/sign-up?intent=mentor">Become a mentor</Link>
                 </Button>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="ghost"
-                  className="text-on-primary hover:bg-on-primary/10"
-                >
+                <Button asChild size="lg" variant="ghost-inverse">
                   <Link href="/legal/community-guidelines">Mentor guidelines</Link>
                 </Button>
               </div>

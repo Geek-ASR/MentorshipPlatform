@@ -9,7 +9,7 @@ const badgeVariants = cva(
       tone: {
         neutral: "border border-line bg-surface text-ink-muted",
         primary: "bg-primary-soft text-primary",
-        accent: "bg-accent-soft text-ink",
+        accent: "bg-accent-soft text-accent-ink",
       },
     },
     defaultVariants: { tone: "neutral" },

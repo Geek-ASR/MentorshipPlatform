@@ -22,7 +22,7 @@ export function RatingSummary({
     return (
       <span
         className={cn(
-          "inline-flex items-center rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-ink",
+          "inline-flex items-center rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent-ink",
           className,
         )}
       >
@@ -32,7 +32,7 @@ export function RatingSummary({
   }
   return (
     <span className={cn("inline-flex items-center gap-1 text-sm text-ink", className)}>
-      <Star className="size-4 fill-accent text-accent" aria-hidden="true" />
+      <Star className="size-4 fill-star text-star" aria-hidden="true" />
       <span className="tabular font-semibold">{rating.average.toFixed(1)}</span>
       <span className="text-ink-muted">({pluralize(rating.count, "review")})</span>
       <span className="sr-only">, rated {rating.average.toFixed(1)} out of 5</span>

@@ -25,7 +25,7 @@ const NAV = [
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-canvas/85 backdrop-blur-md supports-[backdrop-filter]:bg-canvas/70">
+    <header className="sticky top-0 z-30 border-b border-line/80 bg-surface/85 backdrop-blur-md supports-[backdrop-filter]:bg-surface/75">
       <Container className="flex h-16 items-center gap-6">
         <div className="flex items-center gap-3">
           <Link
@@ -35,7 +35,7 @@ export function SiteHeader() {
           >
             <Logo />
           </Link>
-          <span className="hidden rounded-full border border-accent/40 bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-ink sm:inline">
+          <span className="hidden rounded-full bg-primary-soft px-2 py-0.5 text-[11px] font-semibold text-primary sm:inline">
             Early access
           </span>
         </div>
@@ -81,23 +81,24 @@ const FOOTER_COLUMNS = [
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 border-t border-line bg-surface">
-      <Container className="grid gap-10 py-14 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+    <footer className="bg-night-aurora relative mt-24 overflow-hidden text-on-night-muted">
+      <div aria-hidden="true" className="bg-night-grid absolute inset-0 opacity-60" />
+      <Container className="relative grid gap-10 py-14 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div>
-          <Logo />
-          <p className="mt-4 max-w-xs text-sm text-ink-muted">{brand.tagline}</p>
-          <p className="mt-4 max-w-xs text-xs leading-relaxed text-ink-muted">
+          <Logo inverse />
+          <p className="mt-4 max-w-xs text-sm text-on-night">{brand.tagline}</p>
+          <p className="mt-4 max-w-xs text-xs leading-relaxed text-on-night-muted">
             Mentors share personal experience. It is not official university, immigration, legal or
             financial advice — always confirm with official sources.
           </p>
         </div>
         {FOOTER_COLUMNS.map((column) => (
           <nav key={column.title} aria-label={column.title}>
-            <p className="text-sm font-semibold text-ink">{column.title}</p>
+            <p className="text-sm font-semibold text-on-night">{column.title}</p>
             <ul className="mt-4 space-y-2.5 text-sm">
               {column.links.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-ink-muted hover:text-ink">
+                  <Link href={link.href} className="text-on-night-muted hover:text-on-night">
                     {link.label}
                   </Link>
                 </li>
@@ -106,8 +107,8 @@ export function SiteFooter() {
           </nav>
         ))}
       </Container>
-      <div className="border-t border-line">
-        <Container className="flex flex-col gap-2 py-6 text-xs text-ink-muted sm:flex-row sm:items-center sm:justify-between">
+      <div className="relative border-t border-white/10">
+        <Container className="flex flex-col gap-2 py-6 text-xs text-on-night-muted sm:flex-row sm:items-center sm:justify-between">
           <p className="tabular">
             © {new Date().getUTCFullYear()} {brand.name}. All rights reserved.
           </p>

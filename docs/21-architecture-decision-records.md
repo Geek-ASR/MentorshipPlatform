@@ -434,3 +434,11 @@ New ADRs are appended; superseded ADRs are marked, not deleted.
 - **Reason:** One UI, reviewed as it really is, with no second codebase to keep in step.
 - **Revisit when:** the Phase 16 sandbox is live — it can replace the preview, or the preview can stay as a zero-cost, always-on showcase.
 
+
+### ADR-057 — A distinctive "Neel & Rani" palette and a night brand surface replace Harbor & Saffron (post-Phase 15)
+- **Problem:** Reviewing the Pages preview, the founder found the UI's colours generic and not beautiful. Teal on a warm off-white with a saffron accent is a common, low-contrast startup look, and every surface was the same pale background, so nothing felt like a brand moment.
+- **Options:** (a) tune the existing hues; (b) a stock SaaS palette (Tailwind indigo/violet); (c) a custom palette with a point of view and a small set of signature surfaces.
+- **Trade-offs:** (a) keeps what was found generic. (b) is instantly familiar — the opposite of distinctive. (c) costs a careful contrast pass and a restyle of a handful of components, but the design system is token-based (docs/22 §6), so pages inherit most of it for free.
+- **Decision:** (c). Deep ink-indigo (*neel*) for the brand and every action, rani rose as a sparing accent, gold only for ratings, cool neutrals; a "night" surface (deep indigo with soft indigo/violet/rose light and a faint grid) for the home hero, the sign-in panel, the mentor band, the footer and the preview banner. Softer radii, tinted layered shadows, a top highlight on primary buttons. Every text pair meets WCAG 2.2 AA in light and dark mode, now enforced by `tests/unit/ui/palette-contrast.test.ts` (docs/22 §6.1 had claimed such a check; it didn't exist until now).
+- **Reason:** A look that is recognisably Aheadly's, rooted in Indian colour without being costume, while staying calm and professional where people make decisions (dashboards, booking, payments stay mostly white and ink).
+- **Revisit when:** a professional brand identity (name clearance, logo) is commissioned — the tokens are the single place to change.

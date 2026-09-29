@@ -26,7 +26,7 @@ import { StartApplicationButton } from "./start-application";
 export const metadata: Metadata = { title: "Mentoring" };
 
 const STATUS_LABEL: Record<string, { label: string; className: string }> = {
-  draft: { label: "Application in progress", className: "bg-accent-soft text-ink" },
+  draft: { label: "Application in progress", className: "bg-accent-soft text-accent-ink" },
   submitted: { label: "Under review", className: "bg-primary-soft text-primary" },
   approved: { label: "Approved", className: "bg-success/10 text-success" },
   rejected: { label: "Not approved", className: "bg-danger/10 text-danger" },

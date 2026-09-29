@@ -103,9 +103,9 @@ function NavList({ viewer, onNavigate }: { viewer: Viewer; onNavigate?: () => vo
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "flex min-h-10 items-center gap-3 rounded-[var(--radius-control)] px-3 text-sm transition-colors",
+                      "relative flex min-h-10 items-center gap-3 rounded-[var(--radius-control)] px-3 text-sm transition-colors",
                       active
-                        ? "bg-primary-soft font-medium text-primary"
+                        ? "bg-primary-soft font-semibold text-primary before:absolute before:top-2 before:bottom-2 before:-left-3 before:w-1 before:rounded-r-full before:bg-primary"
                         : "text-ink-muted hover:bg-canvas hover:text-ink",
                     )}
                   >

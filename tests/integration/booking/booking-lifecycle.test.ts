@@ -424,6 +424,48 @@ describe("booking lifecycle (docs/19 Phase 7 exit criteria)", () => {
     expect(reopenedBody.slots.some((s) => s.startsAt === slot.startsAt)).toBe(true);
   });
 
+  it("a day whose session cap is used up earlier in the day offers no later times", async () => {
+    const { mentor, slug, serviceId } = await setupListedMentor(
+      "mentor.dailycap@example.com",
+      "Daily Cap Mentor",
+      "dailycap",
+    );
+    await patchScheduling(
+      jsonRequest("/api/v1/me/mentor/scheduling", {
+        method: "PATCH",
+        body: { maxSessionsPerDay: 1 },
+        headers: { cookie: mentor.cookie },
+      }),
+      routeContext(),
+    );
+    const student = await signUpAndVerify("student.dailycap@example.com", "Daily Cap Student");
+    const day = new Date(Date.now() + 3 * 86_400_000).toISOString().slice(0, 10);
+    const booked = await createBooking(
+      jsonRequest("/api/v1/bookings", {
+        body: {
+          mentorUserId: mentor.userId,
+          serviceId,
+          durationMin: 60,
+          startsAt: `${day}T02:00:00.000Z`,
+          intakeAnswers: [],
+        },
+        headers: idemHeaders(student.cookie),
+      }),
+      routeContext(),
+    );
+    expect(booked.status).toBe(201);
+
+    // The picker asks for the rest of that day only. Before this fix the morning session fell
+    // outside the window, wasn't counted, and the afternoon offered times booking then refused.
+    const response = await getSlots(
+      new Request(
+        `http://localhost:3000/api/v1/mentors/${slug}/slots?serviceId=${serviceId}&durationMin=60&from=${encodeURIComponent(`${day}T06:00:00.000Z`)}&to=${encodeURIComponent(`${day}T23:00:00.000Z`)}`,
+      ),
+      routeContext({ slug }),
+    );
+    expect(((await response.json()) as { slots: unknown[] }).slots).toEqual([]);
+  });
+
   it("refuses to cancel or move a session once it has started", async () => {
     const { mentor, slug, serviceId } = await setupListedMentor(
       "mentor.started@example.com",

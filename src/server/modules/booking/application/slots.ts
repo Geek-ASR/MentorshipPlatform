@@ -27,11 +27,16 @@ export async function getAvailableSlots(
     throw new AppError("BAD_REQUEST", { detail: "That duration isn't offered for this service." });
   }
 
+  // The daily cap counts whole days in the mentor's zone, as booking does — not just the part of a
+  // day inside the requested window, or sessions earlier that day would be missed and a full day
+  // would still offer times the booking then refuses. Two days either side covers any zone offset.
+  const countFrom = new Date(input.from.getTime() - 2 * 86_400_000);
+  const countTo = new Date(input.to.getTime() + 2 * 86_400_000);
   const [rules, exceptions, activeBlocks, sessionCounts] = await Promise.all([
     listAvailabilityRules(db, input.mentorUserId),
     listAvailabilityExceptions(db, input.mentorUserId),
     listActiveBlocksOverlapping(db, input.mentorUserId, input.from, input.to),
-    countSessionsByLocalDate(db, input.mentorUserId, settings.timezone, input.from, input.to),
+    countSessionsByLocalDate(db, input.mentorUserId, settings.timezone, countFrom, countTo),
   ]);
 
   return generateAvailableSlots({

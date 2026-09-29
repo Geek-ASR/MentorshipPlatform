@@ -1,102 +1,129 @@
 @import "tailwindcss";
 
-/* Design tokens (docs/22 §6). Contrast pairs verified for WCAG 2.2 AA. */
+/* Design tokens (docs/22 §5–6, ADR-057 "Neel & Rani"): deep ink-indigo for the brand and every
+ * action, rani rose as a sparing accent, gold only for ratings, cool neutrals, and a "night"
+ * surface for the brand moments (hero, sign-in panel, footer). Contrast pairs verified for
+ * WCAG 2.2 AA — see ADR-057 for the table. */
 :root {
-  --canvas: #fafaf7;
+  --canvas: #f5f6fb;
   --surface: #ffffff;
-  --line: #e4e2dc;
-  --ink: #0b1b2b;
-  --ink-muted: #5b6470;
-  --primary: #0e5a6b;
+  --line: #e2e4f0;
+  --ink: #141638;
+  --ink-muted: #585c7e;
+  --primary: #3b3fd4;
+  --primary-strong: #2c2fb0;
   --on-primary: #ffffff;
-  --primary-soft: #e3f0f2;
-  --accent: #e8a33d;
-  --on-accent: #0b1b2b;
-  --accent-soft: #fbefd9;
-  --success: #1f7a4d;
-  --warning: #b45309;
-  --danger: #b42318;
-  --focus: #0e5a6b;
-  --shadow-color: 11 27 43;
-  /* Avatar/identity tones: soft background + dark foreground, each pair ≥ 5:1. */
-  --tone-1-bg: #dbeef1;
-  --tone-1-fg: #0e5a6b;
-  --tone-2-bg: #fbefd9;
-  --tone-2-fg: #7a4a07;
-  --tone-3-bg: #fbe4e4;
-  --tone-3-fg: #9b2c2c;
-  --tone-4-bg: #e5e7fb;
-  --tone-4-fg: #3730a3;
-  --tone-5-bg: #dff3e7;
-  --tone-5-fg: #1f6b43;
-  --tone-6-bg: #f1e4f5;
-  --tone-6-fg: #6b2a7a;
+  --primary-soft: #ecedfd;
+  --accent: #c92d66;
+  --on-accent: #ffffff;
+  --accent-soft: #fde9f0;
+  --accent-ink: #a8174e;
+  --star: #f2a900;
+  --night: #0e1030;
+  --night-2: #1a1c52;
+  --on-night: #ffffff;
+  --on-night-muted: #b7bae0;
+  --glow-1: #5b5fff;
+  --glow-2: #ff4f8b;
+  --glow-3: #8b5cf6;
+  --success: #0a7249;
+  --warning: #9a4a05;
+  --danger: #b3223a;
+  --focus: #3b3fd4;
+  --shadow-color: 20 22 56;
+  /* Avatar/identity tones: soft background + deep foreground, each pair ≥ 5:1. */
+  --tone-1-bg: #e6e8ff;
+  --tone-1-fg: #2c2fb0;
+  --tone-2-bg: #fde9f0;
+  --tone-2-fg: #a8174e;
+  --tone-3-bg: #efe7ff;
+  --tone-3-fg: #5b2bb5;
+  --tone-4-bg: #dff5ec;
+  --tone-4-fg: #0b6a47;
+  --tone-5-bg: #fff1d6;
+  --tone-5-fg: #875300;
+  --tone-6-bg: #e0f1fb;
+  --tone-6-fg: #0b5a86;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --canvas: #0e1419;
-    --surface: #151d24;
-    --line: #26313a;
-    --ink: #e7ecef;
-    --ink-muted: #9aa7b2;
-    --primary: #5cc3d6;
-    --on-primary: #06232b;
-    --primary-soft: #16303a;
-    --accent: #f0b55a;
-    --on-accent: #1b1305;
-    --accent-soft: #33280f;
-    --success: #4cc38a;
+    --canvas: #0b0c1c;
+    --surface: #141634;
+    --line: #272a52;
+    --ink: #edeef9;
+    --ink-muted: #a6a9cb;
+    --primary: #9197ff;
+    --primary-strong: #aeb2ff;
+    --on-primary: #0b0c1c;
+    --primary-soft: #1d2055;
+    --accent: #ff7aa6;
+    --on-accent: #1a0712;
+    --accent-soft: #3b1b2e;
+    --accent-ink: #ffb3cc;
+    --star: #ffc43d;
+    --night: #07081a;
+    --night-2: #121440;
+    --on-night: #ffffff;
+    --on-night-muted: #b7bae0;
+    --success: #3dd39a;
     --warning: #f5a524;
-    --danger: #f97066;
-    --focus: #5cc3d6;
+    --danger: #ff7a85;
+    --focus: #9197ff;
     --shadow-color: 0 0 0;
-    --tone-1-bg: #16303a;
-    --tone-1-fg: #8fdcea;
-    --tone-2-bg: #33280f;
-    --tone-2-fg: #f5c77e;
-    --tone-3-bg: #3a1d1f;
-    --tone-3-fg: #f6a5a5;
-    --tone-4-bg: #1f2347;
-    --tone-4-fg: #b4b9f7;
-    --tone-5-bg: #15321f;
-    --tone-5-fg: #8fd9ae;
-    --tone-6-bg: #2e1a33;
-    --tone-6-fg: #deb1ea;
+    --tone-1-bg: #1d2055;
+    --tone-1-fg: #b9bcff;
+    --tone-2-bg: #3b1b2e;
+    --tone-2-fg: #ffb3cc;
+    --tone-3-bg: #2a1d52;
+    --tone-3-fg: #d4c2ff;
+    --tone-4-bg: #10352a;
+    --tone-4-fg: #8ee5c2;
+    --tone-5-bg: #3a2a0c;
+    --tone-5-fg: #ffd280;
+    --tone-6-bg: #0f2f45;
+    --tone-6-fg: #9fd8ff;
     color-scheme: dark;
   }
 }
 
 :root[data-theme="dark"] {
-  --canvas: #0e1419;
-  --surface: #151d24;
-  --line: #26313a;
-  --ink: #e7ecef;
-  --ink-muted: #9aa7b2;
-  --primary: #5cc3d6;
-  --on-primary: #06232b;
-  --primary-soft: #16303a;
-  --accent: #f0b55a;
-  --on-accent: #1b1305;
-  --accent-soft: #33280f;
-  --success: #4cc38a;
+  --canvas: #0b0c1c;
+  --surface: #141634;
+  --line: #272a52;
+  --ink: #edeef9;
+  --ink-muted: #a6a9cb;
+  --primary: #9197ff;
+  --primary-strong: #aeb2ff;
+  --on-primary: #0b0c1c;
+  --primary-soft: #1d2055;
+  --accent: #ff7aa6;
+  --on-accent: #1a0712;
+  --accent-soft: #3b1b2e;
+  --accent-ink: #ffb3cc;
+  --star: #ffc43d;
+  --night: #07081a;
+  --night-2: #121440;
+  --on-night: #ffffff;
+  --on-night-muted: #b7bae0;
+  --success: #3dd39a;
   --warning: #f5a524;
-  --danger: #f97066;
-  --focus: #5cc3d6;
+  --danger: #ff7a85;
+  --focus: #9197ff;
   --shadow-color: 0 0 0;
-  --tone-1-bg: #16303a;
-  --tone-1-fg: #8fdcea;
-  --tone-2-bg: #33280f;
-  --tone-2-fg: #f5c77e;
-  --tone-3-bg: #3a1d1f;
-  --tone-3-fg: #f6a5a5;
-  --tone-4-bg: #1f2347;
-  --tone-4-fg: #b4b9f7;
-  --tone-5-bg: #15321f;
-  --tone-5-fg: #8fd9ae;
-  --tone-6-bg: #2e1a33;
-  --tone-6-fg: #deb1ea;
+  --tone-1-bg: #1d2055;
+  --tone-1-fg: #b9bcff;
+  --tone-2-bg: #3b1b2e;
+  --tone-2-fg: #ffb3cc;
+  --tone-3-bg: #2a1d52;
+  --tone-3-fg: #d4c2ff;
+  --tone-4-bg: #10352a;
+  --tone-4-fg: #8ee5c2;
+  --tone-5-bg: #3a2a0c;
+  --tone-5-fg: #ffd280;
+  --tone-6-bg: #0f2f45;
+  --tone-6-fg: #9fd8ff;
   color-scheme: dark;
 }
 
@@ -107,24 +134,32 @@
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
   --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
   --color-on-primary: var(--on-primary);
   --color-primary-soft: var(--primary-soft);
   --color-accent: var(--accent);
   --color-on-accent: var(--on-accent);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-star: var(--star);
+  --color-night: var(--night);
+  --color-night-2: var(--night-2);
+  --color-on-night: var(--on-night);
+  --color-on-night-muted: var(--on-night-muted);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
   --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-source-serif), ui-serif, Georgia, serif;
-  --radius-control: 8px;
-  --radius-card: 12px;
-  --radius-sheet: 16px;
-  /* docs/22 §6.3: borders over shadows — one subtle elevation for overlays, one hover lift. */
+  --radius-control: 10px;
+  --radius-card: 14px;
+  --radius-sheet: 20px;
+  /* docs/22 §6.3: borders first, with tinted, layered elevation for overlays and hover lift. */
   --shadow-overlay:
-    0 1px 2px rgb(var(--shadow-color) / 0.06), 0 12px 32px -8px rgb(var(--shadow-color) / 0.18);
+    0 1px 2px rgb(var(--shadow-color) / 0.06), 0 4px 12px -2px rgb(var(--shadow-color) / 0.08),
+    0 24px 48px -12px rgb(var(--shadow-color) / 0.22);
   --shadow-lift:
-    0 1px 2px rgb(var(--shadow-color) / 0.04), 0 8px 24px -12px rgb(var(--shadow-color) / 0.16);
+    0 1px 2px rgb(var(--shadow-color) / 0.05), 0 12px 28px -12px rgb(var(--shadow-color) / 0.2);
   --animate-fade-in: fade-in 160ms ease-out;
   --animate-rise-in: rise-in 180ms ease-out;
 }
@@ -169,7 +204,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Quiet dotted texture for hero and brand panels; purely decorative. */
+/* Quiet dotted texture for light panels; purely decorative. */
 .bg-dots {
   background-image: radial-gradient(
     circle at 1px 1px,
@@ -177,6 +212,46 @@ body {
     transparent 0
   );
   background-size: 22px 22px;
+}
+
+/* The brand's "night" surface: deep indigo with soft indigo, violet and rose light. Decorative;
+ * text on it uses --on-night / --on-night-muted (≥ 9:1). */
+.bg-night-aurora {
+  background-color: var(--night);
+  background-image:
+    radial-gradient(
+      48rem 32rem at 88% -12%,
+      color-mix(in oklab, var(--glow-1) 55%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      36rem 28rem at 6% 118%,
+      color-mix(in oklab, var(--glow-2) 38%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      30rem 22rem at 55% 60%,
+      color-mix(in oklab, var(--glow-3) 22%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(180deg, var(--night) 0%, var(--night-2) 100%);
+}
+
+/* Faint grid lines over night surfaces, fading out. */
+.bg-night-grid {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at 70% 0%, black 20%, transparent 70%);
+}
+
+/* Highlighted words on night surfaces: light indigo into light rose (both ≥ 7:1 on --night). */
+.text-glow {
+  background-image: linear-gradient(100deg, #b4b7ff 0%, #d7b8ff 45%, #ffa9c6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .tone-1 {
@@ -205,7 +280,7 @@ body {
 }
 
 dialog::backdrop {
-  background: rgb(11 27 43 / 0.45);
+  background: rgb(14 16 48 / 0.5);
   backdrop-filter: blur(2px);
 }
 

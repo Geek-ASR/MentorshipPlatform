@@ -419,6 +419,19 @@ flowchart LR
 
 **Tested:** 362 unit (+4: the preview adapter's snapshot mapping and slot window, the offline price preview, and read-only refusals) / 148 integration / 66 E2E on the PR-smoke Chromium projects, 6 skipped by design — all unchanged in normal builds, which never enable the preview flags. The preview itself was crawled locally (232 pages, no broken internal links other than the progress page and the server-only calendar links it intercepts) and checked in a browser at 1440 px and 320 px.
 
+### After 15e — Visual refresh, "Neel & Rani" (2026-09-29)
+
+The founder's review of the preview: the colours felt generic and not beautiful. **Changed:** a new palette with a point of view (ADR-057, docs/22 §6.1) — deep ink-indigo for the brand and every action, rani rose as a sparing accent, gold only for ratings, cool crisp neutrals — and a "night" surface (deep indigo with soft indigo, violet and rose light and a faint grid) for the brand moments: the home hero (now dark, with a gradient on "been there."), the sign-in panel, the mentor band, the footer and the preview banner. Softer radii, tinted layered shadows, primary buttons with a top highlight and a coloured glow, rose eyebrow labels on home sections, gradient step icons, a two-tone logo and favicon, and a clearer active state in the dashboard sidebar. Dashboards, booking and payments stay mostly white and ink — calm where decisions are made.
+
+**Found and fixed along the way:**
+1. **Open times were shown on days whose session cap was already used up earlier that day.** The slot list counted only sessions inside the requested window, booking counted the whole day — so an afternoon could offer times that booking then refused ("reached their session limit"). The slot list now counts whole days. Found by the E9 journey placing a past session on today.
+2. **E9 could fill another journey's mentor's daily cap** when projects ran in parallel (it booked Ananya, whom E2 books too) — it now uses a mentor no other journey touches, with lanes days apart.
+3. **Green, amber and red status text failed contrast on their own 10% tints** under the new palette (axe caught it in the e2e journeys); the three colours were darkened.
+4. **docs/22 §6.1 claimed an automated contrast check that didn't exist.** `tests/unit/ui/palette-contrast.test.ts` now reads the real tokens and checks every text pair in light and dark mode, plus status text on its tint.
+5. The dashboard's "Been there already?" card sent signed-in students to the sign-up page; it now opens the mentor area.
+
+**Tested:** 365 unit (+3 contrast) / 149 integration (+1: a day's cap used earlier in the day hides later times) / 66 E2E on Chromium, 6 skipped by design, with axe on every journey that had it.
+
 ## Phase 16 — Deploy sandbox beta (S)
 
 **Scope:** host decision per [14 §3](14-deployment.md#3-hosting-decision-procedure-phase-16); Supabase staging (Mumbai) setup checklist; Razorpay test-mode webhooks; `pg_cron` tick; backups + restore drill; uptime + alerts; Sentry; invite-only beta (feature flag); beta feedback loop.
