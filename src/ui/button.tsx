@@ -9,12 +9,18 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-primary text-on-primary shadow-sm hover:bg-primary/90",
-        accent: "bg-accent text-on-accent shadow-sm hover:bg-accent/90",
-        secondary: "border border-line bg-surface text-ink hover:border-ink/20 hover:bg-canvas",
+        primary:
+          "bg-primary text-on-primary shadow-[inset_0_1px_0_rgb(255_255_255/0.16),0_1px_2px_rgb(var(--shadow-color)/0.18),0_4px_12px_-4px_color-mix(in_oklab,var(--primary)_55%,transparent)] hover:bg-primary-strong",
+        accent:
+          "bg-accent text-on-accent shadow-[inset_0_1px_0_rgb(255_255_255/0.16),0_1px_2px_rgb(var(--shadow-color)/0.18),0_4px_12px_-4px_color-mix(in_oklab,var(--accent)_55%,transparent)] hover:bg-accent/90",
+        secondary:
+          "border border-line bg-surface text-ink shadow-[0_1px_2px_rgb(var(--shadow-color)/0.05)] hover:border-primary/35 hover:bg-primary-soft/50",
         ghost: "text-ink hover:bg-primary-soft",
         link: "h-auto px-0 text-primary underline-offset-4 hover:underline",
         destructive: "bg-danger text-white shadow-sm hover:bg-danger/90",
+        /** On the night surface (hero, sign-in panel, mentor band). */
+        inverse: "bg-white text-night shadow-sm hover:bg-white/90",
+        "ghost-inverse": "text-on-night ring-1 ring-white/25 hover:bg-white/10",
       },
       size: {
         sm: "h-9 px-3 text-sm",

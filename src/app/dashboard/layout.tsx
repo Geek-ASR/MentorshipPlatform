@@ -27,7 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <SkipLink />
       <DashboardSidebar viewer={viewer} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 border-b border-line bg-canvas/85 backdrop-blur-md supports-[backdrop-filter]:bg-canvas/70">
+        <header className="sticky top-0 z-30 border-b border-line/80 bg-surface/85 backdrop-blur-md supports-[backdrop-filter]:bg-surface/75">
           <div className="mx-auto flex h-16 max-w-[1120px] items-center gap-3 px-4 sm:px-6 lg:px-10">
             <DashboardMobileNav viewer={viewer} />
             <Link href="/" aria-label={`${brand.name} home`} className="rounded-md lg:hidden">

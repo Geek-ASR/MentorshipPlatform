@@ -316,15 +316,15 @@ export default async function DashboardPage() {
           </section>
 
           {!isMentor ? (
-            <section className="rounded-[var(--radius-card)] bg-primary p-5 text-on-primary">
-              <Sparkles className="size-5" aria-hidden="true" />
+            <section className="bg-night-aurora relative overflow-hidden rounded-[var(--radius-card)] p-5 text-on-night">
+              <Sparkles className="size-5 text-[var(--glow-2)]" aria-hidden="true" />
               <p className="mt-3 font-semibold">Been there already?</p>
-              <p className="mt-1 text-sm text-on-primary/85">
+              <p className="mt-1 text-sm text-on-night-muted">
                 Share what you learned with students one step behind you — as a paid or volunteer
                 mentor.
               </p>
               <Link
-                href="/sign-up?intent=mentor"
+                href="/dashboard/mentor"
                 className="mt-4 inline-flex items-center gap-1 text-sm font-semibold hover:underline"
               >
                 Learn about mentoring <ArrowRight className="size-4" aria-hidden="true" />

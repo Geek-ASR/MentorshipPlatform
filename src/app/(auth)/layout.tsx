@@ -29,23 +29,24 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <SkipLink />
       <aside
         aria-label={`About ${brand.name}`}
-        className="relative hidden overflow-hidden bg-primary text-on-primary lg:flex lg:flex-col"
+        className="bg-night-aurora relative hidden overflow-hidden text-on-night lg:flex lg:flex-col"
       >
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 opacity-[0.14] [background-image:radial-gradient(circle_at_1px_1px,currentColor_1px,transparent_0)] [background-size:22px_22px]"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute -top-32 -right-32 size-[28rem] rounded-full bg-on-primary/10 blur-3xl"
-        />
+        <div aria-hidden="true" className="bg-night-grid absolute inset-0" />
         <svg
           aria-hidden="true"
           viewBox="0 0 32 32"
-          className="absolute -right-10 -bottom-10 size-72 opacity-[0.07]"
+          className="absolute -right-12 -bottom-12 size-80 opacity-30 blur-[1px]"
         >
-          <rect x="3" y="15" width="14" height="14" rx="4" fill="currentColor" />
-          <rect x="15" y="3" width="14" height="14" rx="4" fill="currentColor" />
+          <rect x="3" y="15" width="14" height="14" rx="4" fill="var(--glow-1)" fillOpacity="0.5" />
+          <rect
+            x="15"
+            y="3"
+            width="14"
+            height="14"
+            rx="4"
+            fill="var(--glow-2)"
+            fillOpacity="0.45"
+          />
         </svg>
         <div className="relative flex flex-1 flex-col justify-between p-10 xl:p-14">
           <Link href="/" aria-label={`${brand.name} home`} className="w-fit rounded-md">
@@ -58,18 +59,18 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <ul className="mt-10 space-y-6">
               {PROMISES.map((item) => (
                 <li key={item.title} className="flex gap-4">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-on-primary/10 ring-1 ring-on-primary/20">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white/[0.08] ring-1 ring-white/20">
                     <item.icon className="size-5" aria-hidden="true" />
                   </span>
                   <div>
                     <p className="font-semibold">{item.title}</p>
-                    <p className="mt-0.5 text-sm text-on-primary/80">{item.text}</p>
+                    <p className="mt-0.5 text-sm text-on-night-muted">{item.text}</p>
                   </div>
                 </li>
               ))}
             </ul>
           </div>
-          <p className="text-sm text-on-primary/70">
+          <p className="text-sm text-on-night-muted">
             Mentors share personal experience — not official university, immigration, legal or
             financial advice.
           </p>

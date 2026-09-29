@@ -63,7 +63,7 @@ export default async function MentorReviewsPage() {
                     className="inline-flex items-center gap-1 text-sm font-semibold text-ink"
                     aria-label={`${review.rating} out of 5`}
                   >
-                    <Star className="size-4 fill-accent text-accent" aria-hidden="true" />{" "}
+                    <Star className="size-4 fill-star text-star" aria-hidden="true" />{" "}
                     {review.rating}
                   </span>
                 </div>

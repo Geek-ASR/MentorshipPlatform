@@ -38,20 +38,23 @@ export function PreviewBanner() {
     `${PERSONA_ROOT[persona]}${path === "/" ? "/" : path}`;
 
   return (
-    <div className="border-b border-accent/30 bg-accent-soft text-ink">
+    <div className="bg-night text-on-night">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2 text-sm sm:px-6 lg:px-8">
         <p className="flex items-center gap-2">
-          <Eye className="size-4 shrink-0" aria-hidden="true" />
+          <Eye className="size-4 shrink-0 text-on-night-muted" aria-hidden="true" />
           <span>
             <span className="font-semibold">Preview</span> with fictional sample data — nothing you
             do here is saved.{" "}
-            <a href={`${PREVIEW_ROOT}/progress/`} className="underline underline-offset-2">
+            <a
+              href={`${PREVIEW_ROOT}/progress/`}
+              className="text-on-night-muted underline underline-offset-2 hover:text-on-night"
+            >
               Build progress
             </a>
           </span>
         </p>
         <nav aria-label="Preview view" className="flex items-center gap-1">
-          <span className="mr-1 text-ink-muted">View as</span>
+          <span className="mr-1 text-on-night-muted">View as</span>
           {(["student", "mentor"] as const).map((persona) => (
             <a
               key={persona}
@@ -60,8 +63,8 @@ export function PreviewBanner() {
               className={cn(
                 "rounded-full px-3 py-1 font-medium transition-colors",
                 persona === PREVIEW_PERSONA
-                  ? "bg-surface text-ink shadow-sm"
-                  : "text-ink-muted hover:bg-surface/60 hover:text-ink",
+                  ? "bg-white text-night shadow-sm"
+                  : "text-on-night-muted hover:bg-white/10 hover:text-on-night",
               )}
             >
               {persona === "student" ? "Student" : "Mentor"} ·{" "}
