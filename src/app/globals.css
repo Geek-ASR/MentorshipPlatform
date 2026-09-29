@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
-/* Design tokens (docs/22 §5–6, ADR-058): the founder's palette — sage #97B3AE, pale sage
+/* Design tokens (docs/22 §5–6, ADR-058, ADR-059): the founder's palette — sage #97B3AE, pale sage
  * #D2E0D3, blush #F0DDD6, dusty pink #F2C3B9, greige #D6CBBF, off-white #F0EEEA — used as-is for
  * surfaces, tints and brand moments. Those six are too light to carry text, so text and actions use
- * deep shades of the same hues (sage → #3A615A, pink → #9E4A3B). The deep "night" surface is a
+ * deeper, more saturated shades of the same hues (sage → #1E6759, pink → #A33B29) — vivid enough
+ * that buttons read as bright and luminous, not muted (ADR-059). The deep "night" surface is a
  * forest shade of the sage. Every text pair meets WCAG 2.2 AA (tests/unit/ui/palette-contrast). */
 :root {
   --sage: #97b3ae;
@@ -16,11 +17,11 @@
   --line: #ddd4ca;
   --ink: #1f2b29;
   --ink-muted: #56645f;
-  --primary: #3a615a;
-  --primary-strong: #2c4b45;
+  --primary: #1e6759;
+  --primary-strong: #174f45;
   --on-primary: #ffffff;
   --primary-soft: #d2e0d3;
-  --accent: #9e4a3b;
+  --accent: #a33b29;
   --on-accent: #ffffff;
   --accent-soft: #f0ddd6;
   --accent-ink: #8a3f32;
@@ -35,7 +36,7 @@
   --success: #2d6a4c;
   --warning: #8a5712;
   --danger: #a33a31;
-  --focus: #3a615a;
+  --focus: #1e6759;
   --shadow-color: 31 43 41;
   /* Avatar/identity tones from the palette: soft background + deep foreground, each pair ≥ 5.6:1. */
   --tone-1-bg: #d2e0d3;
@@ -65,11 +66,11 @@
     --line: #2e3a37;
     --ink: #eeeae4;
     --ink-muted: #a9b5b1;
-    --primary: #97b3ae;
-    --primary-strong: #b2c8c4;
+    --primary: #54d4bd;
+    --primary-strong: #7ee6d3;
     --on-primary: #142220;
     --primary-soft: #243431;
-    --accent: #f2c3b9;
+    --accent: #ed795e;
     --on-accent: #3a1c15;
     --accent-soft: #3a2a25;
     --accent-ink: #f2c3b9;
@@ -81,7 +82,7 @@
     --success: #7fc9a4;
     --warning: #e5b366;
     --danger: #f29a8f;
-    --focus: #97b3ae;
+    --focus: #54d4bd;
     --shadow-color: 0 0 0;
     --tone-1-bg: #243431;
     --tone-1-fg: #bfd6d0;
@@ -110,11 +111,11 @@
   --line: #2e3a37;
   --ink: #eeeae4;
   --ink-muted: #a9b5b1;
-  --primary: #97b3ae;
-  --primary-strong: #b2c8c4;
+  --primary: #54d4bd;
+  --primary-strong: #7ee6d3;
   --on-primary: #142220;
   --primary-soft: #243431;
-  --accent: #f2c3b9;
+  --accent: #ed795e;
   --on-accent: #3a1c15;
   --accent-soft: #3a2a25;
   --accent-ink: #f2c3b9;
@@ -126,7 +127,7 @@
   --success: #7fc9a4;
   --warning: #e5b366;
   --danger: #f29a8f;
-  --focus: #97b3ae;
+  --focus: #54d4bd;
   --shadow-color: 0 0 0;
   --tone-1-bg: #243431;
   --tone-1-fg: #bfd6d0;
