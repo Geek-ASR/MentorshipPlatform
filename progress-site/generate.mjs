@@ -10,7 +10,8 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
 const roadmapPath = path.join(repoRoot, "docs/19-mvp-roadmap.md");
-const outDir = path.join(repoRoot, "dist-pages");
+// The UI preview owns the site root (docs/19 Phase 15e); the workflow puts this page under /progress/.
+const outDir = path.resolve(repoRoot, process.env.PROGRESS_OUT_DIR ?? "dist-pages");
 
 function sh(cmd, fallback) {
   try {
@@ -260,8 +261,10 @@ const html = `<!doctype html>
     This is a static progress tracker, not the live product. Aheadly needs a server and a database
     (accounts, mentor search, bookings), so it can't run on GitHub Pages itself — it will deploy to a
     real host per <a href="https://github.com/${repoSlug}/blob/main/docs/14-deployment.md">docs/14-deployment.md</a>
-    once a sandbox beta is ready. In the meantime, every phase below is built and tested against a real
-    Postgres database and merged straight to <code>main</code> — see the
+    once a sandbox beta is ready. To see what it looks like, browse the
+    <a href="../">UI preview</a>: every page, rendered from fictional sample data, where nothing you do
+    is saved. Every phase below is built and tested against a real Postgres database and merged
+    straight to <code>main</code> — see the
     <a href="https://github.com/${repoSlug}">source</a> and
     <a href="https://github.com/${repoSlug}/blob/main/docs/19-mvp-roadmap.md">full roadmap</a>.
   </div>

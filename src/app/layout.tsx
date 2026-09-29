@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Sans, Source_Serif_4 } from "next/font/google";
 import { brand } from "@/config/brand";
+import { PREVIEW } from "@/config/preview";
+import { PreviewBanner } from "@/ui/preview-banner";
 import { ToastProvider } from "@/ui/toast";
 import "./globals.css";
 
@@ -45,7 +47,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${instrumentSans.variable} ${sourceSerif.variable} antialiased`}>
       <body className="flex min-h-dvh flex-col">
-        <ToastProvider>{children}</ToastProvider>
+        <ToastProvider>
+          {PREVIEW ? <PreviewBanner /> : null}
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );

@@ -273,6 +273,8 @@ flowchart LR
 
 ## Phase 15 — Student/mentor application UI (L)
 
+**Status:** ✅ complete (2026-09-29) — five sub-phases (15a–15e below), each merged with green CI. The whole UI can be browsed at the [GitHub Pages preview](https://geek-asr.github.io/MentorshipPlatform/) on fictional sample data, as a student or as a mentor.
+
 **Inserted 2026-09-26**, between Security review and Deploy sandbox beta, per the founder's decision on Phase 13's own finding: every backend bounded context through Phase 13 (auth, profiles, booking, payments, group sessions/events, trust & safety) is real, tested, and API-complete — but no browser UI exists for a student or mentor to actually use any of it. Phases 5–10 each explicitly and honestly deferred this ("no sign-in page yet," "no mentor scheduling/service self-management UI," "no self-serve mentor application wizard UI") as the right call at the time, prioritizing correctness of the harder, more failure-prone backend first. This phase is where those deferrals get paid off, before real people are invited to a beta they'd have no way to use.
 
 **Scope:** sign-in, sign-up, password-reset (request + confirm) and email-verification pages; a student/mentor account area; the mentor application wizard (docs/22 §3 J2, deferred since Phase 6); mentor self-service availability/services management (deferred since Phase 7); an interactive slot-picker and booking flow on the mentor profile page, replacing the current static "here are some open slots, sign in elsewhere" rendering; a checkout UI against the existing fake payment gateway; booking confirmation, a "my bookings" page (view/cancel/reschedule/ICS download), and the session-join flow; free-event registration and waitlist UI; post-session review submission; user-facing report and appeal submission forms (the admin side of both already exists from Phase 10/11). No new backend work is expected — every one of these has a working, tested API already; this phase is the missing browser surface only. Booking-scoped messaging stays out of scope (its backend was never built either, a separate Phase 7 deferral — docs/05 §2's own bounded-context split treats it as its own pass).
@@ -396,6 +398,26 @@ flowchart LR
 - **Not yet in the hosting page:** invite links for private events, changing a group's capacity, and editing an event's meeting link (all but the last exist in the API). The page warns when an upcoming event has no link.
 
 **Tested:** 358 unit (+3: wall-clock times across a daylight-saving change) / 148 integration (+4: a late appeal refused and the appeal shown on the standing; profile and event reports decided against their owner; no cancelling or moving once started, for either side; same-titled events created at once — plus the time-clash field error and the public seat count, including a private event's 404, in existing tests) / 66 E2E passing on the PR-smoke Chromium projects, 6 skipped by design (+5: docs/13 E8 on desktop and mobile, E9's member side on desktop and mobile, E10 on desktop; axe on the event page, the booking page after a session, and Safety settings).
+
+### 15e — GitHub Pages preview ✅ (2026-09-29)
+
+**Built:**
+- **A static preview of the whole UI** at [geek-asr.github.io/MentorshipPlatform](https://geek-asr.github.io/MentorshipPlatform/), rendered from the same seeded demo data the e2e suite uses (ADR-056): every public page (home, explore, 12 mentor profiles, events, guides, career, study-abroad and university pages) and every signed-in page — dashboard, bookings (each booking's own page), payments, saved mentors, settings including Safety, and the whole mentor area. About 230 pages.
+- **Two views:** the root shows the demo student (Ishaan) and `/as-mentor/` the demo mentor (Ananya); a banner on every page says the data is fictional and nothing is saved, and switches between them. The build-progress dashboard moved to `/progress/`, linked both ways.
+- **Things in the browser still work:** the slot picker shows real open times, event pages show live-at-build seat counts and registration state, the group price preview computes, menus, dialogs, tabs and forms all open. Anything that would change data answers "This is a preview with fictional sample data, so nothing can be saved or sent here" in place, and links that need the server (calendar files, joining a call) explain themselves instead of 404ing.
+- **How:** `scripts/preview/build.mjs` builds a copy of the app without the parts that need a server (API, staff console, checkout, generated social images), with `revalidate` stripped and `generateStaticParams` added (`src/preview/static-params.ts`), once per persona; `scripts/preview/snapshot.ts` captures what the browser reads by calling the real route handlers as that persona. Three small seams in the app, all behind build-time flags that are off in every real build: the page viewer returns the persona, `api()` reads snapshots and refuses writes (`src/ui/preview-api.ts`), and the root layout shows the banner.
+- **Deployment:** `.github/workflows/pages.yml` seeds a throwaway Postgres, builds both views and the progress page, and deploys on every push to `main` and daily — so "in 2 days" stays true.
+
+**Found and fixed along the way:**
+1. **Sign-out used an absolute `/` redirect**, and the grievance page a raw `<a>` — both break under any base path. Now base-path aware.
+
+**Deviations, decided and documented:**
+- **Filters and search don't narrow results in the preview** — explore, guides and the booking-confirmation banner read query strings on the server, which a static page can't. The pages show their unfiltered state.
+- **Checkout, the staff console, calendar files and join links aren't in the preview** — they need the server. Booking stops at the read-only message.
+- **Times reflect the last build** (daily), and the demo accounts' own clock-driven states — a session ending, a waitlist offer expiring — don't advance between builds.
+- **The preview is `noindex`** (robots meta on every page, and a disallow-all `robots.txt` in the copy) — it's fictional data and must never compete with the real site in search.
+
+**Tested:** 362 unit (+4: the preview adapter's snapshot mapping and slot window, the offline price preview, and read-only refusals) / 148 integration / 66 E2E on the PR-smoke Chromium projects, 6 skipped by design — all unchanged in normal builds, which never enable the preview flags. The preview itself was crawled locally (232 pages, no broken internal links other than the progress page and the server-only calendar links it intercepts) and checked in a browser at 1440 px and 320 px.
 
 ## Phase 16 — Deploy sandbox beta (S)
 

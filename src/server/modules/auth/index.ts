@@ -48,6 +48,7 @@ export {
 } from "./application/dtos";
 
 export {
+  findUserByEmail,
   findUserById,
   findUsersByIds,
   grantRole,

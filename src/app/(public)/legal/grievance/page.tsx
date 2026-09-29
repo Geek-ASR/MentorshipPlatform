@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { brand } from "@/config/brand";
 import { LegalDocument } from "@/ui/legal-shell";
 
@@ -14,9 +15,9 @@ export default function GrievancePage() {
       <p>
         This policy explains how to raise a complaint about the platform itself — separate from
         reporting another user (see our{" "}
-        <a href="/legal/community-guidelines" className="text-primary hover:underline">
+        <Link href="/legal/community-guidelines" className="text-primary hover:underline">
           Community Guidelines
-        </a>
+        </Link>
         ) or disputing a specific booking outcome (available from the booking itself).
       </p>
 

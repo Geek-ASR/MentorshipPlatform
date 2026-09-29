@@ -425,3 +425,12 @@ New ADRs are appended; superseded ADRs are marked, not deleted.
 - **Decision:** (b). `cancelBooking`, `getCancellationQuote` and `requestReschedule` refuse with `INVALID_STATE_TRANSITION` once `now ≥ start` (an unpaid hold can still be abandoned). The booking page hides Cancel and Reschedule at the start, keeps Join until the end, and shows "How did it go?" from the start; a mentor no-show is refunded in full automatically through that flow.
 - **Reason:** It closes a real refund hole with the smallest change, and sends every "something went wrong" case down the path built for it.
 - **Revisit when:** a legitimate need to cancel mid-session appears (for example, an emergency in the first minutes) — that belongs in the dispute flow as a new outcome, not in cancellation.
+
+### ADR-056 — The UI preview is a static export of the real app on seeded demo data, with API reads captured from the real handlers (Phase 15e)
+- **Problem:** The founder asked to see and click through the finished UI on GitHub Pages. Pages serves static files only; the app renders from Postgres, reads a session cookie, and calls its own API from the browser.
+- **Options:** (a) screenshots or a recorded walkthrough; (b) a separate mock front-end with hand-written fixture data; (c) export the real app statically against the seeded demo database, with a thin preview seam for the browser's API calls; (d) host the real app somewhere free.
+- **Trade-offs:** (a) can't be clicked. (b) drifts from the product the moment either changes, and doubles the UI to maintain. (d) is Phase 16's job (a real sandbox with its own security posture) and needs a host, database and secrets — not a preview. (c) shows exactly the product's own pages and data; its limits are what a static host can't do (writes, query-string filtering, server-only links), each of which can be stated in place.
+- **Decision:** (c). A build script exports a copy of the app per persona (student at the root, mentor under `/as-mentor/`) with server-only parts removed and every dynamic path listed; the page viewer returns the persona, and `api()` serves JSON snapshots captured by calling the real route handlers, refusing writes with a plain message. The seams are build-time constants (`NEXT_PUBLIC_PREVIEW*`), dead code in every real build. The site is `noindex` and rebuilt daily.
+- **Reason:** One UI, reviewed as it really is, with no second codebase to keep in step.
+- **Revisit when:** the Phase 16 sandbox is live — it can replace the preview, or the preview can stay as a zero-cost, always-on showcase.
+

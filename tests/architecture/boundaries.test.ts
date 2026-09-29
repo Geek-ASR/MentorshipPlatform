@@ -87,6 +87,11 @@ describe("architecture boundaries", () => {
       "NEXT_PUBLIC_TURNSTILE_SITE_KEY",
       "NEXT_PUBLIC_SENTRY_DSN",
       "NEXT_PUBLIC_RAZORPAY_KEY_ID",
+      // GitHub Pages preview build flags (docs/19 Phase 15e, src/config/preview.ts) — not secrets.
+      "NEXT_PUBLIC_PREVIEW",
+      "NEXT_PUBLIC_PREVIEW_PERSONA",
+      "NEXT_PUBLIC_BASE_PATH",
+      "NEXT_PUBLIC_PREVIEW_ROOT",
     ]);
     const used = sourceFiles.flatMap(({ file, content }) =>
       [...content.matchAll(/NEXT_PUBLIC_[A-Z0-9_]+/g)].map((match) => ({ file, name: match[0] })),

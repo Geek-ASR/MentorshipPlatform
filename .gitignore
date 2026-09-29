@@ -9,6 +9,7 @@ out/
 build/
 dist/
 dist-pages/
+.preview/
 *.tsbuildinfo
 next-env.d.ts
 

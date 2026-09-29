@@ -50,4 +50,18 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+/**
+ * The GitHub Pages preview (docs/19 Phase 15e) is a static export served under the repo's path.
+ * Static hosting can't send headers, so there are none; `scripts/preview/build.mjs` builds a copy
+ * of the app without the API, the staff console or checkout, which need a server.
+ */
+const previewConfig: NextConfig = {
+  poweredByHeader: false,
+  reactStrictMode: true,
+  output: "export",
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH ?? "",
+  trailingSlash: true,
+  images: { unoptimized: true },
+};
+
+export default process.env.NEXT_PUBLIC_PREVIEW === "1" ? previewConfig : nextConfig;
