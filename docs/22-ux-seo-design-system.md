@@ -85,37 +85,37 @@ Basics → Expertise → Education & work → Eligibility (country, status; expl
 
 - **Working name:** Aheadly (placeholder; trademark/domain clearance pending). Name lives only in `src/config/brand.ts` (ADR-020). A web search found no mentorship platform using this name; "Been There" is taken by a UK mentoring app.
 - **Tagline:** *Guidance from people who've been there.*
-- **Logo concept:** lowercase wordmark `aheadly` with a mark of **two offset rounded squares forming a step** ("one step ahead") — the lower square in neel indigo, the upper in rani rose (white and rose on night surfaces). The mark still works as a monochrome favicon; no gradients in the mark itself.
+- **Logo concept:** lowercase wordmark `aheadly` with a mark of **two offset rounded squares forming a step** ("one step ahead") — the lower square in deep sage, the upper in dusty pink (white and dusty pink on the forest surface). The mark still works as a monochrome favicon; no gradients in the mark itself.
 - **Voice:** clear, warm, specific, honest about limits ("mentor experience, not official advice"). No hype ("guaranteed", "top 1%").
 - **Imagery:** real mentor photos (consented), simple line illustrations for empty states; no stock-photo handshakes.
 
 ## 6. Design language & tokens
 
-### 6.1 Colour (WCAG-checked pairs) — "Neel & Rani" (ADR-057, replaces Harbor & Saffron)
+### 6.1 Colour (WCAG-checked pairs) — the founder's palette (ADR-058, replaces "Neel & Rani")
 
-Deep ink-indigo (after *neel*, indigo dye) carries the brand and every action; rani rose is a sparing accent (eyebrows, highlights, one CTA per view at most); gold is reserved for ratings. Neutrals are cool and crisp. A **night** surface — deep indigo with soft indigo, violet and rose light — marks the brand moments: the home hero, the sign-in panel, the mentor band, the footer and the preview banner.
+The palette: **sage `#97B3AE`**, **pale sage `#D2E0D3`**, **blush `#F0DDD6`**, **dusty pink `#F2C3B9`**, **greige `#D6CBBF`**, **off-white `#F0EEEA`**. These six are used as-is for the page, tints, soft badges, avatar tones and brand light. They are too light to carry text (at most 2.2:1 on white), so text and actions use **deep shades of the same hues**: deep sage for the brand and every action, terracotta (from the dusty pink) as a sparing accent. The home hero is light — the off-white with pale-sage, blush and pink light and a faint grid, "been there." in deep sage over a dusty-pink marker stroke. A deep **forest** shade of the sage carries the grounding moments: the sign-in panel, the mentor band, the footer and the preview banner. In dark mode the palette's sage and pink themselves become the action and accent colours.
 
 | Token | Light | Dark | Use | Contrast note |
 |-------|-------|------|-----|---------------|
-| `--canvas` | `#F5F6FB` | `#0B0C1C` | Page background | — |
-| `--surface` | `#FFFFFF` | `#141634` | Cards, sheets, header | — |
-| `--line` | `#E2E4F0` | `#272A52` | Dividers, inputs | Non-text |
-| `--ink` | `#141638` | `#EDEEF9` | Body text | 16.2:1 on canvas (light), 16.8:1 (dark) |
-| `--ink-muted` | `#585C7E` | `#A6A9CB` | Secondary text | 6.0:1 on canvas (light), 8.5:1 (dark) ✓ |
-| `--primary` | `#3B3FD4` (Neel) | `#9197FF` | Primary buttons, links, focus | White on light 7.4:1 ✓; dark text on dark 7.5:1 ✓ |
-| `--primary-strong` | `#2C2FB0` | `#AEB2FF` | Primary hover/pressed | White on light 9.8:1 ✓ |
-| `--primary-soft` | `#ECEDFD` | `#1D2055` | Selected rows, icon wells | Primary text on it 6.4:1 ✓ |
-| `--accent` | `#C92D66` (Rani) | `#FF7AA6` | Eyebrows, highlights, the mentor CTA | White on light 5.2:1 ✓; 4.8:1 as text on canvas ✓ |
-| `--accent-soft` / `--accent-ink` | `#FDE9F0` / `#A8174E` | `#3B1B2E` / `#FFB3CC` | Soft badges ("New mentor", drafts) | 6.2:1 (light), 9.1:1 (dark) ✓ |
-| `--star` | `#F2A900` | `#FFC43D` | Rating stars and bars only | Decorative — ratings always show the number |
-| `--night` / `--night-2` | `#0E1030` / `#1A1C52` | `#07081A` / `#121440` | Brand surfaces | `--on-night` white 18.5:1; `--on-night-muted` `#B7BAE0` 9.8:1 ✓ |
-| `--success` | `#0A7249` | `#3DD39A` | Confirmed states | 5.5:1 on canvas; 4.8:1 on its own 10% tint ✓ |
-| `--warning` | `#9A4A05` | `#F5A524` | Holds, expiring | 5.8:1 on canvas; 5.0:1 on its 10% tint ✓ |
-| `--danger` | `#B3223A` | `#FF7A85` | Errors, destructive | 6.1:1 on canvas; 5.2:1 on its 10% tint; white on it 6.6:1 ✓ |
+| `--canvas` | `#F0EEEA` (off-white) | `#141B1A` | Page background | — |
+| `--surface` | `#FFFFFF` | `#1C2523` | Cards, sheets, header | — |
+| `--line` | `#DDD4CA` (from greige) | `#2E3A37` | Dividers, inputs | Non-text |
+| `--ink` | `#1F2B29` | `#EEEAE4` | Body text | 12.6:1 on canvas (light), 14.6:1 (dark) |
+| `--ink-muted` | `#56645F` | `#A9B5B1` | Secondary text | 5.4:1 on canvas (light), 8.3:1 (dark) ✓ |
+| `--primary` | `#3A615A` (deep sage) | `#97B3AE` (sage) | Buttons, links, focus | White on light 6.9:1 ✓; dark text on sage 7.3:1 ✓ |
+| `--primary-strong` | `#2C4B45` | `#B2C8C4` | Hover/pressed | 9.6:1 / 9.3:1 ✓ |
+| `--primary-soft` | `#D2E0D3` (pale sage) | `#243431` | Selected rows, icon wells | Primary text on it 5.1:1 / 5.8:1 ✓ |
+| `--accent` | `#9E4A3B` (terracotta) | `#F2C3B9` (dusty pink) | Eyebrows, the mentor CTA | 5.2:1 on canvas; white on it 6.0:1 ✓ |
+| `--accent-soft` / `--accent-ink` | `#F0DDD6` (blush) / `#8A3F32` | `#3A2A25` / `#F2C3B9` | Soft badges | 5.6:1 / 8.6:1 ✓ |
+| `--star` | `#D49A2A` | `#E8B85A` | Rating stars and bars only | Decorative — ratings always show the number |
+| `--night` / `--night-2` | `#1F2F2C` / `#2C433E` (forest) | `#0F1716` / `#1A2825` | Grounding surfaces | White 10.6:1+; `--on-night-muted` `#C8D6D2` 7.1:1+ ✓ |
+| `--success` | `#2D6A4C` | `#7FC9A4` | Confirmed states | 5.5:1 on canvas; 4.8:1 on its 10% tint ✓ |
+| `--warning` | `#8A5712` | `#E5B366` | Holds, expiring | 5.3:1; 4.6:1 on its tint ✓ |
+| `--danger` | `#A33A31` | `#F29A8F` | Errors, destructive | 5.7:1; 4.9:1 on its tint ✓ |
 
-Six identity tones (indigo, rose, violet, emerald, amber, sky) give avatars a stable colour per person; every foreground/background pair is ≥ 5.7:1 in light mode and ≥ 8.4:1 in dark. Highlighted words on the night surface use a light indigo → rose gradient (≥ 8.8:1 at every stop).
+Six identity tones built from the palette (sage, blush, pink, greige, mist, clay) give avatars a stable colour per person; every pair is ≥ 5.6:1 light and ≥ 8.5:1 dark. The logo mark is deep sage and dusty pink (white and dusty pink on the forest surface).
 
-Colour is never the only carrier of meaning (icons + text for statuses). Final values are re-verified with an automated contrast check in the design-system test suite, and axe runs in the e2e journeys.
+Colour is never the only carrier of meaning (icons + text for statuses). `tests/unit/ui/palette-contrast.test.ts` reads the real tokens and checks every text pair above in light and dark mode, plus status text on its own tint; axe runs in the e2e journeys.
 
 ### 6.2 Typography
 - **UI & headings:** *Instrument Sans* (open licence), weights 400/500/600.
