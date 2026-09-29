@@ -109,14 +109,14 @@ export default async function HomePage() {
     <>
       <section
         aria-labelledby="hero-title"
-        className="bg-night-aurora relative overflow-hidden text-on-night"
+        className="bg-hero-bloom relative overflow-hidden border-b border-line text-ink"
       >
-        <div aria-hidden="true" className="bg-night-grid absolute inset-0" />
+        <div aria-hidden="true" className="bg-hero-grid absolute inset-0" />
         <Container className="relative grid grid-cols-1 gap-12 py-16 md:py-24 lg:grid-cols-[1.15fr_1fr] lg:items-center">
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full bg-white/[0.07] px-3 py-1 text-xs font-medium text-on-night-muted ring-1 ring-white/15">
+            <p className="inline-flex items-center gap-2 rounded-full bg-surface/70 px-3 py-1 text-xs font-medium text-ink-muted ring-1 ring-line backdrop-blur">
               <span
-                className="size-1.5 rounded-full bg-[var(--glow-2)] shadow-[0_0_10px_2px_rgb(255_79_139/0.6)]"
+                className="size-1.5 rounded-full bg-accent shadow-[0_0_10px_2px_color-mix(in_oklab,var(--petal)_90%,transparent)]"
                 aria-hidden="true"
               />
               For students in India and beyond
@@ -126,9 +126,9 @@ export default async function HomePage() {
               className="mt-6 max-w-2xl font-serif text-[2.6rem] leading-[1.08] font-semibold tracking-tight sm:text-6xl"
             >
               Guidance from people who&apos;ve{" "}
-              <span className="text-glow whitespace-nowrap">been there.</span>
+              <span className="text-bloom whitespace-nowrap">been there.</span>
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-on-night-muted">
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-muted">
               Affordable mentorship from professionals, alumni and researchers who recently landed
               the job, cleared the interview or moved to the city you&apos;re heading to.
             </p>
@@ -137,7 +137,7 @@ export default async function HomePage() {
               <label htmlFor="hero-search" className="sr-only">
                 What do you need help with?
               </label>
-              <div className="flex gap-2 rounded-[var(--radius-card)] bg-surface p-2 shadow-[0_24px_60px_-16px_rgb(0_0_0/0.55)] ring-1 ring-white/10">
+              <div className="flex gap-2 rounded-[var(--radius-card)] bg-surface p-2 shadow-[var(--shadow-overlay)] ring-1 ring-line">
                 <div className="relative flex-1">
                   <Search
                     className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-ink-muted"
@@ -157,12 +157,12 @@ export default async function HomePage() {
               </div>
             </form>
             <div className="mt-5 flex flex-wrap items-center gap-2 text-sm">
-              <span className="text-on-night-muted">Popular:</span>
+              <span className="text-ink-muted">Popular:</span>
               {POPULAR_SEARCHES.map((topic) => (
                 <Link
                   key={topic}
                   href={`/mentors?q=${encodeURIComponent(topic)}`}
-                  className="rounded-full bg-white/[0.07] px-3 py-1 text-on-night-muted ring-1 ring-white/15 transition-colors hover:bg-white/[0.14] hover:text-on-night"
+                  className="rounded-full bg-surface/70 px-3 py-1 text-ink-muted ring-1 ring-line backdrop-blur transition-colors hover:bg-surface hover:text-ink"
                 >
                   {topic}
                 </Link>
@@ -174,9 +174,9 @@ export default async function HomePage() {
             <div className="relative mx-auto w-full max-w-md lg:mr-0">
               <div
                 aria-hidden="true"
-                className="absolute -inset-6 rounded-[2rem] bg-[radial-gradient(closest-side,rgb(91_95_255/0.45),transparent)] blur-2xl"
+                className="absolute -inset-6 rounded-[2rem] bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--sage)_45%,transparent),transparent)] blur-2xl"
               />
-              <div className="relative rounded-[var(--radius-sheet)] bg-surface p-2 text-ink shadow-[0_32px_80px_-20px_rgb(0_0_0/0.6)] ring-1 ring-white/10">
+              <div className="relative rounded-[var(--radius-sheet)] bg-surface p-2 text-ink shadow-[var(--shadow-overlay)] ring-1 ring-line">
                 <p className="px-4 pt-3 pb-2 text-xs font-medium tracking-wide text-ink-muted uppercase">
                   Meet a few of our mentors
                 </p>
@@ -391,7 +391,7 @@ export default async function HomePage() {
             />
             {LADDER.map((step, index) => (
               <li key={step.title} className="relative">
-                <span className="relative flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-primary to-[var(--glow-3)] text-white shadow-[0_8px_20px_-8px_color-mix(in_oklab,var(--primary)_70%,transparent)] ring-4 ring-canvas">
+                <span className="relative flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary-strong text-on-primary shadow-[0_8px_20px_-8px_color-mix(in_oklab,var(--primary)_70%,transparent)] ring-4 ring-canvas">
                   <step.icon className="size-5" aria-hidden="true" />
                 </span>
                 <p className="tabular mt-5 text-xs font-medium tracking-wide text-ink-muted uppercase">

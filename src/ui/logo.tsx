@@ -19,7 +19,8 @@ export function LogoMark({
         rx="4"
         className={inverse ? "fill-white" : "fill-primary"}
       />
-      <rect x="15" y="3" width="14" height="14" rx="4" className="fill-accent" />
+      {/* The brand's dusty pink (#F2C3B9) in every mode — the dark-mode petal token is a deep tint. */}
+      <rect x="15" y="3" width="14" height="14" rx="4" className="fill-[#f2c3b9]" />
     </svg>
   );
 }

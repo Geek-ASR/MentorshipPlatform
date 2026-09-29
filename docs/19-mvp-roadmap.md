@@ -432,6 +432,10 @@ The founder's review of the preview: the colours felt generic and not beautiful.
 
 **Tested:** 365 unit (+3 contrast) / 149 integration (+1: a day's cap used earlier in the day hides later times) / 66 E2E on Chromium, 6 skipped by design, with axe on every journey that had it.
 
+### After 15e — The founder's palette (2026-09-29)
+
+The founder then supplied the brand palette: sage `#97B3AE`, pale sage `#D2E0D3`, blush `#F0DDD6`, dusty pink `#F2C3B9`, greige `#D6CBBF`, off-white `#F0EEEA` (ADR-058, docs/22 §6.1). All six are used as-is for the page, tints, soft badges, avatar tones, brand light and the logo; because they are too light for text (≤ 2.2:1 on white), text and actions use deep shades of the same hues — deep sage for actions, terracotta for accents, a forest sage for the sign-in panel, mentor band, footer and preview banner. The home hero became light (pale-sage, blush and pink light on the off-white; "been there." over a dusty-pink marker). Every text pair passes AA in light and dark mode — enforced by the contrast test added in the previous refresh — and axe passes in every e2e journey.
+
 ## Phase 16 — Deploy sandbox beta (S)
 
 **Scope:** host decision per [14 §3](14-deployment.md#3-hosting-decision-procedure-phase-16); Supabase staging (Mumbai) setup checklist; Razorpay test-mode webhooks; `pg_cron` tick; backups + restore drill; uptime + alerts; Sentry; invite-only beta (feature flag); beta feedback loop.
