@@ -29,7 +29,11 @@ describe("TOTP secret encryption at rest", () => {
 
   it("fails to decrypt a tampered ciphertext", () => {
     const encrypted = encryptTotpSecret(secret, masterSecret);
-    const tampered = { ...encrypted, ciphertext: encrypted.ciphertext.slice(0, -2) + "AA" };
+    // Flip one bit of the decoded bytes. (Swapping trailing base64 characters doesn't always
+    // change the bytes, so that version of this test passed or failed at random.)
+    const bytes = Buffer.from(encrypted.ciphertext, "base64url");
+    bytes[0]! ^= 0x01;
+    const tampered = { ...encrypted, ciphertext: bytes.toString("base64url") };
     expect(() => decryptTotpSecret(tampered, masterSecret)).toThrow();
   });
 });
